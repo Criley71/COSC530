@@ -1,11 +1,13 @@
+#include <bitset>
 #include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <typeinfo>
-#include <bitset>
-#include <sstream>
+#include <unordered_map>
 using namespace std;
 /*
 dtlb = data translation lookaside buffer
@@ -59,6 +61,7 @@ Config init(); // function to read in config and set variables
 bool check_pwr_2(int val);
 void print_config_after_read(Config config);
 void read_data_file(Config config);
+string binary_to_hex(string bin_val);
 
 int main(int argc, char *argv[]) {
   Config config = init();
@@ -227,32 +230,32 @@ Config init() {
               config.l2_write_thru_no_allo = false;
             } else if (val == "y") {
               config.l2_write_thru_no_allo = true;
-            } 
+            }
             val = "";
           }
         }
-      } else if (line.find("Virtual addresses") == 0){
+      } else if (line.find("Virtual addresses") == 0) {
         colon_index = line.find(":") + 2;
         val = line.substr(colon_index, line.size());
-        if(val == "y"){
+        if (val == "y") {
           config.virt_addr = true;
-        }else if (val == "n"){
+        } else if (val == "n") {
           config.virt_addr = false;
         }
         val = "";
-      } else if (line.find("TLB") == 0){
+      } else if (line.find("TLB") == 0) {
         colon_index = line.find(":") + 2;
-        if(val == "y"){
+        if (val == "y") {
           config.dtlb_enabled = true;
-        }else if (val == "n") {
+        } else if (val == "n") {
           config.dtlb_enabled = false;
         }
         val = "";
-      } else if (line.find("L2 cache") == 0){
+      } else if (line.find("L2 cache") == 0) {
         colon_index = line.find(":") + 2;
-        if(val == "y"){
+        if (val == "y") {
           config.l2_enabled = true;
-        }else if (val == "n"){
+        } else if (val == "n") {
           config.l2_enabled = false;
         }
         val = "";
@@ -262,12 +265,9 @@ Config init() {
   return config;
 }
 
-
-
 bool check_pwr_2(int val) { // 8 = 1000, 7 = 0111 ---> 1000 & 0111 = 0000
   return (0 == ((val - 1) & val));
 }
-
 
 void print_config_after_read(Config config) {
   cout << "Data TLB contains " << config.dtlb_set_count << " sets.\n";
@@ -298,15 +298,15 @@ void print_config_after_read(Config config) {
   }
   cout << "Number of bits used for the index is " << config.l2_index_bits << ".\n";
   cout << "Number of bits used for the offset is " << config.l2_offset_bits << ".\n\n";
-  if(config.virt_addr){
+  if (config.virt_addr) {
     cout << "The addresses read in are virtual addresses.\n";
-  } else{
+  } else {
     cout << "The addresses read in are physical addresses.\n";
   }
-  if (!config.dtlb_enabled){
+  if (!config.dtlb_enabled) {
     cout << "TLB is disabled in this configuration.\n";
   }
-  if(!config.l2_enabled){
+  if (!config.l2_enabled) {
     cout << "L2 cache is disabled in this configuration.\n\n";
   }
   cout << "Physical Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2\n";
@@ -314,42 +314,113 @@ void print_config_after_read(Config config) {
   cout << "-------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----\n";
 }
 
-void read_data_file(Config config){
+void read_data_file(Config config) {
   int address;
   int virt_page_num;
   int page_off;
+  string page_off_bin;
+  string page_off_hex;
   int tlb_tag;
   int tlb_index;
   string tlb_res;
   string pt_res;
   int phys_page_num;
+  string phys_page_num_bin;
+  string phys_page_num_hex;
   int dc_tag;
+  string dc_tag_bin;
+  string dc_tag_hex;
   int dc_index;
+  string dc_index_bin;
+  string dc_index_hex;
   int dc_res;
   int l2_tag;
   int l2_ind;
-  bool is_read; //false will be on write, true on read
+  bool is_read; // false will be on write, true on read
   string l2_res;
 
-  ifstream fin("trace.dat");
+  ifstream fin("trace2.dat");
   string line;
   string hex_val;
+  string bin_string;
   stringstream ss;
   bitset<32> b;
-  
-  while(getline(fin, line)){
-    if(line.find("R") == 0){
+
+  while (getline(fin, line)) {
+    if (config.virt_addr == false) {
       hex_val = line.substr(2, line.size());
-      cout << hex_val << "\n";
+      // cout << hex_val << ": ";
       ss << hex << hex_val;
       unsigned n;
+
       ss >> n;
-      ss.clear();
-      
+      // cout << n;
+      // if (n >= config.physical_page_count) {
+      //  cout << "hierarchy: physical address " << hex << n << " is too large.\n";
+      //  exit(-1);
+      // }
+
       b = bitset<32>(n);
-      b.to_string();
-      cout << b << "\n";
+      bin_string = b.to_string();
+      // cout << bin_string << "\n";
+      phys_page_num_bin = bin_string.substr(0, (32 - config.pt_offset_bit));
+
+      phys_page_num_hex = binary_to_hex(phys_page_num_bin);
+      phys_page_num = stoi(phys_page_num_hex, 0, 16);
+
+      if (phys_page_num >= config.physical_page_count) {
+        cout << "hierarchy: physical address " << hex << n << " is too large.\n";
+        exit(-1);
+      }
+      cout << hex << setw(8) << setfill('0') << n;
+      ss.clear();
+
+      cout << " " << setw(7) << setfill(' '); // no v address if false so just print empty space
+      page_off_bin = bin_string.substr(32 - (config.pt_offset_bit));
+      // cout << page_off_bin.length();
+      page_off_hex = binary_to_hex(page_off_bin);
+      cout << " " << setw(4) << page_off_hex;
+      page_off = stoi(page_off_hex, 0, 16);
+
+      cout << " " << setw(21);
+      cout << " " << setw(4) << phys_page_num;
+
+      dc_tag_bin = bin_string.substr(0, (32 - (config.dc_index_bits + config.dc_offset_bits)));
+      dc_tag_hex = binary_to_hex(dc_tag_bin);
+      dc_tag = stoi(dc_tag_hex, 0, 16);
+      cout << " " << setw(6) << dc_tag;
+
+      dc_index_bin = bin_string.substr((32 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+      dc_index_hex = binary_to_hex(dc_index_bin);
+      dc_index = stoi(dc_index_bin, 0, 16);
+      cout << " " << setw(3) << dc_index << "\n";
     }
   }
-  
+}
+
+// used https://www.geeksforgeeks.org/dsa/convert-binary-number-hexadecimal-number/ for ref
+string binary_to_hex(string bin_val) {
+  int padding = bin_val.length() % 4;
+
+  if (padding != 0) {
+    for (int i = 0; i < padding; i++) {
+      bin_val = '0' + bin_val;
+    }
+  }
+  // some vs-code bs so this map doesnt format to be on one line
+  // clang-format off
+  unordered_map<string, char> hex_map = {
+      {"0000", '0'}, {"0001", '1'}, {"0010", '2'}, {"0011", '3'}, 
+      {"0100", '4'}, {"0101", '5'}, {"0110", '6'}, {"0111", '7'}, 
+      {"1000", '8'}, {"1001", '9'}, {"1010", 'a'}, {"1011", 'b'}, 
+      {"1100", 'c'}, {"1101", 'd'}, {"1110", 'e'}, {"1111", 'f'}};
+  // clang-format on
+  string hex_val;
+  for (size_t i = 0; i < bin_val.length(); i += 4) {
+    string four_bits = bin_val.substr(i, 4);
+    hex_val += hex_map[four_bits];
+  }
+  size_t zero_check = hex_val.find_first_not_of('0');
+  if (zero_check == string::npos) return "0";
+  return hex_val;
 }

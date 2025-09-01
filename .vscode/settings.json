@@ -3,6 +3,8 @@
     "*.c ": "c",
     "iostream": "cpp",
     "iosfwd": "cpp",
-    "typeinfo": "cpp"
+    "typeinfo": "cpp",
+    "bitset": "cpp",
+    "iomanip": "cpp"
   }
 }

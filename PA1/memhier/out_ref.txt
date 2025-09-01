@@ -29,3 +29,38 @@ L2 cache is disabled in this configuration.
 Physical Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2
 Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.
 -------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----
+000000c8          c8                         0      3   0 miss 
+00000081          81                         0      2   0 miss 
+00000014          14                         0      0   1 miss 
+000000c8          c8                         0      3   0 miss 
+00000040          40                         0      1   0 miss 
+00000014          14                         0      0   1 hit  
+00000014          14                         0      0   1 hit  
+000000c8          c8                         0      3   0 miss 
+00000000           0                         0      0   0 miss 
+
+Simulation statistics
+
+dtlb hits        : 0
+dtlb misses      : 0
+dtlb hit ratio   : N/A
+
+pt hits          : 0
+pt faults        : 0
+pt hit ratio     : N/A
+
+dc hits          : 2
+dc misses        : 7
+dc hit ratio     : 0.222222
+
+L2 hits          : 0
+L2 misses        : 0
+L2 hit ratio     : N/A
+
+Total reads      : 9
+Total writes     : 0
+Ratio of reads   : 1.000000
+
+main memory refs : 7
+page table refs  : 0
+disk refs        : 0
