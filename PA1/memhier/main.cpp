@@ -4,6 +4,8 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
+#include <bitset>
+#include <sstream>
 using namespace std;
 /*
 dtlb = data translation lookaside buffer
@@ -55,11 +57,13 @@ public:
 
 Config init(); // function to read in config and set variables
 bool check_pwr_2(int val);
-
 void print_config_after_read(Config config);
+void read_data_file(Config config);
+
 int main(int argc, char *argv[]) {
   Config config = init();
   print_config_after_read(config);
+  read_data_file(config);
 }
 
 Config init() {
@@ -221,9 +225,9 @@ Config init() {
             val = line.substr(colon_index, line.size());
             if (val == "n") {
               config.l2_write_thru_no_allo = false;
-            } else {
+            } else if (val == "y") {
               config.l2_write_thru_no_allo = true;
-            }
+            } 
             val = "";
           }
         }
@@ -235,15 +239,36 @@ Config init() {
         }else if (val == "n"){
           config.virt_addr = false;
         }
+        val = "";
+      } else if (line.find("TLB") == 0){
+        colon_index = line.find(":") + 2;
+        if(val == "y"){
+          config.dtlb_enabled = true;
+        }else if (val == "n") {
+          config.dtlb_enabled = false;
+        }
+        val = "";
+      } else if (line.find("L2 cache") == 0){
+        colon_index = line.find(":") + 2;
+        if(val == "y"){
+          config.l2_enabled = true;
+        }else if (val == "n"){
+          config.l2_enabled = false;
+        }
+        val = "";
       }
     }
   }
   return config;
 }
 
+
+
 bool check_pwr_2(int val) { // 8 = 1000, 7 = 0111 ---> 1000 & 0111 = 0000
   return (0 == ((val - 1) & val));
 }
+
+
 void print_config_after_read(Config config) {
   cout << "Data TLB contains " << config.dtlb_set_count << " sets.\n";
   cout << "Each set contains " << config.dtlb_set_size << " entries.\n";
@@ -274,8 +299,57 @@ void print_config_after_read(Config config) {
   cout << "Number of bits used for the index is " << config.l2_index_bits << ".\n";
   cout << "Number of bits used for the offset is " << config.l2_offset_bits << ".\n\n";
   if(config.virt_addr){
-    cout << "The addresses read in are virtual addresses.\n\n";
+    cout << "The addresses read in are virtual addresses.\n";
   } else{
-    cout << "The addresses read in are physical addresses.\n\n";
+    cout << "The addresses read in are physical addresses.\n";
   }
+  if (!config.dtlb_enabled){
+    cout << "TLB is disabled in this configuration.\n";
+  }
+  if(!config.l2_enabled){
+    cout << "L2 cache is disabled in this configuration.\n\n";
+  }
+  cout << "Physical Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2\n";
+  cout << "Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.\n";
+  cout << "-------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----\n";
+}
+
+void read_data_file(Config config){
+  int address;
+  int virt_page_num;
+  int page_off;
+  int tlb_tag;
+  int tlb_index;
+  string tlb_res;
+  string pt_res;
+  int phys_page_num;
+  int dc_tag;
+  int dc_index;
+  int dc_res;
+  int l2_tag;
+  int l2_ind;
+  bool is_read; //false will be on write, true on read
+  string l2_res;
+
+  ifstream fin("trace.dat");
+  string line;
+  string hex_val;
+  stringstream ss;
+  bitset<32> b;
+  
+  while(getline(fin, line)){
+    if(line.find("R") == 0){
+      hex_val = line.substr(2, line.size());
+      cout << hex_val << "\n";
+      ss << hex << hex_val;
+      unsigned n;
+      ss >> n;
+      ss.clear();
+      
+      b = bitset<32>(n);
+      b.to_string();
+      cout << b << "\n";
+    }
+  }
+  
 }

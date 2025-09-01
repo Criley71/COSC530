@@ -22,5 +22,7 @@ The cache uses a write-allocate and write-back policy.
 Number of bits used for the index is 4.
 Number of bits used for the offset is 4.
 
-The addresses read in are virtual addresses.
+The addresses read in are physical addresses.
+TLB is disabled in this configuration.
+L2 cache is disabled in this configuration.
 
