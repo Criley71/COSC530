@@ -5,6 +5,8 @@
     "iosfwd": "cpp",
     "typeinfo": "cpp",
     "bitset": "cpp",
-    "iomanip": "cpp"
+    "iomanip": "cpp",
+    "vector": "cpp",
+    "string": "cpp"
   }
 }

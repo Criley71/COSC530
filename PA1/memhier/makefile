@@ -1,14 +1,17 @@
 CXX = g++
-
 CXXFLAGS = -Wall -std=c++17 -g
 
-SRC = main.cpp
+SRC = main.cpp dc.cpp
+OBJ = $(SRC:.cpp=.o)
 EXE = main
 
 all: $(EXE)
 
-main: main.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $<
+$(EXE): $(OBJ)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ)
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(EXE)
+	rm -f $(EXE) $(OBJ)

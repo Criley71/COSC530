@@ -26,3 +26,15 @@ The addresses read in are physical addresses.
 TLB is disabled in this configuration.
 L2 cache is disabled in this configuration.
 
+Physical Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2
+Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.
+-------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----
+000000c8          c8                         0      3   0 miss 
+00000081          81                         0      2   0 miss 
+00000014          14                         0      0   1 miss 
+000000c8          c8                         0      3   0 miss 
+00000040          40                         0      1   0 miss 
+00000014          14                         0      0   1 hit  
+00000014          14                         0      0   1 hit  
+000000c8          c8                         0      3   0 miss 
+00000000           0                         0      0   0 miss 

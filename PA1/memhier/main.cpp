@@ -8,6 +8,7 @@
 #include <string>
 #include <typeinfo>
 #include <unordered_map>
+#include "dc.h"
 using namespace std;
 /*
 dtlb = data translation lookaside buffer
@@ -345,7 +346,8 @@ void read_data_file(Config config) {
   string bin_string;
   stringstream ss;
   bitset<32> b;
-
+  DC DATA_CACHE = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, false, config.dc_index_bits, config.dc_offset_bits);
+  
   while (getline(fin, line)) {
     if (config.virt_addr == false) {
       hex_val = line.substr(2, line.size());
@@ -393,7 +395,12 @@ void read_data_file(Config config) {
       dc_index_bin = bin_string.substr((32 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
       dc_index_hex = binary_to_hex(dc_index_bin);
       dc_index = stoi(dc_index_bin, 0, 16);
-      cout << " " << setw(3) << dc_index << "\n";
+      cout << " " << setw(3) << dc_index;
+      if(!DATA_CACHE.check_cache(dc_index, dc_tag)){
+        cout << " miss \n";
+      }else{
+        cout << " hit  \n";
+      }
     }
   }
 }
