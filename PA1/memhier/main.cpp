@@ -54,7 +54,7 @@ public:
   bool l2_enabled;
   int l2_index_bits;
   int l2_offset_bits;
-
+  int counter = 0;
   bool virt_addr;
 };
 
@@ -396,12 +396,13 @@ void read_data_file(Config config) {
       dc_index_hex = binary_to_hex(dc_index_bin);
       dc_index = stoi(dc_index_bin, 0, 16);
       cout << " " << setw(3) << dc_index;
-      if(!DATA_CACHE.check_cache(dc_index, dc_tag)){
+      if(!DATA_CACHE.check_cache(dc_index, dc_tag, config.counter)){
         cout << " miss \n";
       }else{
         cout << " hit  \n";
       }
     }
+    config.counter += 1;
   }
 }
 
