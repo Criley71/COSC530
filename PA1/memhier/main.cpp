@@ -1,3 +1,5 @@
+#include "dc.h"
+#include "l2.h"
 #include <bitset>
 #include <cmath>
 #include <cstdio>
@@ -8,7 +10,6 @@
 #include <string>
 #include <typeinfo>
 #include <unordered_map>
-#include "dc.h"
 using namespace std;
 /*
 dtlb = data translation lookaside buffer
@@ -246,6 +247,7 @@ Config init() {
         val = "";
       } else if (line.find("TLB") == 0) {
         colon_index = line.find(":") + 2;
+        val = line.substr(colon_index, line.size());
         if (val == "y") {
           config.dtlb_enabled = true;
         } else if (val == "n") {
@@ -254,6 +256,7 @@ Config init() {
         val = "";
       } else if (line.find("L2 cache") == 0) {
         colon_index = line.find(":") + 2;
+        val = line.substr(colon_index, line.size());
         if (val == "y") {
           config.l2_enabled = true;
         } else if (val == "n") {
@@ -308,9 +311,15 @@ void print_config_after_read(Config config) {
     cout << "TLB is disabled in this configuration.\n";
   }
   if (!config.l2_enabled) {
-    cout << "L2 cache is disabled in this configuration.\n\n";
+    cout << "L2 cache is disabled in this configuration.";
   }
-  cout << "Physical Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2\n";
+
+  cout << "\n";
+  if (config.virt_addr) {
+    cout << "Virtual  Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2\n";
+  } else {
+    cout << "Physical Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2\n";
+  }
   cout << "Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.\n";
   cout << "-------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----\n";
 }
@@ -318,6 +327,8 @@ void print_config_after_read(Config config) {
 void read_data_file(Config config) {
   int address;
   int virt_page_num;
+  string virt_page_num_bin;
+  string virt_page_num_hex;
   int page_off;
   string page_off_bin;
   string page_off_hex;
@@ -334,76 +345,159 @@ void read_data_file(Config config) {
   int dc_index;
   string dc_index_bin;
   string dc_index_hex;
-  int dc_res;
   int l2_tag;
-  int l2_ind;
+  string l2_tag_bin;
+  string l2_tag_hex;
+  int l2_index;
+  string l2_index_bin;
+  string l2_index_hex;
+  int dc_res;
   bool is_read; // false will be on write, true on read
   string l2_res;
-
-  ifstream fin("trace2.dat");
+  int virtual_page_calc;
+  string virtual_page_calc_bin;
+  string virtual_page_calc_hex;
+  ifstream fin("trace.dat");
   string line;
   string hex_val;
   string bin_string;
   stringstream ss;
-  bitset<32> b;
-  DC DATA_CACHE = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, false, config.dc_index_bits, config.dc_offset_bits);
-  
+  bitset<64> b;
+  bitset<64> p;
+  DC DATA_CACHE = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
+  L2 L2_CACHE = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits);
   while (getline(fin, line)) {
-    if (config.virt_addr == false) {
-      hex_val = line.substr(2, line.size());
-      // cout << hex_val << ": ";
-      ss << hex << hex_val;
-      unsigned n;
 
-      ss >> n;
-      // cout << n;
-      // if (n >= config.physical_page_count) {
-      //  cout << "hierarchy: physical address " << hex << n << " is too large.\n";
-      //  exit(-1);
-      // }
+    if (line[0] == 'R') {
+      is_read = true;
+      // cout << "r";
+    } else if (line[0] == 'W') {
+      is_read = false;
+      // cout << "w";
+    }
+    hex_val = line.substr(2, line.size());
+    // cout << hex_val << ": ";
+    ss << hex << hex_val;
+    unsigned n;
 
-      b = bitset<32>(n);
-      bin_string = b.to_string();
-      // cout << bin_string << "\n";
-      phys_page_num_bin = bin_string.substr(0, (32 - config.pt_offset_bit));
+    ss >> n;
+    // cout << n;
+    // if (n >= config.physical_page_count) {
+    //  cout << "hierarchy: physical address " << hex << n << " is too large.\n";
+    //  exit(-1);
+    // }
+
+    b = bitset<64>(n);
+    bin_string = b.to_string();
+    // cout << bin_string << "\n";
+    if (!config.virt_addr) {
+
+      phys_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
 
       phys_page_num_hex = binary_to_hex(phys_page_num_bin);
-      phys_page_num = stoi(phys_page_num_hex, 0, 16);
+      phys_page_num = stoi(phys_page_num_bin, 0, 2);
 
       if (phys_page_num >= config.physical_page_count) {
         cout << "hierarchy: physical address " << hex << n << " is too large.\n";
         exit(-1);
       }
-      cout << hex << setw(8) << setfill('0') << n;
-      ss.clear();
-
-      cout << " " << setw(7) << setfill(' '); // no v address if false so just print empty space
-      page_off_bin = bin_string.substr(32 - (config.pt_offset_bit));
-      // cout << page_off_bin.length();
-      page_off_hex = binary_to_hex(page_off_bin);
-      cout << " " << setw(4) << page_off_hex;
-      page_off = stoi(page_off_hex, 0, 16);
-
-      cout << " " << setw(21);
-      cout << " " << setw(4) << phys_page_num;
-
-      dc_tag_bin = bin_string.substr(0, (32 - (config.dc_index_bits + config.dc_offset_bits)));
-      dc_tag_hex = binary_to_hex(dc_tag_bin);
-      dc_tag = stoi(dc_tag_hex, 0, 16);
-      cout << " " << setw(6) << dc_tag;
-
-      dc_index_bin = bin_string.substr((32 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
-      dc_index_hex = binary_to_hex(dc_index_bin);
-      dc_index = stoi(dc_index_bin, 0, 16);
-      cout << " " << setw(3) << dc_index;
-      if(!DATA_CACHE.check_cache(dc_index, dc_tag, config.counter)){
-        cout << " miss \n";
-      }else{
-        cout << " hit  \n";
+    } else if (config.virt_addr) {
+      virtual_page_calc_bin = bin_string.substr(( 64-(config.pt_offset_bit + config.pt_index_bits)), config.pt_index_bits);
+      virtual_page_calc_hex = binary_to_hex(virtual_page_calc_bin);
+      virtual_page_calc = stoi(virtual_page_calc_bin, 0, 2);
+      if(virtual_page_calc >= config.virtual_page_count * config.page_size){
+        cout << "hierarchy: virtual address " << hex << n << " is too large.\n";
+        exit(-1);
       }
     }
-    config.counter += 1;
+    cout << hex << setw(8) << setfill('0') << n;
+    ss.clear();
+    if (!config.virt_addr) {
+      cout << " " << setw(7) << setfill(' ');
+    } 
+    // cout << " " << setw(7) << setfill(' '); // no v address if false so just print empty space
+    // cout << " " << setw(6) << setfill(' '); // should be 7 but i am having it print w or r !!!!CHANGE THIS!!!!
+
+    page_off_bin = bin_string.substr(64 - (config.pt_offset_bit));
+    // cout << page_off_bin.length();
+    page_off_hex = binary_to_hex(page_off_bin);
+    page_off = stoi(page_off_hex, 0, 16);
+    while (page_off_hex[0] == '0' && page_off_hex.size() > 1) {
+      page_off_hex = page_off_hex.substr(1); // slice of leading 0's of hex string
+    }
+    virt_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
+    virt_page_num_hex = binary_to_hex(virt_page_num_bin);
+    virt_page_num = stoi(virt_page_num_hex, 0, 16);
+    while (virt_page_num_hex[0] == '0' && virt_page_num_hex.size() > 1) {
+      virt_page_num_hex = virt_page_num_hex.substr(1);
+    }
+    cout << " " << setfill(' ') << setw(5) << virt_page_num_hex;
+    cout << " " << setw(4) << page_off_hex;
+    if (!config.virt_addr) {
+      cout << " " << setw(21);
+    }
+    while (phys_page_num_hex[0] == '0' && phys_page_num_hex.size() > 1) {
+      phys_page_num_hex = phys_page_num_hex.substr(1); // slice of leading 0's of hex string
+    }
+    if(!config.virt_addr){
+      cout << " " << setw(4) << phys_page_num_hex;
+    }
+    //cout << "\n bin string: " << bin_string << "\n";
+    dc_tag_bin = bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+    dc_tag_hex = binary_to_hex(dc_tag_bin);
+    //cout<< "   binary " << dc_tag_bin << "\n";
+    //bitset<64> pageoff(page_off);
+    //p = (b >> config.pt_offset_bit) | pageoff;
+    
+    //cout << p << "\n";
+    dc_tag = stoi(dc_tag_bin, 0, 2);
+    //cout <<  dc_tag << "\n";
+    while (dc_tag_hex[0] == '0' && dc_tag_hex.size() > 1) {
+      dc_tag_hex = dc_tag_hex.substr(1); // slice of leading 0's of hex string
+    }
+    cout << setw(6) << setfill(' ') <<  dc_tag;
+    //exit(1);
+    
+    dc_index_bin = bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+    dc_index_hex = binary_to_hex(dc_index_bin);
+    dc_index = stoi(dc_index_bin, 0, 16);
+    while (dc_index_hex[0] == '0' && dc_index_hex.size() > 1) {
+      dc_index_hex.substr(1);
+    }
+    cout << " " << setw(3) << dc_index_hex;
+    if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read)) {
+      cout << " hit  \n";
+      continue;
+    } else {
+      cout << " miss ";
+    }
+    if (!config.l2_enabled) {
+      cout << "\n";
+    } else {
+      l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+      l2_tag_hex = binary_to_hex(l2_tag_bin);
+      l2_tag = stoi(l2_tag_hex, 0, 16);
+      while (l2_tag_hex[0] == '0' && l2_tag_hex.size() > 1) {
+        l2_tag_hex = l2_tag_hex.substr(1);
+      }
+      cout << " " << setw(5) << l2_tag_hex << " ";
+
+      l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+      l2_index_hex = binary_to_hex(l2_index_bin);
+      l2_index = stoi(l2_index_hex, 0, 16);
+      while (l2_index_hex[0] == '0' && l2_index_hex.size() > 1) {
+        l2_index_hex = l2_index_hex.substr(1);
+      }
+      cout << setw(3) << l2_index_hex;
+
+      if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0)) {
+        cout << " hit \n";
+      } else {
+        cout << " miss\n";
+      }
+    }
   }
+  config.counter += 1;
 }
 
 // used https://www.geeksforgeeks.org/dsa/convert-binary-number-hexadecimal-number/ for ref

@@ -2,6 +2,11 @@
   "files.associations": {
     "*.c ": "c",
     "typeinfo": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "iomanip": "cpp",
+    "bitset": "cpp",
+    "string": "cpp",
+    "string_view": "cpp",
+    "ostream": "cpp"
   }
 }
