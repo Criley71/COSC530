@@ -523,4 +523,7 @@ string binary_to_hex(string bin_val) {
 // the physical address can only be the log2(physical page count)
 string virtual_to_physical_address(string original_address, Config config) {
   int page_count = config.physical_page_count;
+  /*take virtual address, and mask with log2(physical_page_count) + page_offset_bits;
+  this will give a physical address that can be used for the dc and l2
+  */
 }
