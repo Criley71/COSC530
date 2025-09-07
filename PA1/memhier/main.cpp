@@ -64,7 +64,7 @@ bool check_pwr_2(int val);
 void print_config_after_read(Config config);
 void read_data_file(Config config);
 string binary_to_hex(string bin_val);
-
+string virtual_to_physical_address(string original_address, Config config);
 int main(int argc, char *argv[]) {
   Config config = init();
   print_config_after_read(config);
@@ -402,10 +402,10 @@ void read_data_file(Config config) {
         exit(-1);
       }
     } else if (config.virt_addr) {
-      virtual_page_calc_bin = bin_string.substr(( 64-(config.pt_offset_bit + config.pt_index_bits)), config.pt_index_bits);
+      virtual_page_calc_bin = bin_string.substr((64 - (config.pt_offset_bit + config.pt_index_bits)), config.pt_index_bits);
       virtual_page_calc_hex = binary_to_hex(virtual_page_calc_bin);
       virtual_page_calc = stoi(virtual_page_calc_bin, 0, 2);
-      if(virtual_page_calc >= config.virtual_page_count * config.page_size){
+      if (virtual_page_calc >= config.virtual_page_count * config.page_size) {
         cout << "hierarchy: virtual address " << hex << n << " is too large.\n";
         exit(-1);
       }
@@ -414,20 +414,20 @@ void read_data_file(Config config) {
     ss.clear();
     if (!config.virt_addr) {
       cout << " " << setw(7) << setfill(' ');
-    } 
+    }
     // cout << " " << setw(7) << setfill(' '); // no v address if false so just print empty space
     // cout << " " << setw(6) << setfill(' '); // should be 7 but i am having it print w or r !!!!CHANGE THIS!!!!
 
     page_off_bin = bin_string.substr(64 - (config.pt_offset_bit));
     // cout << page_off_bin.length();
     page_off_hex = binary_to_hex(page_off_bin);
-    page_off = stoi(page_off_hex, 0, 16);
+    page_off = stoi(page_off_bin, 0, 2);
     while (page_off_hex[0] == '0' && page_off_hex.size() > 1) {
       page_off_hex = page_off_hex.substr(1); // slice of leading 0's of hex string
     }
     virt_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
     virt_page_num_hex = binary_to_hex(virt_page_num_bin);
-    virt_page_num = stoi(virt_page_num_hex, 0, 16);
+    virt_page_num = stoi(virt_page_num_bin, 0, 2);
     while (virt_page_num_hex[0] == '0' && virt_page_num_hex.size() > 1) {
       virt_page_num_hex = virt_page_num_hex.substr(1);
     }
@@ -439,28 +439,22 @@ void read_data_file(Config config) {
     while (phys_page_num_hex[0] == '0' && phys_page_num_hex.size() > 1) {
       phys_page_num_hex = phys_page_num_hex.substr(1); // slice of leading 0's of hex string
     }
-    if(!config.virt_addr){
+    if (!config.virt_addr) {
       cout << " " << setw(4) << phys_page_num_hex;
     }
-    //cout << "\n bin string: " << bin_string << "\n";
     dc_tag_bin = bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
     dc_tag_hex = binary_to_hex(dc_tag_bin);
-    //cout<< "   binary " << dc_tag_bin << "\n";
-    //bitset<64> pageoff(page_off);
-    //p = (b >> config.pt_offset_bit) | pageoff;
-    
-    //cout << p << "\n";
+
     dc_tag = stoi(dc_tag_bin, 0, 2);
-    //cout <<  dc_tag << "\n";
+
     while (dc_tag_hex[0] == '0' && dc_tag_hex.size() > 1) {
       dc_tag_hex = dc_tag_hex.substr(1); // slice of leading 0's of hex string
     }
-    cout << setw(6) << setfill(' ') <<  dc_tag;
-    //exit(1);
-    
+    cout << setw(6) << setfill(' ') << dc_tag;
+
     dc_index_bin = bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
     dc_index_hex = binary_to_hex(dc_index_bin);
-    dc_index = stoi(dc_index_bin, 0, 16);
+    dc_index = stoi(dc_index_bin, 0, 2);
     while (dc_index_hex[0] == '0' && dc_index_hex.size() > 1) {
       dc_index_hex.substr(1);
     }
@@ -476,7 +470,7 @@ void read_data_file(Config config) {
     } else {
       l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
       l2_tag_hex = binary_to_hex(l2_tag_bin);
-      l2_tag = stoi(l2_tag_hex, 0, 16);
+      l2_tag = stoi(l2_tag_bin, 0, 2);
       while (l2_tag_hex[0] == '0' && l2_tag_hex.size() > 1) {
         l2_tag_hex = l2_tag_hex.substr(1);
       }
@@ -484,7 +478,7 @@ void read_data_file(Config config) {
 
       l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
       l2_index_hex = binary_to_hex(l2_index_bin);
-      l2_index = stoi(l2_index_hex, 0, 16);
+      l2_index = stoi(l2_index_bin, 0, 2);
       while (l2_index_hex[0] == '0' && l2_index_hex.size() > 1) {
         l2_index_hex = l2_index_hex.substr(1);
       }
@@ -525,4 +519,8 @@ string binary_to_hex(string bin_val) {
   size_t zero_check = hex_val.find_first_not_of('0');
   if (zero_check == string::npos) return "0";
   return hex_val;
+}
+// the physical address can only be the log2(physical page count)
+string virtual_to_physical_address(string original_address, Config config) {
+  int page_count = config.physical_page_count;
 }
