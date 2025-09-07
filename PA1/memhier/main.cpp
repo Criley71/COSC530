@@ -327,29 +327,22 @@ void read_data_file(Config config) {
   int address;
   int virt_page_num;
   string virt_page_num_bin;
-  string virt_page_num_hex;
   int page_off;
   string page_off_bin;
-  string page_off_hex;
   int tlb_tag;
   int tlb_index;
   string tlb_res;
   string pt_res;
   int phys_page_num;
   string phys_page_num_bin;
-  string phys_page_num_hex;
   int dc_tag;
   string dc_tag_bin;
-  string dc_tag_hex;
   int dc_index;
   string dc_index_bin;
-  string dc_index_hex;
   int l2_tag;
   string l2_tag_bin;
-  string l2_tag_hex;
   int l2_index;
   string l2_index_bin;
-  string l2_index_hex;
   int dc_res;
   bool is_read; // false will be on write, true on read
   string l2_res;
@@ -375,7 +368,9 @@ void read_data_file(Config config) {
     }
     hex_val = line.substr(2, line.size());
     ss << hex << hex_val;
-    unsigned temp; //temp var that will hold all string stream values
+    unsigned temp; // temp var that will hold all string stream values
+    // I learned how stringstreams work doing this, this is awesome
+    // No more hex translation helper functions!
 
     ss >> temp;
     ss.clear();
@@ -383,10 +378,10 @@ void read_data_file(Config config) {
     bin_string = b.to_string();
 
     if (!config.virt_addr) {
-      //CALCULATE PHYSICAL PAGE NUM TO MAKE SURE ITS IN BOUNDS
+      // CALCULATE PHYSICAL PAGE NUM TO MAKE SURE ITS IN BOUNDS
       phys_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
       phys_page_num = stoi(phys_page_num_bin, 0, 2);
-      
+
       if (phys_page_num >= config.physical_page_count) {
         cout << "hierarchy: physical address " << hex << temp << " is too large.\n";
         exit(-1);
@@ -395,65 +390,46 @@ void read_data_file(Config config) {
       ss.clear();
       cout << " " << setw(7) << setfill(' ');
 
-      
-      //PAGE OFFSET CALCULATION AND PRINTING
+      // PAGE OFFSET CALCULATION AND PRINTING
       page_off_bin = bin_string.substr(64 - (config.pt_offset_bit));
       page_off = stoi(page_off_bin, 0, 2);
-      ss << page_off;
-      ss >> temp;
-      ss.clear();
-      cout << " " << setw(4) <<  hex << temp;
-      //No TLB so print 21 spaces
+      cout << " " << setw(4) << hex << page_off;
+      // No TLB so print 21 spaces
       cout << " " << setw(21);
 
-      //PHYS PAGE NUM PRINT
-      ss << phys_page_num;
-      ss >> temp;  
-      ss.clear();
-      cout << " " << setw(4) << setfill(' ') << hex << temp;
+      // PHYS PAGE NUM PRINT
+      cout << " " << setw(4) << setfill(' ') << hex << phys_page_num;
 
-      //DATA CACHE TAG CALC & PRINT
+      // DATA CACHE TAG CALC & PRINT
       dc_tag_bin = bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
       dc_tag = stoi(dc_tag_bin, 0, 2);
-      ss << dc_tag;
-      ss >> temp;
-      ss.clear();
-      cout << " " << setw(6) << setfill(' ') << hex << temp;
+      cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
 
-      //DATA CACHE INDEX CALC & PRINT
+      // DATA CACHE INDEX CALC & PRINT
       dc_index_bin = bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
       dc_index = stoi(dc_index_bin, 0, 2);
-      ss << dc_index;
-      ss >> temp;
-      ss.clear();
-      cout << " " << setw(3) << setfill(' ') << hex << temp;
+      cout << " " << setw(3) << setfill(' ') << hex << dc_index;
 
-      //check data cache for block, if hit no need to check l2
+      // check data cache for block, if hit no need to check l2
       if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read)) {
         cout << " hit  \n";
         continue;
       } else {
         cout << " miss ";
       }
-      //if l2 is disabled then the line is done
+      // if l2 is disabled then the line is done
       if (!config.l2_enabled) {
         cout << "\n";
       } else {
-        //L2 TAG CALC & PRINT
+        // L2 TAG CALC & PRINT
         l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
         l2_tag = stoi(l2_tag_bin, 0, 2);
-        ss << l2_tag;
-        ss >> temp;
-        ss.clear();
-        cout << " " << setw(5) << setfill(' ') << hex << temp << " ";
+        cout << " " << setw(5) << setfill(' ') << hex << l2_tag << " ";
 
-        //L2 INDEX CALC & PRINT
+        // L2 INDEX CALC & PRINT
         l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
         l2_index = stoi(l2_index_bin, 0, 2);
-        ss << l2_index;
-        ss >> temp;
-        ss.clear();
-        cout << setw(3) << setfill(' ') << hex << temp;
+        cout << setw(3) << setfill(' ') << hex << l2_index;
 
         if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0)) {
           cout << " hit \n";
@@ -462,35 +438,27 @@ void read_data_file(Config config) {
         }
       }
     } else if (config.virt_addr) {
-      //PHYSICAL ADDRESS TRANSFORMATION
+      // PHYSICAL ADDRESS TRANSFORMATION
       physical_address_bin = virtual_to_physical_address(bin_string, config);
-      
-      //VIRTUAL ADDRESS AND PAGE NUMBER PRINTING
+
+      // VIRTUAL ADDRESS AND PAGE NUMBER PRINTING
       virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
       virt_page_num = stoi(virt_page_num_bin, 0, 2);
-      if(virt_page_num >= config.virtual_page_count){
+      if (virt_page_num >= config.virtual_page_count) {
         cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
         exit(-1);
       }
       cout << hex << setw(8) << setfill('0') << temp;
-      ss << virt_page_num; //this is cleaner method for hex, should really go back and change the other ones
-      ss >> temp;
-      ss.clear(); //HAVE TO REMEMBER TO CLEAR THOUGH
-      cout << setfill(' ') << setw(7) << hex << temp;
-      
-      //PAGE OFFSET CALCULATION AND PRINTING
+      cout << setfill(' ') << setw(7) << hex << virt_page_num;
+
+      // PAGE OFFSET CALCULATION AND PRINTING
       page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
       page_off = stoi(page_off_bin, 0, 2);
-      ss << page_off;
-      ss >> temp;
-      ss.clear();
-      cout << setfill(' ') << setw(5) << hex << temp << "\n"; 
-
+      cout << setfill(' ') << setw(5) << hex << page_off << "\n";
     }
   }
   config.counter += 1;
 }
-
 
 // the physical address can only be the log2(physical page count)
 string virtual_to_physical_address(string original_address, Config config) {
