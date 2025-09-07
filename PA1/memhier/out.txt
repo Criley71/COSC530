@@ -16,7 +16,7 @@ Number of bits used for the index is 2.
 Number of bits used for the offset is 4.
 
 L2-cache contains 16 sets.
-Each set contains 1 entries.
+Each set contains 4 entries.
 Each line is 16 bytes.
 The cache uses a write-allocate and write-back policy.
 Number of bits used for the index is 4.
