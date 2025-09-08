@@ -1,5 +1,6 @@
 #include "dc.h"
 #include "l2.h"
+#include "pt.h"
 #include <bitset>
 #include <cmath>
 #include <cstdio>
@@ -10,6 +11,7 @@
 #include <string>
 #include <typeinfo>
 #include <unordered_map>
+
 using namespace std;
 /*
 dtlb = data translation lookaside buffer
@@ -63,7 +65,6 @@ Config init(); // function to read in config and set variables
 bool check_pwr_2(int val);
 void print_config_after_read(Config config);
 void read_data_file(Config config);
-string virtual_to_physical_address(string original_address, Config config);
 int main(int argc, char *argv[]) {
   Config config = init();
   print_config_after_read(config);
@@ -87,21 +88,17 @@ Config init() {
             colon_index = line.find(':') + 2;
             val = line.substr(colon_index, line.size());
             config.dtlb_set_count = stoi(val);
-            // cout << "dltb set count: " << config.dtlb_set_count << "\n";
-            //  //cout << typeid(config.dtlb_set_count).name() << "\n";
+
             val = "";
             if (!check_pwr_2(config.dtlb_set_count)) {
               cout << "DTLB set count is not a power of 2. Exiting\n";
               exit(-1);
             }
             config.dltb_index_bits = log2(config.dtlb_set_count);
-            // cout << "Number of bits DLTB uses for index: " << config.dltb_index_bits << "\n";
           } else if (line.find("Set size") == 0) {
             colon_index = line.find(':') + 2;
             val = line.substr(colon_index, line.size());
             config.dtlb_set_size = stoi(val);
-            // cout << "dltb set size: " << config.dtlb_set_size << "\n";
-            //  //cout << typeid(config.dtlb_set_size).name() << "\n";
             val = "";
           }
         }
@@ -112,21 +109,19 @@ Config init() {
             colon_index = line.find(':') + 2;
             val = line.substr(colon_index, line.size());
             config.virtual_page_count = stoi(val);
-            // cout << "number of virtual pages: " << config.virtual_page_count << "\n";
-            //  //cout << typeid(config.virtual_page_count).name() << "\n";
+
             val = "";
             if (!check_pwr_2(config.virtual_page_count)) {
               cout << "Number of virtual pages is not a power 2. Exiting\n";
               exit(-1);
             }
             config.pt_index_bits = log2(config.virtual_page_count);
-            // cout << "Number of bits used for the page table index is " << config.pt_index_bits << "\n";
+
           } else if (line.find("Number of physical pages") == 0) {
             colon_index = line.find(':') + 2;
             val = line.substr(colon_index, line.size());
             config.physical_page_count = stoi(val);
-            // cout << "number of phys pages: " << config.physical_page_count << "\n";
-            //  //cout << typeid(config.physical_page_count).name() << "\n";
+
             val = "";
             if (!check_pwr_2(config.physical_page_count)) {
               cout << "Number of Physical pages is not a power 2. Exiting\n";
@@ -136,15 +131,13 @@ Config init() {
             colon_index = line.find(':') + 2;
             val = line.substr(colon_index, line.size());
             config.page_size = stoi(val);
-            // cout << "page size: " << config.page_size << "\n";
-            //  //cout << typeid(config.page_size).name() << "\n";
+
             val = "";
             if (!check_pwr_2(config.page_size)) {
               cout << "Page size is not a power 2. Exiting\n";
               exit(-1);
             }
             config.pt_offset_bit = log2(config.page_size);
-            // cout << "Number of bits used for the page offset is " << "\n";
           }
         }
       } else if (line.find("Data Cache configuration") == 0) {
@@ -349,16 +342,20 @@ void read_data_file(Config config) {
   int virtual_page_calc;
   string virtual_page_calc_bin;
   string virtual_page_calc_hex;
-  ifstream fin("trace2.dat");
+  int pfn;
+  bool page_was_dirty;
+  ifstream fin("trace.dat");
   string line;
   string hex_val;
   string bin_string;
+  string p_bin_string;
   string physical_address_bin;
   stringstream ss;
   bitset<64> b;
   bitset<64> p;
   DC DATA_CACHE = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
   L2 L2_CACHE = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits);
+  PT PAGE_TABLE = PT(config.virtual_page_count);
   while (getline(fin, line)) {
 
     if (line[0] == 'R') {
@@ -411,7 +408,7 @@ void read_data_file(Config config) {
       cout << " " << setw(3) << setfill(' ') << hex << dc_index;
 
       // check data cache for block, if hit no need to check l2
-      if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read)) {
+      if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, -1, false)) {
         cout << " hit  \n";
         continue;
       } else {
@@ -431,15 +428,13 @@ void read_data_file(Config config) {
         l2_index = stoi(l2_index_bin, 0, 2);
         cout << setw(3) << setfill(' ') << hex << l2_index;
 
-        if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0)) {
+        if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0, -1, false)) {
           cout << " hit \n";
         } else {
           cout << " miss\n";
         }
       }
     } else if (config.virt_addr) {
-      // PHYSICAL ADDRESS TRANSFORMATION
-      physical_address_bin = virtual_to_physical_address(bin_string, config);
 
       // VIRTUAL ADDRESS AND PAGE NUMBER PRINTING
       virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
@@ -454,27 +449,73 @@ void read_data_file(Config config) {
       // PAGE OFFSET CALCULATION AND PRINTING
       page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
       page_off = stoi(page_off_bin, 0, 2);
-      cout << setfill(' ') << setw(5) << hex << page_off << "\n";
+      cout << setw(5) << hex << setfill(' ') << page_off;
+
+      // PAGE TABLE RESULT PRINTING
+      pfn = PAGE_TABLE.check_page_table(virt_page_num);
+      // cout << " " << PAGE_TABLE.page_table[virt_page_num].valid << "<-isvalid";
+      if (pfn == -1) {
+        pfn = PAGE_TABLE.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, !is_read, DATA_CACHE, L2_CACHE).first;
+        // cout << "wasnt valid so insert with pfn value->" << pfn << " pfn used count=" << PAGE_TABLE.pfn_used_count << " ";
+        // page_was_dirty = PAGE_TABLE.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, !is_read).second;
+        if (!config.dtlb_enabled) {
+          cout << setfill(' ') << setw(21) << "miss";
+        }
+      } else {
+        if (!config.dtlb_enabled) {
+          cout << setfill(' ') << setw(21) << "hit ";
+          // cout << "pfn used cound: " << PAGE_TABLE.pfn_used_count << " ";
+        }
+      }
+
+      // PHYSICAL ADDRESS TRANSFORMATION
+      int physical_address = PAGE_TABLE.vpn_to_phys_address(virt_page_num, page_off, config.pt_offset_bit, config.virtual_page_count, config.physical_page_count, config.counter, !is_read, DATA_CACHE, L2_CACHE);
+      p = bitset<64>(physical_address);
+      p_bin_string = p.to_string();
+
+      // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+      phys_page_num_bin = p_bin_string.substr(0, (64 - config.pt_offset_bit));
+      phys_page_num = stoi(phys_page_num_bin, 0, 2);
+      cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+      // DC TAG FOR VIRTUAL ADDRESSES
+      dc_tag_bin = p_bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+      dc_tag = stoi(dc_tag_bin, 0, 2);
+      cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+      // DC INDEX FOR VIRTUAL ADDRESSES
+      dc_index_bin = p_bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+      dc_index = stoi(dc_index_bin, 0, 2);
+      cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+
+      // check data cache for block, if hit no need to insert
+      if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, pfn, false)) {
+        cout << " hit  \n";
+        continue;
+      } else {
+        cout << " miss ";
+      }
+      if (!config.l2_enabled) {
+        cout << "\n";
+      } else {
+        l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+        l2_tag = stoi(l2_tag_bin, 0, 2);
+        cout << " " << setw(5) << setfill(' ') << hex << l2_tag << " ";
+
+        // L2 INDEX CALC & PRINT
+        l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+        l2_index = stoi(l2_index_bin, 0, 2);
+        cout << setw(3) << setfill(' ') << hex << l2_index;
+
+        if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0, pfn, false)) {
+          cout << " hit \n";
+        } else {
+          cout << " miss\n";
+        }
+      }
     }
   }
   config.counter += 1;
 }
 
 // the physical address can only be the log2(physical page count)
-string virtual_to_physical_address(string original_address, Config config) {
-  /*take virtual address, and mask with log2(physical_page_count) + pt_offset_bits;
-  this will give a physical address that can be used for the dc and l2
-  */
-  int page_count = config.physical_page_count;
-  int page_count_bits = log2(page_count);
-  int offset_bits = config.pt_offset_bit;
-  int mask_size = page_count_bits + offset_bits;
-  string mask_str = "";
-  for (int i = 0; i < mask_size; i++) {
-    mask_str += "1";
-  }
-  int mask_int = stoi(mask_str, 0, 2);
-  int virtual_address = stoi(original_address, 0, 2);
-  bitset<64> masked_address(virtual_address & mask_int);
-  return masked_address.to_string();
-}

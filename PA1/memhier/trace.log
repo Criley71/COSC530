@@ -1,18 +1,20 @@
-read at 000000c8
+read at 00000c84
 
-read at 00000081
+read at 00000c1c
 
-write at 00000014
+write at 0000014c
 
-read at 000000c8
+read at 00000c84
+writing back DC line with tag 5 and index 0 to L2 cache
 
-read at 00000040
+read at 00000400
 
-write at 00000014
+write at 00000148
 
-read at 00000014
+read at 00000144
 
-read at 000000c8
+read at 00000c80
+writing back DC line with tag 5 and index 0 to L2 cache
 
-read at 00000000
+read at 00000008
 
