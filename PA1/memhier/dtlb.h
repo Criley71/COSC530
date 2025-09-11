@@ -1,0 +1,26 @@
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
+#ifndef DTLB_H
+#define DTLB_H
+using namespace std;
+
+class DTLB_entry {
+public:
+  int tag = -1;
+  int ppn = -1;
+  int timer = -1;
+  DTLB_entry(int t, int p);
+};
+
+class DTLB {
+  int set_count;
+  int set_size;
+  vector<vector<DTLB_entry>> dtlb;
+  DTLB(int set_count, int set_size);
+  void insert_to_dtlb(int index, int tag, int time, int ppn);
+  bool check_dtlb(int index, int tag, int time);
+};
+
+#endif

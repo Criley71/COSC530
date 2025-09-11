@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -Wall -std=c++17 -g
 
-SRC = main.cpp dc.cpp l2.cpp pt.cpp
+SRC = main.cpp dc.cpp l2.cpp pt.cpp dtlb.cpp
 OBJ = $(SRC:.cpp=.o)
 EXE = main
 
