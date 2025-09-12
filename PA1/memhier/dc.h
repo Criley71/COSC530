@@ -25,8 +25,9 @@ public:
   int offset_bit_size;
   vector<vector<Cache_block>> data_cache;
   DC(int sc, int ss, int ls, bool wawb, int ibs, int obs);
-  void insert_to_cache(int dec_dc_index, int dec_dc_tag, int time, int dirty_bit, int pfn);
-  bool check_cache(int dec_dc_index, int dec_dc_tag, int time, bool is_write, int pfn, bool page_fault);//pfns will be -1 unless we are evicting bc of page fault
+  void insert_to_cache(int dc_index, int dc_tag, int time, int dirty_bit, int pfn);
+  bool check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn, bool page_fault);//pfns will be -1 unless we are evicting bc of page fault
+  void evict_given_l2_phys_address(int dc_index, int dc_tag);
 };
 
 #endif

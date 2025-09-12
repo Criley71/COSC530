@@ -33,7 +33,7 @@ pair<int,bool> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wri
     page_table[vpn].valid = true;
 
     cache.check_cache(-1, -1, -1,false, pfn, true);
-    l2.check_l2(-1,-1,-1,-1,pfn, true);
+    l2.check_l2(-1,-1,-1,-1,pfn, true, -1,-1);
     page_table[oldest_index].dirty = false;
     page_table[oldest_index].time = -1;
     page_table[oldest_index].pfn = -1;

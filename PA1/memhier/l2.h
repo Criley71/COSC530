@@ -13,7 +13,9 @@ public:
   int time_last_accessed = -1;
   int dirty_bit = -1;
   int pfn;
-  L2_block(int i, int t, int a, int db, int pf);
+  int dc_tag = -1;
+  int dc_index = -1;
+  L2_block(int i, int t, int a, int db, int pf, int dct, int dci);
 };
 
 class L2 {
@@ -28,8 +30,12 @@ public:
 
   vector<vector<L2_block>> l2_cache;
   L2(int sc, int ss, int ls, bool wawb, int ibs, int obs);
-  void insert_to_l2(int dec_l2_index, int dec_l2_tag, int time, int dirty_bit, int pfn);
-  bool check_l2(int dec_l2_index, int dec_l2_tag, int time, int dirty_bit, int pfn, bool page_fault);
+  void insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, int dc_index, int dc_tag);
+  bool check_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, bool page_fault, int dc_index, int dc_tag);
+  bool check_if_index_is_full(int l2_index);
+  uint64_t l2_index_and_tag_evicted_phys_address(int l2_index);
+  pair<int, int> get_dc_index_tag(int l2_index, int l2_tag);
+  void update_access_time(int l2_index, int l2_tag, int time);
 };
 
 #endif

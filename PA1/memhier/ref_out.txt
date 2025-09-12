@@ -267,7 +267,7 @@ c835fde8        35fde8                       320   1906 17f7 hit
 c8587cc0        187cc0                       321   190b 1f3 miss 32161f   3 miss
 c835fdf0        35fdf0                       320   1906 17f7 hit  
 c835fdf8        35fdf8                       320   1906 17f7 hit  
-c835fe00        35fe00                       320   1906 17f8 miss 320d7f   8 l2tag: 320d7f counter 240,  l2tag: 321622 counter 88,  l2tag: 32161f counter 97,  l2tag: 32161e counter 169,       evict l2 cache tag 321622 at index 8       evict data cache tag 190b at index 228      miss
+c835fe00        35fe00                       320   1906 17f8 miss 320d7f   8 miss
 c8587cf8        187cf8                       321   190b 1f3 hit  
 c835fe08        35fe08                       320   1906 17f8 hit  
 c835fe10        35fe10                       320   1906 17f8 hit  
@@ -290,7 +290,7 @@ c835fe70        35fe70                       320   1906 17f9 hit
 c835fe78        35fe78                       320   1906 17f9 hit  
 c8587dd0        187dd0                       321   190b 1f7 hit  
 c8588b58        188b58                       321   190b 22d hit  
-c835fe88        35fe88                       320   1906 17fa miss 320d7f   a l2tag: 32161f counter 95,  l2tag: 320d7f counter 263,  l2tag: 320d7e counter 100,  l2tag: 32161e counter 177,       evict l2 cache tag 32161f at index a       evict data cache tag 190b at index 1fa      miss
+c835fe88        35fe88                       320   1906 17fa miss 320d7f   a miss
 c835fe80        35fe80                       320   1906 17fa hit  
 c835f574        35f574                       320   1906 17d5 miss 320d7d   5 miss
 c835f576        35f576                       320   1906 17d5 hit  
@@ -298,7 +298,7 @@ c835f578        35f578                       320   1906 17d5 hit
 c8588988        188988                       321   190b 226 hit  
 c837f8a0        37f8a0                       320   1906 1fe2 miss 320dfe   2 miss
 c835fe90        35fe90                       320   1906 17fa hit  
-c8587fd8        187fd8                       321   190b 1ff miss 32161f   f l2tag: 32161f counter 271,  l2tag: 32161d counter 125,  l2tag: 320d7e counter 154,  l2tag: 32161e counter 209,       evict l2 cache tag 32161d at index f       evict data cache tag 190b at index 1df      miss
+c8587fd8        187fd8                       321   190b 1ff miss 32161f   f miss
 c835fea0        35fea0                       320   1906 17fa hit  
 c835fe98        35fe98                       320   1906 17fa hit  
 c835f514        35f514                       320   1906 17d4 miss 320d7d   4 miss
@@ -315,11 +315,11 @@ c835f4ce        35f4ce                       320   1906 17d3 hit
 c835f4d0        35f4d0                       320   1906 17d3 hit  
 c8588988        188988                       321   190b 226 hit  
 c837f8a4        37f8a4                       320   1906 1fe2 hit  
-c835fec0        35fec0                       320   1906 17fb miss 320d7f   b l2tag: 32161f counter 81,  l2tag: 320d7f counter 288,  l2tag: 320d7e counter 111,  l2tag: 32161e counter 189,       evict l2 cache tag 32161f at index b       evict data cache tag 190b at index 1fb      miss
+c835fec0        35fec0                       320   1906 17fb miss 320d7f   b miss
 c8587f98        187f98                       321   190b 1fe hit  
 c835fed0        35fed0                       320   1906 17fb hit  
 c835fec8        35fec8                       320   1906 17fb hit  
-c835f70c        35f70c                       320   1906 17dc miss 320d7d   c l2tag: 32161f counter 91,  l2tag: 320d7d counter 292,  l2tag: 320d7e counter 122,  l2tag: 32161e counter 197,       evict l2 cache tag 32161f at index c       evict data cache tag 190b at index 1fc      miss
+c835f70c        35f70c                       320   1906 17dc miss 320d7d   c miss
 c835f70e        35f70e                       320   1906 17dc hit  
 c835f710        35f710                       320   1906 17dc hit  
 c8588988        188988                       321   190b 226 hit  
@@ -335,9 +335,9 @@ c8588988        188988                       321   190b 226 hit
 c837f8a4        37f8a4                       320   1906 1fe2 hit  
 c835fef0        35fef0                       320   1906 17fb hit  
 c8587fa8        187fa8                       321   190b 1fe hit  
-c835ff00        35ff00                       320   1906 17fc miss 320d7f   c l2tag: 320d7f counter 308,  l2tag: 320d7d counter 294,  l2tag: 320d7e counter 122,  l2tag: 32161e counter 197,       evict l2 cache tag 320d7e at index c       evict data cache tag 1906 at index 17ec      miss
+c835ff00        35ff00                       320   1906 17fc miss 320d7f   c miss
 c835fef8        35fef8                       320   1906 17fb hit  
-c835f5ec        35f5ec                       320   1906 17d7 miss 320d7d   7 l2tag: 32161f counter 261,  l2tag: 320d7d counter 310,  l2tag: 32161e counter 165,  l2tag: 320d7f counter 239,       evict l2 cache tag 32161e at index 7       evict data cache tag 190b at index 1e7      miss
+c835f5ec        35f5ec                       320   1906 17d7 miss 320d7d   7 miss
 c835f5ee        35f5ee                       320   1906 17d7 hit  
 c835f5f0        35f5f0                       320   1906 17d7 hit  
 c8588988        188988                       321   190b 226 hit  
@@ -355,9 +355,9 @@ c835ff20        35ff20                       320   1906 17fc hit
 c8587fb8        187fb8                       321   190b 1fe hit  
 c835ff30        35ff30                       320   1906 17fc hit  
 c835ff28        35ff28                       320   1906 17fc hit  
-c835f67c        35f67c                       320   1906 17d9 miss 320d7d   9 l2tag: 32161f counter 94,  l2tag: 320d7d counter 328,  l2tag: 32161e counter 173,  l2tag: 320d7f counter 260,       evict l2 cache tag 32161f at index 9       evict data cache tag 190b at index 1f9      miss
+c835f67c        35f67c                       320   1906 17d9 miss 320d7d   9 miss
 c835f67e        35f67e                       320   1906 17d9 hit  
-c835f680        35f680                       320   1906 17da miss 320d7d   a l2tag: 320d7d counter 330,  l2tag: 320d7f counter 282,  l2tag: 320d7e counter 100,  l2tag: 32161e counter 177,       evict l2 cache tag 320d7e at index a       evict data cache tag 1906 at index 17ea      miss
+c835f680        35f680                       320   1906 17da miss 320d7d   a miss
 c8588988        188988                       321   190b 226 hit  
 c837f8a4        37f8a4                       320   1906 1fe2 hit  
 c835ff38        35ff38                       320   1906 17fc hit  
@@ -380,14 +380,14 @@ c8588988        188988                       321   190b 226 hit
 c837f8a4        37f8a4                       320   1906 1fe2 hit  
 c835ff68        35ff68                       320   1906 17fd hit  
 c8587fd0        187fd0                       321   190b 1ff hit  
-c8588ca4        188ca4                       321   190b 232 miss 321623   2 l2tag: 321623 counter 353,  l2tag: 320d7f counter 186,  l2tag: 32161f counter 233,  l2tag: 320dfe counter 350,       evict l2 cache tag 320d7f at index 2       evict data cache tag 1906 at index 17f2      miss
+c8588ca4        188ca4                       321   190b 232 miss 321623   2 miss
 c8588ca4        188ca4                       321   190b 232 hit  
-f5eddb68        2ddb68                       3d7   1ebd 176d miss 3d7b76   d l2tag: 321622 counter 262,  l2tag: 3d7b76 counter 355,  l2tag: 32161e counter 201,  l2tag: 320d7f counter 351,       evict l2 cache tag 32161e at index d       evict data cache tag 190b at index 1ed      miss
+f5eddb68        2ddb68                       3d7   1ebd 176d miss 3d7b76   d miss
 c8588c28        188c28                       321   190b 230 hit  
 c8587e18        187e18                       321   190b 1f8 hit  
-c835f338        35f338                       320   1906 17cc miss 320d7c   c l2tag: 320d7f counter 333,  l2tag: 320d7d counter 294,  l2tag: 320d7c counter 358,  l2tag: 32161e counter 197,       evict l2 cache tag 32161e at index c       evict data cache tag 190b at index 1ec      miss
-c8588c7c        188c7c                       321   190b 231 miss 321623   1 l2tag: 321623 counter 359,  l2tag: 320d7f counter 175,  l2tag: 32161f counter 221,  l2tag: 320d7d counter 303,       evict l2 cache tag 320d7f at index 1       evict data cache tag 1906 at index 17f1      miss
-c835f340        35f340                       320   1906 17cd miss 320d7c   d l2tag: 321622 counter 262,  l2tag: 3d7b76 counter 355,  l2tag: 320d7c counter 360,  l2tag: 320d7f counter 351,       evict l2 cache tag 321622 at index d       evict data cache tag 190b at index 22d      miss
+c835f338        35f338                       320   1906 17cc miss 320d7c   c miss
+c8588c7c        188c7c                       321   190b 231 miss 321623   1 miss
+c835f340        35f340                       320   1906 17cd miss 320d7c   d miss
 c835f33c        35f33c                       320   1906 17cc hit  
 c8588c80        188c80                       321   190b 232 hit  
 c835f344        35f344                       320   1906 17cd hit  
@@ -397,9 +397,9 @@ c8588c84        188c84                       321   190b 232 hit
 c8588c98        188c98                       321   190b 232 hit  
 f5eddb68        2ddb68                       3d7   1ebd 176d hit  
 c85889b0        1889b0                       321   190b 226 hit  
-c8588cd8        188cd8                       321   190b 233 miss 321623   3 l2tag: 321623 counter 370,  l2tag: 320d7f counter 196,  l2tag: 32161f counter 241,  l2tag: 320d7d counter 338,       evict l2 cache tag 320d7f at index 3       evict data cache tag 1906 at index 17f3      miss
+c8588cd8        188cd8                       321   190b 233 miss 321623   3 miss
 c8588ce0        188ce0                       321   190b 233 hit  
-c8587de0        187de0                       321   190b 1f7 hit  
+c8587de0        187de0                       321   190b 1f7 miss 32161f   7 miss
 c8588ce8        188ce8                       321   190b 233 hit  
 f5eddb68        2ddb68                       3d7   1ebd 176d hit  
 f5eddb60        2ddb60                       3d7   1ebd 176d hit  
@@ -407,12 +407,12 @@ f5eddb58        2ddb58                       3d7   1ebd 176d hit
 f5eddb50        2ddb50                       3d7   1ebd 176d hit  
 f5eddb48        2ddb48                       3d7   1ebd 176d hit  
 f5eddb40        2ddb40                       3d7   1ebd 176d hit  
-f5eddb38        2ddb38                       3d7   1ebd 176c miss 3d7b76   c l2tag: 320d7f counter 333,  l2tag: 320d7d counter 294,  l2tag: 320d7c counter 361,  l2tag: 3d7b76 counter 380,       evict l2 cache tag 320d7d at index c       evict data cache tag 1906 at index 17dc      miss
-f5eddbe0        2ddbe0                       3d7   1ebd 176f hit  
+f5eddb38        2ddb38                       3d7   1ebd 176c miss 3d7b76   c miss
+f5eddbe0        2ddbe0                       3d7   1ebd 176f miss 3d7b76   f miss
 c8587de0        187de0                       321   190b 1f7 hit  
-c8587640        187640                       321   190b 1d9 miss 32161d   9 l2tag: 32161d counter 383,  l2tag: 320d7d counter 329,  l2tag: 32161e counter 173,  l2tag: 320d7f counter 260,       evict l2 cache tag 32161e at index 9       evict data cache tag 190b at index 1e9      miss
+c8587640        187640                       321   190b 1d9 miss 32161d   9 miss
 c8587648        187648                       321   190b 1d9 hit  
-c85890e8        1890e8                       321   190b 243 miss 321624   3 l2tag: 321623 counter 373,  l2tag: 321624 counter 385,  l2tag: 32161f counter 241,  l2tag: 320d7d counter 338,       evict l2 cache tag 32161f at index 3       evict data cache tag 190b at index 1f3      miss
+c85890e8        1890e8                       321   190b 243 miss 321624   3 miss
 f5eddbf8        2ddbf8                       3d7   1ebd 176f hit  
 f5eddc00        2ddc00                       3d7   1ebd 1770 miss 3d7b77   0 miss
 f5eddc08        2ddc08                       3d7   1ebd 1770 hit  
@@ -422,7 +422,7 @@ f5eddc20        2ddc20                       3d7   1ebd 1770 hit
 f5eddc28        2ddc28                       3d7   1ebd 1770 hit  
 f5eddc30        2ddc30                       3d7   1ebd 1770 hit  
 f5eddc38        2ddc38                       3d7   1ebd 1770 hit  
-f5eddc40        2ddc40                       3d7   1ebd 1771 miss 3d7b77   1 l2tag: 321623 counter 359,  l2tag: 3d7b77 counter 395,  l2tag: 32161f counter 221,  l2tag: 320d7d counter 303,       evict l2 cache tag 32161f at index 1       evict data cache tag 190b at index 1f1      miss
+f5eddc40        2ddc40                       3d7   1ebd 1771 miss 3d7b77   1 miss
 f5eddc48        2ddc48                       3d7   1ebd 1771 hit  
 f5eddc50        2ddc50                       3d7   1ebd 1771 hit  
 f5eddc58        2ddc58                       3d7   1ebd 1771 hit  
@@ -430,7 +430,7 @@ f5eddc60        2ddc60                       3d7   1ebd 1771 hit
 f5eddc68        2ddc68                       3d7   1ebd 1771 hit  
 f5eddc70        2ddc70                       3d7   1ebd 1771 hit  
 f5eddc78        2ddc78                       3d7   1ebd 1771 hit  
-f5eddc80        2ddc80                       3d7   1ebd 1772 miss 3d7b77   2 l2tag: 321623 counter 367,  l2tag: 3d7b77 counter 403,  l2tag: 32161f counter 233,  l2tag: 320dfe counter 350,       evict l2 cache tag 32161f at index 2       evict data cache tag 190b at index 1f2      miss
+f5eddc80        2ddc80                       3d7   1ebd 1772 miss 3d7b77   2 miss
 f5eddc88        2ddc88                       3d7   1ebd 1772 hit  
 f5eddc90        2ddc90                       3d7   1ebd 1772 hit  
 f5eddc98        2ddc98                       3d7   1ebd 1772 hit  
@@ -438,7 +438,7 @@ f5eddca0        2ddca0                       3d7   1ebd 1772 hit
 f5eddca8        2ddca8                       3d7   1ebd 1772 hit  
 f5eddcb0        2ddcb0                       3d7   1ebd 1772 hit  
 f5eddcb8        2ddcb8                       3d7   1ebd 1772 hit  
-f5eddcc0        2ddcc0                       3d7   1ebd 1773 miss 3d7b77   3 l2tag: 321623 counter 373,  l2tag: 321624 counter 385,  l2tag: 3d7b77 counter 411,  l2tag: 320d7d counter 338,       evict l2 cache tag 320d7d at index 3       evict data cache tag 1906 at index 17d3      miss
+f5eddcc0        2ddcc0                       3d7   1ebd 1773 miss 3d7b77   3 miss
 f5eddcc8        2ddcc8                       3d7   1ebd 1773 hit  
 f5eddcd0        2ddcd0                       3d7   1ebd 1773 hit  
 f5eddcd8        2ddcd8                       3d7   1ebd 1773 hit  
@@ -446,7 +446,7 @@ f5eddce0        2ddce0                       3d7   1ebd 1773 hit
 f5eddce8        2ddce8                       3d7   1ebd 1773 hit  
 f5eddcf0        2ddcf0                       3d7   1ebd 1773 hit  
 f5eddcf8        2ddcf8                       3d7   1ebd 1773 hit  
-f5eddd00        2ddd00                       3d7   1ebd 1774 miss 3d7b77   4 l2tag: 3d7b77 counter 419,  l2tag: 320d7f counter 207,  l2tag: 32161f counter 249,  l2tag: 320d7d counter 348,       evict l2 cache tag 320d7f at index 4       evict data cache tag 1906 at index 17f4      miss
+f5eddd00        2ddd00                       3d7   1ebd 1774 miss 3d7b77   4 miss
 f5eddd08        2ddd08                       3d7   1ebd 1774 hit  
 f5eddd10        2ddd10                       3d7   1ebd 1774 hit  
 f5eddd18        2ddd18                       3d7   1ebd 1774 hit  
@@ -454,42 +454,42 @@ f5eddd20        2ddd20                       3d7   1ebd 1774 hit
 f5eddd28        2ddd28                       3d7   1ebd 1774 hit  
 f5eddd30        2ddd30                       3d7   1ebd 1774 hit  
 f5eddd38        2ddd38                       3d7   1ebd 1774 hit  
-f5eddd40        2ddd40                       3d7   1ebd 1775 miss 3d7b77   5 l2tag: 3d7b77 counter 427,  l2tag: 320d7f counter 218,  l2tag: 32161f counter 253,  l2tag: 320d7d counter 267,       evict l2 cache tag 320d7f at index 5       evict data cache tag 1906 at index 17f5      miss
+f5eddd40        2ddd40                       3d7   1ebd 1775 miss 3d7b77   5 miss
 f5eddd48        2ddd48                       3d7   1ebd 1775 hit  
 f5eddd50        2ddd50                       3d7   1ebd 1775 hit  
 f5eddd58        2ddd58                       3d7   1ebd 1775 hit  
 f5eddd60        2ddd60                       3d7   1ebd 1775 hit  
 f5eddd68        2ddd68                       3d7   1ebd 1775 hit  
 c8587668        187668                       321   190b 1d9 hit  
-c85876c0        1876c0                       321   190b 1db miss 32161d   b l2tag: 32161d counter 434,  l2tag: 320d7f counter 309,  l2tag: 320d7e counter 111,  l2tag: 32161e counter 189,       evict l2 cache tag 320d7e at index b       evict data cache tag 1906 at index 17eb      miss
+c85876c0        1876c0                       321   190b 1db miss 32161d   b miss
 f5eddb08        2ddb08                       3d7   1ebd 176c hit  
-f5eddadf        2ddadf                       3d7   1ebd 176b miss 3d7b76   b l2tag: 32161d counter 434,  l2tag: 320d7f counter 309,  l2tag: 3d7b76 counter 436,  l2tag: 32161e counter 189,       evict l2 cache tag 32161e at index b       evict data cache tag 190b at index 1eb      miss
+f5eddadf        2ddadf                       3d7   1ebd 176b miss 3d7b76   b miss
 f5eddade        2ddade                       3d7   1ebd 176b hit  
-c85877b0        1877b0                       321   190b 1de miss 32161d   e l2tag: 32161d counter 438,  l2tag: 32161f counter 325,  l2tag: 320d7e counter 143,  l2tag: 32161e counter 205,       evict l2 cache tag 320d7e at index e       evict data cache tag 1906 at index 17ee      miss
+c85877b0        1877b0                       321   190b 1de miss 32161d   e miss
 f5eddad7        2ddad7                       3d7   1ebd 176b hit  
 f5eddad6        2ddad6                       3d7   1ebd 176b hit  
 c8587de8        187de8                       321   190b 1f7 hit  
 f5eddae0        2ddae0                       3d7   1ebd 176b hit  
-c85877c0        1877c0                       321   190b 1df hit  
+c85877c0        1877c0                       321   190b 1df miss 32161d   f miss
 f5eddad5        2ddad5                       3d7   1ebd 176b hit  
 c8587678        187678                       321   190b 1d9 hit  
 f5eddac8        2ddac8                       3d7   1ebd 176b hit  
 c8587dd8        187dd8                       321   190b 1f7 hit  
 f5eddad4        2ddad4                       3d7   1ebd 176b hit  
 f5eddae8        2ddae8                       3d7   1ebd 176b hit  
-c85876b0        1876b0                       321   190b 1da miss 32161d   a l2tag: 320d7d counter 330,  l2tag: 320d7f counter 282,  l2tag: 32161d counter 450,  l2tag: 32161e counter 177,       evict l2 cache tag 32161e at index a       evict data cache tag 190b at index 1ea      miss
+c85876b0        1876b0                       321   190b 1da miss 32161d   a miss
 f5eddadc        2ddadc                       3d7   1ebd 176b hit  
 c8587698        187698                       321   190b 1da hit  
 f5eddad8        2ddad8                       3d7   1ebd 176b hit  
 c85876b8        1876b8                       321   190b 1da hit  
 f5eddac0        2ddac0                       3d7   1ebd 176b hit  
-c8380134        380134                       320   1907   4 miss 320e00   4 l2tag: 3d7b77 counter 426,  l2tag: 320e00 counter 456,  l2tag: 32161f counter 249,  l2tag: 320d7d counter 348,       evict l2 cache tag 32161f at index 4       evict data cache tag 190b at index 1f4      miss
+c8380134        380134                       320   1907   4 miss 320e00   4 miss
 f5eddd70        2ddd70                       3d7   1ebd 1775 hit  
 f5eddade        2ddade                       3d7   1ebd 176b hit  
 f5eddae0        2ddae0                       3d7   1ebd 176b hit  
 f5eddd78        2ddd78                       3d7   1ebd 1775 hit  
-c83800f0        3800f0                       320   1907   3 miss 320e00   3 l2tag: 321623 counter 373,  l2tag: 321624 counter 385,  l2tag: 3d7b77 counter 418,  l2tag: 320e00 counter 461,       evict l2 cache tag 321623 at index 3       evict data cache tag 190b at index 233      miss
-f5eddd80        2ddd80                       3d7   1ebd 1776 miss 3d7b77   6 l2tag: 321622 counter 369,  l2tag: 3d7b77 counter 462,  l2tag: 320d7f counter 228,  l2tag: 32161f counter 257,       evict l2 cache tag 320d7f at index 6       evict data cache tag 1906 at index 17f6      miss
+c83800f0        3800f0                       320   1907   3 miss 320e00   3 miss
+f5eddd80        2ddd80                       3d7   1ebd 1776 miss 3d7b77   6 miss
 f5eddad4        2ddad4                       3d7   1ebd 176b hit  
 f5eddac0        2ddac0                       3d7   1ebd 176b hit  
 f5eddd88        2ddd88                       3d7   1ebd 1776 hit  
@@ -501,11 +501,11 @@ f5eddda0        2ddda0                       3d7   1ebd 1776 hit
 f5eddad6        2ddad6                       3d7   1ebd 176b hit  
 f5eddad8        2ddad8                       3d7   1ebd 176b hit  
 f5eddda8        2ddda8                       3d7   1ebd 1776 hit  
-c83800bc        3800bc                       320   1907   2 miss 320e00   2 l2tag: 321623 counter 367,  l2tag: 3d7b77 counter 410,  l2tag: 320e00 counter 474,  l2tag: 320dfe counter 350,       evict l2 cache tag 320dfe at index 2       evict data cache tag 1906 at index 1fe2      miss
+c83800bc        3800bc                       320   1907   2 miss 320e00   2 miss
 f5edddb0        2dddb0                       3d7   1ebd 1776 hit  
 f5edddb8        2dddb8                       3d7   1ebd 1776 hit  
 c83800c0        3800c0                       320   1907   3 hit  
-f5edddc8        2dddc8                       3d7   1ebd 1777 miss 3d7b77   7 l2tag: 32161f counter 447,  l2tag: 320d7d counter 312,  l2tag: 3d7b77 counter 478,  l2tag: 320d7f counter 239,       evict l2 cache tag 320d7f at index 7       evict data cache tag 1906 at index 17f7      miss
+f5edddc8        2dddc8                       3d7   1ebd 1777 miss 3d7b77   7 miss
 c83800c4        3800c4                       320   1907   3 hit  
 f5edddd0        2dddd0                       3d7   1ebd 1777 hit  
 f5edddd8        2dddd8                       3d7   1ebd 1777 hit  
@@ -514,7 +514,7 @@ f5eddde8        2ddde8                       3d7   1ebd 1777 hit
 c83800d0        3800d0                       320   1907   3 hit  
 f5edddf8        2dddf8                       3d7   1ebd 1777 hit  
 c83800d4        3800d4                       320   1907   3 hit  
-f5edde00        2dde00                       3d7   1ebd 1778 miss 3d7b77   8 l2tag: 320d7f counter 250,  l2tag: 3d7b77 counter 487,  l2tag: 32161f counter 357,  l2tag: 32161e counter 169,       evict l2 cache tag 32161e at index 8       evict data cache tag 190b at index 1e8      miss
+f5edde00        2dde00                       3d7   1ebd 1778 miss 3d7b77   8 miss
 f5edde08        2dde08                       3d7   1ebd 1778 hit  
 c83800dc        3800dc                       320   1907   3 hit  
 f5edde18        2dde18                       3d7   1ebd 1778 hit  
@@ -523,8 +523,34 @@ f5edde28        2dde28                       3d7   1ebd 1778 hit
 c83800e4        3800e4                       320   1907   3 hit  
 f5edde38        2dde38                       3d7   1ebd 1778 hit  
 c83800e8        3800e8                       320   1907   3 hit  
-f5edde48        2dde48                       3d7   1ebd 1779 miss 3d7b77   9 l2tag: 32161d counter 445,  l2tag: 320d7d counter 329,  l2tag: 3d7b77 counter 496,  l2tag: 320d7f counter 260,       evict l2 cache tag 320d7f at index 9       evict data cache tag 1906 at index 17f9      miss
+f5edde48        2dde48                       3d7   1ebd 1779 miss 3d7b77   9 miss
 c838010c        38010c                       320   1907   4 hit  
 f5edde50        2dde50                       3d7   1ebd 1779 hit  
 f5edde58        2dde58                       3d7   1ebd 1779 hit  
 c8380114        380114                       320   1907   4 hit  
+
+Simulation statistics
+
+dtlb hits        : 0
+dtlb misses      : 0
+dtlb hit ratio   : N/A
+
+pt hits          : 0
+pt faults        : 0
+pt hit ratio     : N/A
+
+dc hits          : 399
+dc misses        : 101
+dc hit ratio     : 0.798000
+
+L2 hits          : 26
+L2 misses        : 101
+L2 hit ratio     : 0.204724
+
+Total reads      : 366
+Total writes     : 134
+Ratio of reads   : 0.732000
+
+main memory refs : 127
+page table refs  : 0
+disk refs        : 0

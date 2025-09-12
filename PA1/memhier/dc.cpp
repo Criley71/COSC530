@@ -22,25 +22,25 @@ DC::DC(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
   }
 }
 
-void DC::insert_to_cache(int dec_dc_index, int dec_dc_tag, int time, int dirty_bit, int pfn) {
+void DC::insert_to_cache(int dc_index, int dc_tag, int time, int dirty_bit, int pfn) {
   int oldest_used = INT32_MAX;
   int oldest_index = 0;
   for (int i = 0; i < set_size; i++) {
-    if (data_cache[dec_dc_index][i].time_last_accessed < oldest_used) {
+    if (data_cache[dc_index][i].time_last_accessed < oldest_used) {
       oldest_index = i;
-      oldest_used = data_cache[dec_dc_index][i].time_last_accessed;
+      oldest_used = data_cache[dc_index][i].time_last_accessed;
     }
   }
-  data_cache[dec_dc_index][oldest_index].index = dec_dc_index;
-  data_cache[dec_dc_index][oldest_index].tag = dec_dc_tag;
-  data_cache[dec_dc_index][oldest_index].time_last_accessed = time;
-  data_cache[dec_dc_index][oldest_index].dirty_bit = dirty_bit;
-  data_cache[dec_dc_index][oldest_index].pfn = pfn;
-  // cout << " dirty bit: " << data_cache[dec_dc_index][oldest_index].dirty_bit << " ";
-  // cout << " INSERTING " << dec_dc_tag << " at index: " << dec_dc_index << " with time " << data_cache[dec_dc_index][oldest_index].time_last_accessed;
+  data_cache[dc_index][oldest_index].index = dc_index;
+  data_cache[dc_index][oldest_index].tag = dc_tag;
+  data_cache[dc_index][oldest_index].time_last_accessed = time;
+  data_cache[dc_index][oldest_index].dirty_bit = dirty_bit;
+  data_cache[dc_index][oldest_index].pfn = pfn;
+  // cout << " dirty bit: " << data_cache[dc_index][oldest_index].dirty_bit << " ";
+  // cout << " INSERTING " << dc_tag << " at index: " << dc_index << " with time " << data_cache[dc_index][oldest_index].time_last_accessed;
 }
 
-bool DC::check_cache(int dec_dc_index, int dec_dc_tag, int time, bool is_write,  int  pfn, bool page_fault) {
+bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write,  int  pfn, bool page_fault) {
   // cout << "SIZE: " << data_cache.size();
   // cout << "DATA CACHE INDEX 1: " << data_cache[1][0].tag << "\n";
   //
@@ -58,18 +58,30 @@ bool DC::check_cache(int dec_dc_index, int dec_dc_tag, int time, bool is_write, 
 
 
   for (int i = 0; i < set_size; i++) {
-    if (data_cache[dec_dc_index][i].tag == dec_dc_tag) {
-      data_cache[dec_dc_index][i].time_last_accessed = time;
+    if (data_cache[dc_index][i].tag == dc_tag) {
+      data_cache[dc_index][i].time_last_accessed = time;
       if (is_write == true) {
-        data_cache[dec_dc_index][i].dirty_bit = 1;
+        data_cache[dc_index][i].dirty_bit = 1;
       }
       return true;
     }
   }
   if (is_write) {
-    insert_to_cache(dec_dc_index, dec_dc_tag, time, 1, pfn); // inserted on a write, set dirty bit to 1
+    insert_to_cache(dc_index, dc_tag, time, 1, pfn); // inserted on a write, set dirty bit to 1
   } else {
-    insert_to_cache(dec_dc_index, dec_dc_tag, time, 0, pfn); // inserted on read, set dirty bit to 0
+    insert_to_cache(dc_index, dc_tag, time, 0, pfn); // inserted on read, set dirty bit to 0
   }
   return false;
+}
+
+
+
+void DC::evict_given_l2_phys_address(int dc_index, int dc_tag){
+  for(int i = 0; i < set_size; i++){
+    if(data_cache[dc_index][i].tag == dc_tag){
+
+      data_cache[dc_index][i] = Cache_block(-1,-1,-1,-1,-1);
+      return;
+    }
+  }
 }

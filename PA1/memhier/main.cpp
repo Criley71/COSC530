@@ -354,6 +354,7 @@ void read_data_file(Config config) {
   string p_bin_string;
   string physical_address_bin;
   pair<int, int> tlb_index_and_tag;
+  bool was_l2_full = false;
   stringstream ss;
   bitset<64> b;
   bitset<64> p;
@@ -362,6 +363,7 @@ void read_data_file(Config config) {
   PT PAGE_TABLE = PT(config.virtual_page_count);
   DTLB translation_buffer = DTLB(config.dtlb_set_count, config.dtlb_set_size);
   while (getline(fin, line)) {
+    config.counter += 1; //i dont remember why i made this part of the config class but its too late to change
     if (line[0] == 'R') {
       is_read = true;
     } else if (line[0] == 'W') {
@@ -372,12 +374,13 @@ void read_data_file(Config config) {
     unsigned temp;  // temp var that will hold all string stream values
     // I learned how stringstreams work doing this, this is awesome
     // No more hex translation helper functions!
-
+    
     ss >> temp;
     ss.clear();
     b = bitset<64>(temp);
     bin_string = b.to_string();
-
+    
+    was_l2_full = false;
     if (!config.virt_addr) {
       // CALCULATE PHYSICAL PAGE NUM TO MAKE SURE ITS IN BOUNDS
       phys_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
@@ -410,9 +413,14 @@ void read_data_file(Config config) {
       dc_index_bin = bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
       dc_index = stoi(dc_index_bin, 0, 2);
       cout << " " << setw(3) << setfill(' ') << hex << dc_index;
-
+      
       // check data cache for block, if hit no need to check l2
       if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, -1, false)) {
+        l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+        l2_tag = stoi(l2_tag_bin, 0, 2);
+        l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+        l2_index = stoi(l2_index_bin, 0, 2);
+        L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
         cout << " hit  \n";
         continue;
       } else {
@@ -435,10 +443,21 @@ void read_data_file(Config config) {
         l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
         l2_index = stoi(l2_index_bin, 0, 2);
         cout << setw(3) << setfill(' ') << hex << l2_index;
-
-        if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0, -1, false)) {
+        was_l2_full = L2_CACHE.check_if_index_is_full(l2_index);
+        int dirty_bit;
+        if(is_read){
+          dirty_bit = 0;
+        }else{
+          dirty_bit = 1;
+        }
+        if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, false, dc_index, dc_tag)) {
           cout << " hit \n";
+         
         } else {
+          if(was_l2_full){
+            pair<int, int> dc_index_tag_pair_to_invalidate = L2_CACHE.get_dc_index_tag(l2_index, l2_tag);
+            //DATA_CACHE.evict_given_l2_phys_address(dc_index_tag_pair_to_invalidate.first, dc_index_tag_pair_to_invalidate.second);
+          }
           cout << " miss\n";
         }
       }
@@ -451,7 +470,7 @@ void read_data_file(Config config) {
         exit(-1);
       }
       cout << hex << setw(8) << setfill('0') << temp;
-      cout << setfill(' ') << setw(7) << hex << virt_page_num;
+      cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
 
       // PAGE OFFSET CALCULATION AND PRINTING
       page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
@@ -529,16 +548,24 @@ void read_data_file(Config config) {
         l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
         l2_index = stoi(l2_index_bin, 0, 2);
         cout << setw(3) << setfill(' ') << hex << l2_index;
+        if(is_read){
 
-        if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0, pfn, false)) {
-          cout << " hit \n";
-        } else {
-          cout << " miss\n";
+          if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0, pfn, false, dc_index, dc_tag)) {
+            cout << " hit \n";
+          } else {
+            cout << " miss\n";
+          }
+        }else{
+          if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 1, pfn, false, dc_index, dc_tag)) {
+            cout << " hit \n";
+          } else {
+            cout << " miss\n";
+          }
         }
       }
     }
   }
-  config.counter += 1; //i dont remember why i made this part of the config class but its too late to change
+  
 }
 
 pair<int, int> tlb_index_tag_getter(int vpn, int tlb_set_count){
