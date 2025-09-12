@@ -15,6 +15,7 @@ public:
 };
 
 class DTLB {
+public:
   int set_count;
   int set_size;
   vector<vector<DTLB_entry>> dtlb;

@@ -347,7 +347,7 @@ void read_data_file(Config config) {
   string virtual_page_calc_hex;
   int pfn;
   bool page_was_dirty;
-  ifstream fin("trace.dat");
+  ifstream fin("long_trace.dat");
   string line;
   string hex_val;
   string bin_string;
@@ -360,6 +360,7 @@ void read_data_file(Config config) {
   DC DATA_CACHE = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
   L2 L2_CACHE = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits);
   PT PAGE_TABLE = PT(config.virtual_page_count);
+  DTLB translation_buffer = DTLB(config.dtlb_set_count, config.dtlb_set_size);
   while (getline(fin, line)) {
     if (line[0] == 'R') {
       is_read = true;
@@ -415,7 +416,11 @@ void read_data_file(Config config) {
         cout << " hit  \n";
         continue;
       } else {
-        cout << " miss ";
+        if(config.l2_enabled){
+          cout << " miss";
+        }else{
+          cout << " miss ";
+        }
       }
       // if l2 is disabled then the line is done
       if (!config.l2_enabled) {
@@ -467,11 +472,23 @@ void read_data_file(Config config) {
       if(config.dtlb_enabled){
         tlb_index_and_tag = tlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
         //cout << "tlb_index = " << tlb_index_and_tag.first << " tlb_tag = " << tlb_index_and_tag.second << " "; 
-        cout << setw(7) << setfill(' ') << hex << tlb_index_and_tag.second;
-        cout << setw(4) << setfill(' ') << hex << tlb_index_and_tag.first;
+        tlb_index = tlb_index_and_tag.first;
+        tlb_tag = tlb_index_and_tag.second;
+        cout << setw(7) << setfill(' ') << hex << tlb_tag;
+        cout << setw(4) << setfill(' ') << hex << tlb_index;
+        if (translation_buffer.check_dtlb(tlb_index, tlb_tag, config.counter)){
+          cout << setw(4) << setfill(' ') << " hit ";
+          cout << setw(5) << setfill(' ') << " ";
+        }else{
+          cout << setw(4) << setfill(' ') << " miss";
+          translation_buffer.insert_to_dtlb(tlb_index, tlb_tag, config.counter, pfn);
+          cout << setw(5) << setfill(' ') << pt_res;
+        }
+      }else{
+
+        
+        cout << setw(21) << setfill(' ') << pt_res;
       }
-      cout << setw(5) << setfill(' ') << " ";
-      cout << setw(5) << setfill(' ') << pt_res;
 
       // PHYSICAL ADDRESS TRANSFORMATION
       int physical_address = PAGE_TABLE.vpn_to_phys_address(virt_page_num, page_off, config.pt_offset_bit, config.virtual_page_count, config.physical_page_count, config.counter, !is_read, DATA_CACHE, L2_CACHE);
@@ -498,6 +515,7 @@ void read_data_file(Config config) {
         cout << " hit  \n";
         continue;
       } else {
+        
         cout << " miss ";
       }
       if (!config.l2_enabled) {
@@ -520,7 +538,7 @@ void read_data_file(Config config) {
       }
     }
   }
-  config.counter += 1;
+  config.counter += 1; //i dont remember why i made this part of the config class but its too late to change
 }
 
 pair<int, int> tlb_index_tag_getter(int vpn, int tlb_set_count){

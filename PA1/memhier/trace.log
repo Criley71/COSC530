@@ -1,20 +1,1089 @@
-read at 00000c84
+write at f5eddbd8
 
-read at 00000c1c
+write at f5eddbd0
 
-write at 0000014c
+write at f5eddbc8
 
-read at 00000c84
-writing back DC line with tag 5 and index 0 to L2 cache
+write at f5eddbc0
 
-read at 00000400
+write at f5eddbb8
 
-write at 00000148
+write at f5eddbb0
 
-read at 00000144
+write at f5eddba8
 
-read at 00000c80
-writing back DC line with tag 5 and index 0 to L2 cache
+read at c8587df0
 
-read at 00000008
+write at c8587620
+
+read at c8587f80
+
+write at c8588998
+
+write at c8588988
+
+write at c8588a38
+
+read at c8587e00
+
+write at c85889e8
+
+read at c8587e10
+
+write at c8588c28
+
+read at c8587e20
+
+write at c85889f0
+
+read at c8587e30
+
+write at c85889f8
+
+read at c8587e40
+
+write at c8588a18
+
+read at c8587e50
+
+write at c8588a20
+
+read at c8587e60
+
+write at c85889e0
+
+read at c8587e70
+
+write at c85889d8
+
+read at c8587e80
+
+write at c8588a68
+
+read at c8587e90
+
+write at c8588a80
+
+read at c8587ea0
+
+write at c8588a00
+
+read at c8587eb0
+
+write at c8588a08
+
+read at c8587ec0
+
+write at c8588a10
+
+read at c8587ed0
+
+write at c8588af8
+
+read at c8587ee0
+
+write at c8588af0
+
+read at c8587ef0
+
+write at c8588a88
+
+read at c8587f00
+
+write at c8588b00
+
+read at c8587f10
+
+write at c8588b58
+
+read at c8587f20
+
+write at c8588b10
+
+read at c8587f30
+
+read at c85889e8
+
+read at c8587e08
+
+write at c8587e08
+
+read at c85889e0
+
+read at c8587e68
+
+write at c8587e68
+
+read at c85889f0
+
+read at c8587e28
+
+write at c8587e28
+
+read at c85889f8
+
+read at c8587e38
+
+write at c8587e38
+
+read at c8588a00
+
+read at c8587ea8
+
+write at c8587ea8
+
+read at c8588a80
+
+read at c8587e98
+
+write at c8587e98
+
+read at c8588b58
+
+read at c8587f18
+
+write at c8587f18
+
+read at c8588c28
+
+read at c8587e18
+
+write at c8587e18
+
+read at c8588a68
+
+read at c8587e88
+
+read at c8588a00
+
+read at c8588a10
+
+read at c8587ec8
+
+read at c8588b00
+
+read at c8587f08
+
+read at c8588ab8
+
+read at c8588ab0
+
+read at c8588a40
+
+read at c8587ea8
+
+read at c8588a08
+
+read at c8588b10
+
+read at c8587eb8
+
+read at c8587f28
+
+read at c85889d8
+
+read at c8588a80
+
+read at c8587e78
+
+read at c8587e98
+
+read at c85889f8
+
+read at c8587e38
+
+read at c835faa8
+
+read at c835fab0
+
+read at c835fab8
+
+write at c85877c8
+
+read at c835fac0
+
+read at c835fac8
+
+read at c835fad0
+
+write at c85877d0
+
+read at c835fad8
+
+read at c835fae0
+
+read at c835fae8
+
+write at c85877d8
+
+read at c835faf0
+
+read at c835faf8
+
+read at c835fb00
+
+write at c85877e0
+
+read at c835fb08
+
+read at c835fb10
+
+read at c835fb18
+
+write at c85877e8
+
+read at c835fb20
+
+read at c835fb28
+
+read at c835fb30
+
+write at c85877f0
+
+read at c835fb38
+
+read at c835fb40
+
+read at c835fb48
+
+write at c85877f8
+
+read at c835fb50
+
+read at c835fb58
+
+read at c835fb60
+
+write at c8587860
+
+read at c835fb68
+
+read at c835fb70
+
+read at c835fb78
+
+write at c8587898
+
+read at c835fb80
+
+read at c835fb88
+
+read at c835fb90
+
+write at c85878d0
+
+read at c835fb98
+
+read at c835fba0
+
+read at c835fba8
+
+write at c8587900
+
+read at c835fbb0
+
+read at c835fbb8
+
+read at c835fbc0
+
+write at c8587908
+
+read at c835fbc8
+
+read at c835fbd0
+
+read at c835fbd8
+
+write at c8587938
+
+read at c835fbe0
+
+read at c835fbe8
+
+read at c835fbf0
+
+write at c8587940
+
+read at c835fbf8
+
+read at c835fc00
+
+read at c835fc08
+
+write at c8587978
+
+read at c835fc10
+
+read at c835fc18
+
+read at c835fc20
+
+write at c85879b0
+
+read at c835fc28
+
+read at c835fc30
+
+read at c835fc38
+
+write at c85879e8
+
+read at c835fc40
+
+read at c835fc48
+
+read at c835fc50
+
+write at c8587a20
+
+read at c835fc58
+
+read at c835fc60
+
+read at c835fc68
+
+write at c8587a58
+
+read at c835fc70
+
+read at c835fc78
+
+read at c835fc80
+
+write at c8587a90
+
+read at c835fc88
+
+read at c835fc90
+
+read at c835fc98
+
+write at c8587ac0
+
+read at c835fca0
+
+read at c835fca8
+
+read at c835fcb0
+
+write at c8587ac8
+
+read at c835fcb8
+
+read at c835fcc0
+
+read at c835fcc8
+
+write at c8587af8
+
+read at c835fcd0
+
+read at c835fcd8
+
+read at c835fce0
+
+write at c8587b00
+
+read at c835fce8
+
+read at c835fcf0
+
+read at c835fcf8
+
+write at c8587b38
+
+read at c835fd00
+
+read at c835fd08
+
+read at c835fd10
+
+write at c8587b70
+
+read at c835fd18
+
+read at c835fd20
+
+read at c835fd28
+
+write at c8587ba8
+
+read at c835fd30
+
+read at c835fd38
+
+read at c835fd40
+
+write at c8587be0
+
+read at c835fd48
+
+read at c835fd50
+
+read at c835fd58
+
+write at c8587c18
+
+read at c835fd60
+
+read at c835fd68
+
+read at c835fd70
+
+write at c8587c48
+
+read at c835fd78
+
+read at c835fd80
+
+read at c835fd88
+
+write at c8587c50
+
+read at c835fd90
+
+read at c835fd98
+
+read at c835fda0
+
+write at c8587c80
+
+read at c835fda8
+
+read at c835fdb0
+
+read at c835fdb8
+
+write at c8587c88
+
+read at c835fdc0
+
+read at c835fdc8
+
+read at c835fdd0
+
+write at c8587cb8
+
+read at c835fdd8
+
+read at c835fde0
+
+read at c835fde8
+
+write at c8587cc0
+
+read at c835fdf0
+
+read at c835fdf8
+
+read at c835fe00
+writing back DC line with tag b and index 1d8 to L2 cache
+invalidating DC line with tag b and index 1d8 since L2 line with tag 161d and index 8 is being replaced
+writing back L2 line with tag 161d and index 8 to memory
+
+write at c8587cf8
+
+read at c835fe08
+
+read at c835fe10
+
+read at c835fe18
+
+write at c8587d28
+
+read at c835fe20
+
+read at c835fe28
+
+read at c835fe30
+
+write at c8587d30
+
+read at c835fe38
+
+read at c835fe40
+
+read at c835fe48
+
+write at c8587d68
+
+read at c835fe50
+
+read at c835fe58
+
+read at c835fe60
+
+write at c8587da0
+
+read at c835fe68
+
+read at c835fe70
+
+read at c835fe78
+
+write at c8587dd0
+
+read at c8588b58
+
+read at c835fe88
+writing back DC line with tag b and index 1fa to L2 cache
+invalidating DC line with tag b and index 1fa since L2 line with tag 161f and index a is being replaced
+writing back L2 line with tag 161f and index a to memory
+
+read at c835fe80
+
+read at c835f574
+
+read at c835f576
+
+read at c835f578
+
+read at c8588988
+
+read at c837f8a0
+
+read at c835fe90
+
+write at c8587fd8
+writing back DC line with tag 5 and index 176f to L2 cache
+invalidating DC line with tag 5 and index 176f since L2 line with tag b76 and index f is being replaced
+writing back L2 line with tag b76 and index f to memory
+
+read at c835fea0
+
+read at c835fe98
+
+read at c835f514
+
+read at c835f516
+
+read at c835f518
+
+read at c8588988
+
+read at c837f8a0
+
+read at c835fea8
+
+write at c8587fe0
+
+read at c835feb8
+
+read at c835feb0
+
+read at c835f4cc
+
+read at c835f4ce
+
+read at c835f4d0
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835fec0
+invalidating DC line with tag b and index 1fb since L2 line with tag 161f and index b is being replaced
+
+write at c8587f98
+
+read at c835fed0
+
+read at c835fec8
+
+read at c835f70c
+writing back DC line with tag b and index 1fc to L2 cache
+invalidating DC line with tag b and index 1fc since L2 line with tag 161f and index c is being replaced
+writing back L2 line with tag 161f and index c to memory
+
+read at c835f70e
+
+read at c835f710
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835fed8
+
+write at c8587fa0
+
+read at c835fee8
+
+read at c835fee0
+
+read at c835f46c
+
+read at c835f46e
+
+read at c835f470
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835fef0
+
+write at c8587fa8
+
+read at c835ff00
+writing back DC line with tag b and index 22c to L2 cache
+invalidating DC line with tag b and index 22c since L2 line with tag 1622 and index c is being replaced
+writing back L2 line with tag 1622 and index c to memory
+
+read at c835fef8
+
+read at c835f5ec
+writing back DC line with tag b and index 1f7 to L2 cache
+invalidating DC line with tag b and index 1f7 since L2 line with tag 161f and index 7 is being replaced
+writing back L2 line with tag 161f and index 7 to memory
+
+read at c835f5ee
+
+read at c835f5f0
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835ff08
+
+write at c8587fb0
+
+read at c835ff18
+
+read at c835ff10
+
+read at c835f52c
+
+read at c835f52e
+
+read at c835f530
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835ff20
+
+write at c8587fb8
+
+read at c835ff30
+
+read at c835ff28
+
+read at c835f67c
+writing back DC line with tag b and index 1f9 to L2 cache
+invalidating DC line with tag b and index 1f9 since L2 line with tag 161f and index 9 is being replaced
+writing back L2 line with tag 161f and index 9 to memory
+
+read at c835f67e
+
+read at c835f680
+writing back DC line with tag b and index 22a to L2 cache
+invalidating DC line with tag b and index 22a since L2 line with tag 1622 and index a is being replaced
+writing back L2 line with tag 1622 and index a to memory
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835ff38
+
+write at c8587fc0
+
+read at c835ff48
+
+read at c835ff40
+
+read at c835f4fc
+
+read at c835f4fe
+
+read at c835f500
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835ff50
+
+write at c8587fc8
+
+read at c835ff60
+
+read at c835ff58
+
+read at c835f514
+
+read at c835f516
+
+read at c835f518
+
+read at c8588988
+
+read at c837f8a4
+
+read at c835ff68
+
+write at c8587fd0
+
+read at c8588ca4
+writing back DC line with tag b and index 1e2 to L2 cache
+invalidating DC line with tag b and index 1e2 since L2 line with tag 161e and index 2 is being replaced
+writing back L2 line with tag 161e and index 2 to memory
+
+write at c8588ca4
+
+write at f5eddb68
+writing back DC line with tag b and index 22d to L2 cache
+invalidating DC line with tag b and index 22d since L2 line with tag 1622 and index d is being replaced
+writing back L2 line with tag 1622 and index d to memory
+
+read at c8588c28
+
+read at c8587e18
+
+read at c835f338
+invalidating DC line with tag 16 and index 17ec since L2 line with tag 2d7e and index c is being replaced
+
+write at c8588c7c
+writing back DC line with tag b and index 1e1 to L2 cache
+invalidating DC line with tag b and index 1e1 since L2 line with tag 161e and index 1 is being replaced
+writing back L2 line with tag 161e and index 1 to memory
+
+read at c835f340
+invalidating DC line with tag 16 and index 17ed since L2 line with tag 2d7e and index d is being replaced
+
+read at c835f33c
+
+write at c8588c80
+
+read at c835f344
+
+write at c8588c88
+
+write at c8588c90
+
+write at c8588c84
+
+write at c8588c98
+
+read at f5eddb68
+
+write at c85889b0
+
+write at c8588cd8
+writing back DC line with tag b and index 1e3 to L2 cache
+invalidating DC line with tag b and index 1e3 since L2 line with tag 161e and index 3 is being replaced
+writing back L2 line with tag 161e and index 3 to memory
+
+write at c8588ce0
+
+write at c8587de0
+writing back DC line with tag b and index 227 to L2 cache
+invalidating DC line with tag b and index 227 since L2 line with tag 1622 and index 7 is being replaced
+writing back L2 line with tag 1622 and index 7 to memory
+
+write at c8588ce8
+
+write at f5eddb68
+
+write at f5eddb60
+
+write at f5eddb58
+
+write at f5eddb50
+
+write at f5eddb48
+
+write at f5eddb40
+
+write at f5eddb38
+writing back DC line with tag b and index 1ec to L2 cache
+invalidating DC line with tag b and index 1ec since L2 line with tag 161e and index c is being replaced
+writing back L2 line with tag 161e and index c to memory
+
+read at f5eddbe0
+writing back DC line with tag b and index 1df to L2 cache
+invalidating DC line with tag b and index 1df since L2 line with tag 161d and index f is being replaced
+writing back L2 line with tag 161d and index f to memory
+
+write at c8587de0
+
+write at c8587640
+writing back DC line with tag b and index 229 to L2 cache
+invalidating DC line with tag b and index 229 since L2 line with tag 1622 and index 9 is being replaced
+writing back L2 line with tag 1622 and index 9 to memory
+
+write at c8587648
+
+write at c85890e8
+invalidating DC line with tag 16 and index 17f3 since L2 line with tag 2d7f and index 3 is being replaced
+
+read at f5eddbf8
+
+read at f5eddc00
+
+read at f5eddc08
+
+read at f5eddc10
+
+read at f5eddc18
+
+read at f5eddc20
+
+read at f5eddc28
+
+read at f5eddc30
+
+read at f5eddc38
+
+read at f5eddc40
+invalidating DC line with tag 16 and index 17f1 since L2 line with tag 2d7f and index 1 is being replaced
+
+read at f5eddc48
+
+read at f5eddc50
+
+read at f5eddc58
+
+read at f5eddc60
+
+read at f5eddc68
+
+read at f5eddc70
+
+read at f5eddc78
+
+read at f5eddc80
+invalidating DC line with tag 16 and index 17f2 since L2 line with tag 2d7f and index 2 is being replaced
+
+read at f5eddc88
+
+read at f5eddc90
+
+read at f5eddc98
+
+read at f5eddca0
+
+read at f5eddca8
+
+read at f5eddcb0
+
+read at f5eddcb8
+
+read at f5eddcc0
+writing back DC line with tag b and index 1f3 to L2 cache
+invalidating DC line with tag b and index 1f3 since L2 line with tag 161f and index 3 is being replaced
+writing back L2 line with tag 161f and index 3 to memory
+
+read at f5eddcc8
+
+read at f5eddcd0
+
+read at f5eddcd8
+
+read at f5eddce0
+
+read at f5eddce8
+
+read at f5eddcf0
+
+read at f5eddcf8
+
+read at f5eddd00
+writing back DC line with tag b and index 1e4 to L2 cache
+invalidating DC line with tag b and index 1e4 since L2 line with tag 161e and index 4 is being replaced
+writing back L2 line with tag 161e and index 4 to memory
+
+read at f5eddd08
+
+read at f5eddd10
+
+read at f5eddd18
+
+read at f5eddd20
+
+read at f5eddd28
+
+read at f5eddd30
+
+read at f5eddd38
+
+read at f5eddd40
+writing back DC line with tag b and index 1e5 to L2 cache
+invalidating DC line with tag b and index 1e5 since L2 line with tag 161e and index 5 is being replaced
+writing back L2 line with tag 161e and index 5 to memory
+
+read at f5eddd48
+
+read at f5eddd50
+
+read at f5eddd58
+
+read at f5eddd60
+
+read at f5eddd68
+
+write at c8587668
+
+write at c85876c0
+writing back DC line with tag b and index 22b to L2 cache
+invalidating DC line with tag b and index 22b since L2 line with tag 1622 and index b is being replaced
+writing back L2 line with tag 1622 and index b to memory
+
+write at f5eddb08
+
+write at f5eddadf
+invalidating DC line with tag 16 and index 17eb since L2 line with tag 2d7e and index b is being replaced
+
+write at f5eddade
+
+read at c85877b0
+writing back DC line with tag 5 and index 176e to L2 cache
+invalidating DC line with tag 5 and index 176e since L2 line with tag b76 and index e is being replaced
+writing back L2 line with tag b76 and index e to memory
+
+write at f5eddad7
+
+write at f5eddad6
+
+read at c8587de8
+
+write at f5eddae0
+
+read at c85877c0
+invalidating DC line with tag 16 and index 17ef since L2 line with tag 2d7e and index f is being replaced
+
+write at f5eddad5
+
+read at c8587678
+
+write at f5eddac8
+
+read at c8587dd8
+
+write at f5eddad4
+
+write at f5eddae8
+
+read at c85876b0
+invalidating DC line with tag 16 and index 17ea since L2 line with tag 2d7e and index a is being replaced
+
+write at f5eddadc
+
+read at c8587698
+
+write at f5eddad8
+
+read at c85876b8
+
+write at f5eddac0
+
+read at c8380134
+invalidating DC line with tag 16 and index 17f4 since L2 line with tag 2d7f and index 4 is being replaced
+
+read at f5eddd70
+
+write at f5eddade
+
+write at f5eddae0
+
+read at f5eddd78
+
+read at c83800f0
+invalidating DC line with tag 16 and index 17d3 since L2 line with tag 2d7d and index 3 is being replaced
+
+read at f5eddd80
+writing back DC line with tag b and index 226 to L2 cache
+invalidating DC line with tag b and index 226 since L2 line with tag 1622 and index 6 is being replaced
+writing back L2 line with tag 1622 and index 6 to memory
+
+write at f5eddad4
+
+write at f5eddac0
+
+read at f5eddd88
+
+read at c83800c8
+
+read at f5eddd90
+
+read at f5eddd98
+
+read at c83800f4
+
+read at f5eddda0
+
+write at f5eddad6
+
+write at f5eddad8
+
+read at f5eddda8
+
+read at c83800bc
+writing back DC line with tag b and index 1f2 to L2 cache
+invalidating DC line with tag b and index 1f2 since L2 line with tag 161f and index 2 is being replaced
+writing back L2 line with tag 161f and index 2 to memory
+
+read at f5edddb0
+
+read at f5edddb8
+
+read at c83800c0
+
+read at f5edddc8
+writing back DC line with tag b and index 1e7 to L2 cache
+invalidating DC line with tag b and index 1e7 since L2 line with tag 161e and index 7 is being replaced
+writing back L2 line with tag 161e and index 7 to memory
+
+read at c83800c4
+
+read at f5edddd0
+
+read at f5edddd8
+
+read at c83800cc
+
+read at f5eddde8
+
+read at c83800d0
+
+read at f5edddf8
+
+read at c83800d4
+
+read at f5edde00
+writing back DC line with tag b and index 228 to L2 cache
+invalidating DC line with tag b and index 228 since L2 line with tag 1622 and index 8 is being replaced
+writing back L2 line with tag 1622 and index 8 to memory
+
+read at f5edde08
+
+read at c83800dc
+
+read at f5edde18
+
+read at c83800e0
+
+read at f5edde28
+
+read at c83800e4
+
+read at f5edde38
+
+read at c83800e8
+
+read at f5edde48
+writing back DC line with tag b and index 1e9 to L2 cache
+invalidating DC line with tag b and index 1e9 since L2 line with tag 161e and index 9 is being replaced
+writing back L2 line with tag 161e and index 9 to memory
+
+read at c838010c
+
+read at f5edde50
+
+read at f5edde58
+
+read at c8380114
 

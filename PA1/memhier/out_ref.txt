@@ -1,64 +1,555 @@
-Data TLB contains 2 sets.
+Data TLB contains 256 sets.
 Each set contains 1 entries.
-Number of bits used for the index is 1.
+Number of bits used for the index is 8.
 
-Number of virtual pages is 64.
-Number of physical pages is 4.
-Each page contains 256 bytes.
-Number of bits used for the page table index is 6.
-Number of bits used for the page offset is 8.
+Number of virtual pages is 8192.
+Number of physical pages is 1024.
+Each page contains 4194304 bytes.
+Number of bits used for the page table index is 13.
+Number of bits used for the page offset is 22.
 
-D-cache contains 4 sets.
+D-cache contains 8192 sets.
 Each set contains 1 entries.
-Each line is 16 bytes.
+Each line is 64 bytes.
 The cache uses a write-allocate and write-back policy.
-Number of bits used for the index is 2.
-Number of bits used for the offset is 4.
+Number of bits used for the index is 13.
+Number of bits used for the offset is 6.
 
 L2-cache contains 16 sets.
 Each set contains 4 entries.
-Each line is 16 bytes.
+Each line is 64 bytes.
 The cache uses a write-allocate and write-back policy.
 Number of bits used for the index is 4.
-Number of bits used for the offset is 4.
+Number of bits used for the offset is 6.
 
 The addresses read in are virtual addresses.
 
 Virtual  Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2
 Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.
 -------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----
-00000c84      c   84      6   0 miss miss    0      2   0 miss      0   8 miss
-00000c1c      c   1c      6   0 hit          0      0   1 miss      0   1 miss
-0000014c      1   4c      0   1 miss miss    1      5   0 miss      1   4 miss
-00000c84      c   84      6   0 hit          0      2   0 miss      0   8 hit 
-00000400      4    0      2   0 miss miss    2      8   0 miss      2   0 miss
-00000148      1   48      0   1 hit          1      5   0 miss      1   4 hit 
-00000144      1   44      0   1 hit          1      5   0 hit  
-00000c80      c   80      6   0 miss hit     0      2   0 miss      0   8 hit 
-00000008      0    8      0   0 miss miss    3      c   0 miss      3   0 miss
+f5eddbd8    3d7 2ddbd8      3  d7 miss miss    0      5 176f miss    b76   f miss
+f5eddbd0    3d7 2ddbd0      3  d7 hit          0      5 176f hit  
+f5eddbc8    3d7 2ddbc8      3  d7 hit          0      5 176f hit  
+f5eddbc0    3d7 2ddbc0      3  d7 hit          0      5 176f hit  
+f5eddbb8    3d7 2ddbb8      3  d7 hit          0      5 176e miss    b76   e miss
+f5eddbb0    3d7 2ddbb0      3  d7 hit          0      5 176e hit  
+f5eddba8    3d7 2ddba8      3  d7 hit          0      5 176e hit  
+c8587df0    321 187df0      3  21 miss miss    1      b 1f7 miss   161f   7 miss
+c8587620    321 187620      3  21 hit          1      b 1d8 miss   161d   8 miss
+c8587f80    321 187f80      3  21 hit          1      b 1fe miss   161f   e miss
+c8588998    321 188998      3  21 hit          1      b 226 miss   1622   6 miss
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c8588a38    321 188a38      3  21 hit          1      b 228 miss   1622   8 miss
+c8587e00    321 187e00      3  21 hit          1      b 1f8 miss   161f   8 miss
+c85889e8    321 1889e8      3  21 hit          1      b 227 miss   1622   7 miss
+c8587e10    321 187e10      3  21 hit          1      b 1f8 hit  
+c8588c28    321 188c28      3  21 hit          1      b 230 miss   1623   0 miss
+c8587e20    321 187e20      3  21 hit          1      b 1f8 hit  
+c85889f0    321 1889f0      3  21 hit          1      b 227 hit  
+c8587e30    321 187e30      3  21 hit          1      b 1f8 hit  
+c85889f8    321 1889f8      3  21 hit          1      b 227 hit  
+c8587e40    321 187e40      3  21 hit          1      b 1f9 miss   161f   9 miss
+c8588a18    321 188a18      3  21 hit          1      b 228 hit  
+c8587e50    321 187e50      3  21 hit          1      b 1f9 hit  
+c8588a20    321 188a20      3  21 hit          1      b 228 hit  
+c8587e60    321 187e60      3  21 hit          1      b 1f9 hit  
+c85889e0    321 1889e0      3  21 hit          1      b 227 hit  
+c8587e70    321 187e70      3  21 hit          1      b 1f9 hit  
+c85889d8    321 1889d8      3  21 hit          1      b 227 hit  
+c8587e80    321 187e80      3  21 hit          1      b 1fa miss   161f   a miss
+c8588a68    321 188a68      3  21 hit          1      b 229 miss   1622   9 miss
+c8587e90    321 187e90      3  21 hit          1      b 1fa hit  
+c8588a80    321 188a80      3  21 hit          1      b 22a miss   1622   a miss
+c8587ea0    321 187ea0      3  21 hit          1      b 1fa hit  
+c8588a00    321 188a00      3  21 hit          1      b 228 hit  
+c8587eb0    321 187eb0      3  21 hit          1      b 1fa hit  
+c8588a08    321 188a08      3  21 hit          1      b 228 hit  
+c8587ec0    321 187ec0      3  21 hit          1      b 1fb miss   161f   b miss
+c8588a10    321 188a10      3  21 hit          1      b 228 hit  
+c8587ed0    321 187ed0      3  21 hit          1      b 1fb hit  
+c8588af8    321 188af8      3  21 hit          1      b 22b miss   1622   b miss
+c8587ee0    321 187ee0      3  21 hit          1      b 1fb hit  
+c8588af0    321 188af0      3  21 hit          1      b 22b hit  
+c8587ef0    321 187ef0      3  21 hit          1      b 1fb hit  
+c8588a88    321 188a88      3  21 hit          1      b 22a hit  
+c8587f00    321 187f00      3  21 hit          1      b 1fc miss   161f   c miss
+c8588b00    321 188b00      3  21 hit          1      b 22c miss   1622   c miss
+c8587f10    321 187f10      3  21 hit          1      b 1fc hit  
+c8588b58    321 188b58      3  21 hit          1      b 22d miss   1622   d miss
+c8587f20    321 187f20      3  21 hit          1      b 1fc hit  
+c8588b10    321 188b10      3  21 hit          1      b 22c hit  
+c8587f30    321 187f30      3  21 hit          1      b 1fc hit  
+c85889e8    321 1889e8      3  21 hit          1      b 227 hit  
+c8587e08    321 187e08      3  21 hit          1      b 1f8 hit  
+c8587e08    321 187e08      3  21 hit          1      b 1f8 hit  
+c85889e0    321 1889e0      3  21 hit          1      b 227 hit  
+c8587e68    321 187e68      3  21 hit          1      b 1f9 hit  
+c8587e68    321 187e68      3  21 hit          1      b 1f9 hit  
+c85889f0    321 1889f0      3  21 hit          1      b 227 hit  
+c8587e28    321 187e28      3  21 hit          1      b 1f8 hit  
+c8587e28    321 187e28      3  21 hit          1      b 1f8 hit  
+c85889f8    321 1889f8      3  21 hit          1      b 227 hit  
+c8587e38    321 187e38      3  21 hit          1      b 1f8 hit  
+c8587e38    321 187e38      3  21 hit          1      b 1f8 hit  
+c8588a00    321 188a00      3  21 hit          1      b 228 hit  
+c8587ea8    321 187ea8      3  21 hit          1      b 1fa hit  
+c8587ea8    321 187ea8      3  21 hit          1      b 1fa hit  
+c8588a80    321 188a80      3  21 hit          1      b 22a hit  
+c8587e98    321 187e98      3  21 hit          1      b 1fa hit  
+c8587e98    321 187e98      3  21 hit          1      b 1fa hit  
+c8588b58    321 188b58      3  21 hit          1      b 22d hit  
+c8587f18    321 187f18      3  21 hit          1      b 1fc hit  
+c8587f18    321 187f18      3  21 hit          1      b 1fc hit  
+c8588c28    321 188c28      3  21 hit          1      b 230 hit  
+c8587e18    321 187e18      3  21 hit          1      b 1f8 hit  
+c8587e18    321 187e18      3  21 hit          1      b 1f8 hit  
+c8588a68    321 188a68      3  21 hit          1      b 229 hit  
+c8587e88    321 187e88      3  21 hit          1      b 1fa hit  
+c8588a00    321 188a00      3  21 hit          1      b 228 hit  
+c8588a10    321 188a10      3  21 hit          1      b 228 hit  
+c8587ec8    321 187ec8      3  21 hit          1      b 1fb hit  
+c8588b00    321 188b00      3  21 hit          1      b 22c hit  
+c8587f08    321 187f08      3  21 hit          1      b 1fc hit  
+c8588ab8    321 188ab8      3  21 hit          1      b 22a hit  
+c8588ab0    321 188ab0      3  21 hit          1      b 22a hit  
+c8588a40    321 188a40      3  21 hit          1      b 229 hit  
+c8587ea8    321 187ea8      3  21 hit          1      b 1fa hit  
+c8588a08    321 188a08      3  21 hit          1      b 228 hit  
+c8588b10    321 188b10      3  21 hit          1      b 22c hit  
+c8587eb8    321 187eb8      3  21 hit          1      b 1fa hit  
+c8587f28    321 187f28      3  21 hit          1      b 1fc hit  
+c85889d8    321 1889d8      3  21 hit          1      b 227 hit  
+c8588a80    321 188a80      3  21 hit          1      b 22a hit  
+c8587e78    321 187e78      3  21 hit          1      b 1f9 hit  
+c8587e98    321 187e98      3  21 hit          1      b 1fa hit  
+c85889f8    321 1889f8      3  21 hit          1      b 227 hit  
+c8587e38    321 187e38      3  21 hit          1      b 1f8 hit  
+c835faa8    320 35faa8      3  20 miss miss    2     16 17ea miss   2d7e   a miss
+c835fab0    320 35fab0      3  20 hit          2     16 17ea hit  
+c835fab8    320 35fab8      3  20 hit          2     16 17ea hit  
+c85877c8    321 1877c8      3  21 hit          1      b 1df miss   161d   f miss
+c835fac0    320 35fac0      3  20 hit          2     16 17eb miss   2d7e   b miss
+c835fac8    320 35fac8      3  20 hit          2     16 17eb hit  
+c835fad0    320 35fad0      3  20 hit          2     16 17eb hit  
+c85877d0    321 1877d0      3  21 hit          1      b 1df hit  
+c835fad8    320 35fad8      3  20 hit          2     16 17eb hit  
+c835fae0    320 35fae0      3  20 hit          2     16 17eb hit  
+c835fae8    320 35fae8      3  20 hit          2     16 17eb hit  
+c85877d8    321 1877d8      3  21 hit          1      b 1df hit  
+c835faf0    320 35faf0      3  20 hit          2     16 17eb hit  
+c835faf8    320 35faf8      3  20 hit          2     16 17eb hit  
+c835fb00    320 35fb00      3  20 hit          2     16 17ec miss   2d7e   c miss
+c85877e0    321 1877e0      3  21 hit          1      b 1df hit  
+c835fb08    320 35fb08      3  20 hit          2     16 17ec hit  
+c835fb10    320 35fb10      3  20 hit          2     16 17ec hit  
+c835fb18    320 35fb18      3  20 hit          2     16 17ec hit  
+c85877e8    321 1877e8      3  21 hit          1      b 1df hit  
+c835fb20    320 35fb20      3  20 hit          2     16 17ec hit  
+c835fb28    320 35fb28      3  20 hit          2     16 17ec hit  
+c835fb30    320 35fb30      3  20 hit          2     16 17ec hit  
+c85877f0    321 1877f0      3  21 hit          1      b 1df hit  
+c835fb38    320 35fb38      3  20 hit          2     16 17ec hit  
+c835fb40    320 35fb40      3  20 hit          2     16 17ed miss   2d7e   d miss
+c835fb48    320 35fb48      3  20 hit          2     16 17ed hit  
+c85877f8    321 1877f8      3  21 hit          1      b 1df hit  
+c835fb50    320 35fb50      3  20 hit          2     16 17ed hit  
+c835fb58    320 35fb58      3  20 hit          2     16 17ed hit  
+c835fb60    320 35fb60      3  20 hit          2     16 17ed hit  
+c8587860    321 187860      3  21 hit          1      b 1e1 miss   161e   1 miss
+c835fb68    320 35fb68      3  20 hit          2     16 17ed hit  
+c835fb70    320 35fb70      3  20 hit          2     16 17ed hit  
+c835fb78    320 35fb78      3  20 hit          2     16 17ed hit  
+c8587898    321 187898      3  21 hit          1      b 1e2 miss   161e   2 miss
+c835fb80    320 35fb80      3  20 hit          2     16 17ee miss   2d7e   e miss
+c835fb88    320 35fb88      3  20 hit          2     16 17ee hit  
+c835fb90    320 35fb90      3  20 hit          2     16 17ee hit  
+c85878d0    321 1878d0      3  21 hit          1      b 1e3 miss   161e   3 miss
+c835fb98    320 35fb98      3  20 hit          2     16 17ee hit  
+c835fba0    320 35fba0      3  20 hit          2     16 17ee hit  
+c835fba8    320 35fba8      3  20 hit          2     16 17ee hit  
+c8587900    321 187900      3  21 hit          1      b 1e4 miss   161e   4 miss
+c835fbb0    320 35fbb0      3  20 hit          2     16 17ee hit  
+c835fbb8    320 35fbb8      3  20 hit          2     16 17ee hit  
+c835fbc0    320 35fbc0      3  20 hit          2     16 17ef miss   2d7e   f miss
+c8587908    321 187908      3  21 hit          1      b 1e4 hit  
+c835fbc8    320 35fbc8      3  20 hit          2     16 17ef hit  
+c835fbd0    320 35fbd0      3  20 hit          2     16 17ef hit  
+c835fbd8    320 35fbd8      3  20 hit          2     16 17ef hit  
+c8587938    321 187938      3  21 hit          1      b 1e4 hit  
+c835fbe0    320 35fbe0      3  20 hit          2     16 17ef hit  
+c835fbe8    320 35fbe8      3  20 hit          2     16 17ef hit  
+c835fbf0    320 35fbf0      3  20 hit          2     16 17ef hit  
+c8587940    321 187940      3  21 hit          1      b 1e5 miss   161e   5 miss
+c835fbf8    320 35fbf8      3  20 hit          2     16 17ef hit  
+c835fc00    320 35fc00      3  20 hit          2     16 17f0 miss   2d7f   0 miss
+c835fc08    320 35fc08      3  20 hit          2     16 17f0 hit  
+c8587978    321 187978      3  21 hit          1      b 1e5 hit  
+c835fc10    320 35fc10      3  20 hit          2     16 17f0 hit  
+c835fc18    320 35fc18      3  20 hit          2     16 17f0 hit  
+c835fc20    320 35fc20      3  20 hit          2     16 17f0 hit  
+c85879b0    321 1879b0      3  21 hit          1      b 1e6 miss   161e   6 miss
+c835fc28    320 35fc28      3  20 hit          2     16 17f0 hit  
+c835fc30    320 35fc30      3  20 hit          2     16 17f0 hit  
+c835fc38    320 35fc38      3  20 hit          2     16 17f0 hit  
+c85879e8    321 1879e8      3  21 hit          1      b 1e7 miss   161e   7 miss
+c835fc40    320 35fc40      3  20 hit          2     16 17f1 miss   2d7f   1 miss
+c835fc48    320 35fc48      3  20 hit          2     16 17f1 hit  
+c835fc50    320 35fc50      3  20 hit          2     16 17f1 hit  
+c8587a20    321 187a20      3  21 hit          1      b 1e8 miss   161e   8 miss
+c835fc58    320 35fc58      3  20 hit          2     16 17f1 hit  
+c835fc60    320 35fc60      3  20 hit          2     16 17f1 hit  
+c835fc68    320 35fc68      3  20 hit          2     16 17f1 hit  
+c8587a58    321 187a58      3  21 hit          1      b 1e9 miss   161e   9 miss
+c835fc70    320 35fc70      3  20 hit          2     16 17f1 hit  
+c835fc78    320 35fc78      3  20 hit          2     16 17f1 hit  
+c835fc80    320 35fc80      3  20 hit          2     16 17f2 miss   2d7f   2 miss
+c8587a90    321 187a90      3  21 hit          1      b 1ea miss   161e   a miss
+c835fc88    320 35fc88      3  20 hit          2     16 17f2 hit  
+c835fc90    320 35fc90      3  20 hit          2     16 17f2 hit  
+c835fc98    320 35fc98      3  20 hit          2     16 17f2 hit  
+c8587ac0    321 187ac0      3  21 hit          1      b 1eb miss   161e   b miss
+c835fca0    320 35fca0      3  20 hit          2     16 17f2 hit  
+c835fca8    320 35fca8      3  20 hit          2     16 17f2 hit  
+c835fcb0    320 35fcb0      3  20 hit          2     16 17f2 hit  
+c8587ac8    321 187ac8      3  21 hit          1      b 1eb hit  
+c835fcb8    320 35fcb8      3  20 hit          2     16 17f2 hit  
+c835fcc0    320 35fcc0      3  20 hit          2     16 17f3 miss   2d7f   3 miss
+c835fcc8    320 35fcc8      3  20 hit          2     16 17f3 hit  
+c8587af8    321 187af8      3  21 hit          1      b 1eb hit  
+c835fcd0    320 35fcd0      3  20 hit          2     16 17f3 hit  
+c835fcd8    320 35fcd8      3  20 hit          2     16 17f3 hit  
+c835fce0    320 35fce0      3  20 hit          2     16 17f3 hit  
+c8587b00    321 187b00      3  21 hit          1      b 1ec miss   161e   c miss
+c835fce8    320 35fce8      3  20 hit          2     16 17f3 hit  
+c835fcf0    320 35fcf0      3  20 hit          2     16 17f3 hit  
+c835fcf8    320 35fcf8      3  20 hit          2     16 17f3 hit  
+c8587b38    321 187b38      3  21 hit          1      b 1ec hit  
+c835fd00    320 35fd00      3  20 hit          2     16 17f4 miss   2d7f   4 miss
+c835fd08    320 35fd08      3  20 hit          2     16 17f4 hit  
+c835fd10    320 35fd10      3  20 hit          2     16 17f4 hit  
+c8587b70    321 187b70      3  21 hit          1      b 1ed miss   161e   d miss
+c835fd18    320 35fd18      3  20 hit          2     16 17f4 hit  
+c835fd20    320 35fd20      3  20 hit          2     16 17f4 hit  
+c835fd28    320 35fd28      3  20 hit          2     16 17f4 hit  
+c8587ba8    321 187ba8      3  21 hit          1      b 1ee miss   161e   e miss
+c835fd30    320 35fd30      3  20 hit          2     16 17f4 hit  
+c835fd38    320 35fd38      3  20 hit          2     16 17f4 hit  
+c835fd40    320 35fd40      3  20 hit          2     16 17f5 miss   2d7f   5 miss
+c8587be0    321 187be0      3  21 hit          1      b 1ef miss   161e   f miss
+c835fd48    320 35fd48      3  20 hit          2     16 17f5 hit  
+c835fd50    320 35fd50      3  20 hit          2     16 17f5 hit  
+c835fd58    320 35fd58      3  20 hit          2     16 17f5 hit  
+c8587c18    321 187c18      3  21 hit          1      b 1f0 miss   161f   0 miss
+c835fd60    320 35fd60      3  20 hit          2     16 17f5 hit  
+c835fd68    320 35fd68      3  20 hit          2     16 17f5 hit  
+c835fd70    320 35fd70      3  20 hit          2     16 17f5 hit  
+c8587c48    321 187c48      3  21 hit          1      b 1f1 miss   161f   1 miss
+c835fd78    320 35fd78      3  20 hit          2     16 17f5 hit  
+c835fd80    320 35fd80      3  20 hit          2     16 17f6 miss   2d7f   6 miss
+c835fd88    320 35fd88      3  20 hit          2     16 17f6 hit  
+c8587c50    321 187c50      3  21 hit          1      b 1f1 hit  
+c835fd90    320 35fd90      3  20 hit          2     16 17f6 hit  
+c835fd98    320 35fd98      3  20 hit          2     16 17f6 hit  
+c835fda0    320 35fda0      3  20 hit          2     16 17f6 hit  
+c8587c80    321 187c80      3  21 hit          1      b 1f2 miss   161f   2 miss
+c835fda8    320 35fda8      3  20 hit          2     16 17f6 hit  
+c835fdb0    320 35fdb0      3  20 hit          2     16 17f6 hit  
+c835fdb8    320 35fdb8      3  20 hit          2     16 17f6 hit  
+c8587c88    321 187c88      3  21 hit          1      b 1f2 hit  
+c835fdc0    320 35fdc0      3  20 hit          2     16 17f7 miss   2d7f   7 miss
+c835fdc8    320 35fdc8      3  20 hit          2     16 17f7 hit  
+c835fdd0    320 35fdd0      3  20 hit          2     16 17f7 hit  
+c8587cb8    321 187cb8      3  21 hit          1      b 1f2 hit  
+c835fdd8    320 35fdd8      3  20 hit          2     16 17f7 hit  
+c835fde0    320 35fde0      3  20 hit          2     16 17f7 hit  
+c835fde8    320 35fde8      3  20 hit          2     16 17f7 hit  
+c8587cc0    321 187cc0      3  21 hit          1      b 1f3 miss   161f   3 miss
+c835fdf0    320 35fdf0      3  20 hit          2     16 17f7 hit  
+c835fdf8    320 35fdf8      3  20 hit          2     16 17f7 hit  
+c835fe00    320 35fe00      3  20 hit          2     16 17f8 miss   2d7f   8 miss
+c8587cf8    321 187cf8      3  21 hit          1      b 1f3 hit  
+c835fe08    320 35fe08      3  20 hit          2     16 17f8 hit  
+c835fe10    320 35fe10      3  20 hit          2     16 17f8 hit  
+c835fe18    320 35fe18      3  20 hit          2     16 17f8 hit  
+c8587d28    321 187d28      3  21 hit          1      b 1f4 miss   161f   4 miss
+c835fe20    320 35fe20      3  20 hit          2     16 17f8 hit  
+c835fe28    320 35fe28      3  20 hit          2     16 17f8 hit  
+c835fe30    320 35fe30      3  20 hit          2     16 17f8 hit  
+c8587d30    321 187d30      3  21 hit          1      b 1f4 hit  
+c835fe38    320 35fe38      3  20 hit          2     16 17f8 hit  
+c835fe40    320 35fe40      3  20 hit          2     16 17f9 miss   2d7f   9 miss
+c835fe48    320 35fe48      3  20 hit          2     16 17f9 hit  
+c8587d68    321 187d68      3  21 hit          1      b 1f5 miss   161f   5 miss
+c835fe50    320 35fe50      3  20 hit          2     16 17f9 hit  
+c835fe58    320 35fe58      3  20 hit          2     16 17f9 hit  
+c835fe60    320 35fe60      3  20 hit          2     16 17f9 hit  
+c8587da0    321 187da0      3  21 hit          1      b 1f6 miss   161f   6 miss
+c835fe68    320 35fe68      3  20 hit          2     16 17f9 hit  
+c835fe70    320 35fe70      3  20 hit          2     16 17f9 hit  
+c835fe78    320 35fe78      3  20 hit          2     16 17f9 hit  
+c8587dd0    321 187dd0      3  21 hit          1      b 1f7 hit  
+c8588b58    321 188b58      3  21 hit          1      b 22d hit  
+c835fe88    320 35fe88      3  20 hit          2     16 17fa miss   2d7f   a miss
+c835fe80    320 35fe80      3  20 hit          2     16 17fa hit  
+c835f574    320 35f574      3  20 hit          2     16 17d5 miss   2d7d   5 miss
+c835f576    320 35f576      3  20 hit          2     16 17d5 hit  
+c835f578    320 35f578      3  20 hit          2     16 17d5 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a0    320 37f8a0      3  20 hit          2     16 1fe2 miss   2dfe   2 miss
+c835fe90    320 35fe90      3  20 hit          2     16 17fa hit  
+c8587fd8    321 187fd8      3  21 hit          1      b 1ff miss   161f   f miss
+c835fea0    320 35fea0      3  20 hit          2     16 17fa hit  
+c835fe98    320 35fe98      3  20 hit          2     16 17fa hit  
+c835f514    320 35f514      3  20 hit          2     16 17d4 miss   2d7d   4 miss
+c835f516    320 35f516      3  20 hit          2     16 17d4 hit  
+c835f518    320 35f518      3  20 hit          2     16 17d4 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a0    320 37f8a0      3  20 hit          2     16 1fe2 hit  
+c835fea8    320 35fea8      3  20 hit          2     16 17fa hit  
+c8587fe0    321 187fe0      3  21 hit          1      b 1ff hit  
+c835feb8    320 35feb8      3  20 hit          2     16 17fa hit  
+c835feb0    320 35feb0      3  20 hit          2     16 17fa hit  
+c835f4cc    320 35f4cc      3  20 hit          2     16 17d3 miss   2d7d   3 miss
+c835f4ce    320 35f4ce      3  20 hit          2     16 17d3 hit  
+c835f4d0    320 35f4d0      3  20 hit          2     16 17d3 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835fec0    320 35fec0      3  20 hit          2     16 17fb miss   2d7f   b miss
+c8587f98    321 187f98      3  21 hit          1      b 1fe hit  
+c835fed0    320 35fed0      3  20 hit          2     16 17fb hit  
+c835fec8    320 35fec8      3  20 hit          2     16 17fb hit  
+c835f70c    320 35f70c      3  20 hit          2     16 17dc miss   2d7d   c miss
+c835f70e    320 35f70e      3  20 hit          2     16 17dc hit  
+c835f710    320 35f710      3  20 hit          2     16 17dc hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835fed8    320 35fed8      3  20 hit          2     16 17fb hit  
+c8587fa0    321 187fa0      3  21 hit          1      b 1fe hit  
+c835fee8    320 35fee8      3  20 hit          2     16 17fb hit  
+c835fee0    320 35fee0      3  20 hit          2     16 17fb hit  
+c835f46c    320 35f46c      3  20 hit          2     16 17d1 miss   2d7d   1 miss
+c835f46e    320 35f46e      3  20 hit          2     16 17d1 hit  
+c835f470    320 35f470      3  20 hit          2     16 17d1 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835fef0    320 35fef0      3  20 hit          2     16 17fb hit  
+c8587fa8    321 187fa8      3  21 hit          1      b 1fe hit  
+c835ff00    320 35ff00      3  20 hit          2     16 17fc miss   2d7f   c miss
+c835fef8    320 35fef8      3  20 hit          2     16 17fb hit  
+c835f5ec    320 35f5ec      3  20 hit          2     16 17d7 miss   2d7d   7 miss
+c835f5ee    320 35f5ee      3  20 hit          2     16 17d7 hit  
+c835f5f0    320 35f5f0      3  20 hit          2     16 17d7 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835ff08    320 35ff08      3  20 hit          2     16 17fc hit  
+c8587fb0    321 187fb0      3  21 hit          1      b 1fe hit  
+c835ff18    320 35ff18      3  20 hit          2     16 17fc hit  
+c835ff10    320 35ff10      3  20 hit          2     16 17fc hit  
+c835f52c    320 35f52c      3  20 hit          2     16 17d4 hit  
+c835f52e    320 35f52e      3  20 hit          2     16 17d4 hit  
+c835f530    320 35f530      3  20 hit          2     16 17d4 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835ff20    320 35ff20      3  20 hit          2     16 17fc hit  
+c8587fb8    321 187fb8      3  21 hit          1      b 1fe hit  
+c835ff30    320 35ff30      3  20 hit          2     16 17fc hit  
+c835ff28    320 35ff28      3  20 hit          2     16 17fc hit  
+c835f67c    320 35f67c      3  20 hit          2     16 17d9 miss   2d7d   9 miss
+c835f67e    320 35f67e      3  20 hit          2     16 17d9 hit  
+c835f680    320 35f680      3  20 hit          2     16 17da miss   2d7d   a miss
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835ff38    320 35ff38      3  20 hit          2     16 17fc hit  
+c8587fc0    321 187fc0      3  21 hit          1      b 1ff hit  
+c835ff48    320 35ff48      3  20 hit          2     16 17fd miss   2d7f   d miss
+c835ff40    320 35ff40      3  20 hit          2     16 17fd hit  
+c835f4fc    320 35f4fc      3  20 hit          2     16 17d3 hit  
+c835f4fe    320 35f4fe      3  20 hit          2     16 17d3 hit  
+c835f500    320 35f500      3  20 hit          2     16 17d4 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835ff50    320 35ff50      3  20 hit          2     16 17fd hit  
+c8587fc8    321 187fc8      3  21 hit          1      b 1ff hit  
+c835ff60    320 35ff60      3  20 hit          2     16 17fd hit  
+c835ff58    320 35ff58      3  20 hit          2     16 17fd hit  
+c835f514    320 35f514      3  20 hit          2     16 17d4 hit  
+c835f516    320 35f516      3  20 hit          2     16 17d4 hit  
+c835f518    320 35f518      3  20 hit          2     16 17d4 hit  
+c8588988    321 188988      3  21 hit          1      b 226 hit  
+c837f8a4    320 37f8a4      3  20 hit          2     16 1fe2 hit  
+c835ff68    320 35ff68      3  20 hit          2     16 17fd hit  
+c8587fd0    321 187fd0      3  21 hit          1      b 1ff hit  
+c8588ca4    321 188ca4      3  21 hit          1      b 232 miss   1623   2 miss
+c8588ca4    321 188ca4      3  21 hit          1      b 232 hit  
+f5eddb68    3d7 2ddb68      3  d7 hit          0      5 176d miss    b76   d miss
+c8588c28    321 188c28      3  21 hit          1      b 230 hit  
+c8587e18    321 187e18      3  21 hit          1      b 1f8 hit  
+c835f338    320 35f338      3  20 hit          2     16 17cc miss   2d7c   c miss
+c8588c7c    321 188c7c      3  21 hit          1      b 231 miss   1623   1 miss
+c835f340    320 35f340      3  20 hit          2     16 17cd miss   2d7c   d miss
+c835f33c    320 35f33c      3  20 hit          2     16 17cc hit  
+c8588c80    321 188c80      3  21 hit          1      b 232 hit  
+c835f344    320 35f344      3  20 hit          2     16 17cd hit  
+c8588c88    321 188c88      3  21 hit          1      b 232 hit  
+c8588c90    321 188c90      3  21 hit          1      b 232 hit  
+c8588c84    321 188c84      3  21 hit          1      b 232 hit  
+c8588c98    321 188c98      3  21 hit          1      b 232 hit  
+f5eddb68    3d7 2ddb68      3  d7 hit          0      5 176d hit  
+c85889b0    321 1889b0      3  21 hit          1      b 226 hit  
+c8588cd8    321 188cd8      3  21 hit          1      b 233 miss   1623   3 miss
+c8588ce0    321 188ce0      3  21 hit          1      b 233 hit  
+c8587de0    321 187de0      3  21 hit          1      b 1f7 miss   161f   7 miss
+c8588ce8    321 188ce8      3  21 hit          1      b 233 hit  
+f5eddb68    3d7 2ddb68      3  d7 hit          0      5 176d hit  
+f5eddb60    3d7 2ddb60      3  d7 hit          0      5 176d hit  
+f5eddb58    3d7 2ddb58      3  d7 hit          0      5 176d hit  
+f5eddb50    3d7 2ddb50      3  d7 hit          0      5 176d hit  
+f5eddb48    3d7 2ddb48      3  d7 hit          0      5 176d hit  
+f5eddb40    3d7 2ddb40      3  d7 hit          0      5 176d hit  
+f5eddb38    3d7 2ddb38      3  d7 hit          0      5 176c miss    b76   c miss
+f5eddbe0    3d7 2ddbe0      3  d7 hit          0      5 176f miss    b76   f miss
+c8587de0    321 187de0      3  21 hit          1      b 1f7 hit  
+c8587640    321 187640      3  21 hit          1      b 1d9 miss   161d   9 miss
+c8587648    321 187648      3  21 hit          1      b 1d9 hit  
+c85890e8    321 1890e8      3  21 hit          1      b 243 miss   1624   3 miss
+f5eddbf8    3d7 2ddbf8      3  d7 hit          0      5 176f hit  
+f5eddc00    3d7 2ddc00      3  d7 hit          0      5 1770 miss    b77   0 miss
+f5eddc08    3d7 2ddc08      3  d7 hit          0      5 1770 hit  
+f5eddc10    3d7 2ddc10      3  d7 hit          0      5 1770 hit  
+f5eddc18    3d7 2ddc18      3  d7 hit          0      5 1770 hit  
+f5eddc20    3d7 2ddc20      3  d7 hit          0      5 1770 hit  
+f5eddc28    3d7 2ddc28      3  d7 hit          0      5 1770 hit  
+f5eddc30    3d7 2ddc30      3  d7 hit          0      5 1770 hit  
+f5eddc38    3d7 2ddc38      3  d7 hit          0      5 1770 hit  
+f5eddc40    3d7 2ddc40      3  d7 hit          0      5 1771 miss    b77   1 miss
+f5eddc48    3d7 2ddc48      3  d7 hit          0      5 1771 hit  
+f5eddc50    3d7 2ddc50      3  d7 hit          0      5 1771 hit  
+f5eddc58    3d7 2ddc58      3  d7 hit          0      5 1771 hit  
+f5eddc60    3d7 2ddc60      3  d7 hit          0      5 1771 hit  
+f5eddc68    3d7 2ddc68      3  d7 hit          0      5 1771 hit  
+f5eddc70    3d7 2ddc70      3  d7 hit          0      5 1771 hit  
+f5eddc78    3d7 2ddc78      3  d7 hit          0      5 1771 hit  
+f5eddc80    3d7 2ddc80      3  d7 hit          0      5 1772 miss    b77   2 miss
+f5eddc88    3d7 2ddc88      3  d7 hit          0      5 1772 hit  
+f5eddc90    3d7 2ddc90      3  d7 hit          0      5 1772 hit  
+f5eddc98    3d7 2ddc98      3  d7 hit          0      5 1772 hit  
+f5eddca0    3d7 2ddca0      3  d7 hit          0      5 1772 hit  
+f5eddca8    3d7 2ddca8      3  d7 hit          0      5 1772 hit  
+f5eddcb0    3d7 2ddcb0      3  d7 hit          0      5 1772 hit  
+f5eddcb8    3d7 2ddcb8      3  d7 hit          0      5 1772 hit  
+f5eddcc0    3d7 2ddcc0      3  d7 hit          0      5 1773 miss    b77   3 miss
+f5eddcc8    3d7 2ddcc8      3  d7 hit          0      5 1773 hit  
+f5eddcd0    3d7 2ddcd0      3  d7 hit          0      5 1773 hit  
+f5eddcd8    3d7 2ddcd8      3  d7 hit          0      5 1773 hit  
+f5eddce0    3d7 2ddce0      3  d7 hit          0      5 1773 hit  
+f5eddce8    3d7 2ddce8      3  d7 hit          0      5 1773 hit  
+f5eddcf0    3d7 2ddcf0      3  d7 hit          0      5 1773 hit  
+f5eddcf8    3d7 2ddcf8      3  d7 hit          0      5 1773 hit  
+f5eddd00    3d7 2ddd00      3  d7 hit          0      5 1774 miss    b77   4 miss
+f5eddd08    3d7 2ddd08      3  d7 hit          0      5 1774 hit  
+f5eddd10    3d7 2ddd10      3  d7 hit          0      5 1774 hit  
+f5eddd18    3d7 2ddd18      3  d7 hit          0      5 1774 hit  
+f5eddd20    3d7 2ddd20      3  d7 hit          0      5 1774 hit  
+f5eddd28    3d7 2ddd28      3  d7 hit          0      5 1774 hit  
+f5eddd30    3d7 2ddd30      3  d7 hit          0      5 1774 hit  
+f5eddd38    3d7 2ddd38      3  d7 hit          0      5 1774 hit  
+f5eddd40    3d7 2ddd40      3  d7 hit          0      5 1775 miss    b77   5 miss
+f5eddd48    3d7 2ddd48      3  d7 hit          0      5 1775 hit  
+f5eddd50    3d7 2ddd50      3  d7 hit          0      5 1775 hit  
+f5eddd58    3d7 2ddd58      3  d7 hit          0      5 1775 hit  
+f5eddd60    3d7 2ddd60      3  d7 hit          0      5 1775 hit  
+f5eddd68    3d7 2ddd68      3  d7 hit          0      5 1775 hit  
+c8587668    321 187668      3  21 hit          1      b 1d9 hit  
+c85876c0    321 1876c0      3  21 hit          1      b 1db miss   161d   b miss
+f5eddb08    3d7 2ddb08      3  d7 hit          0      5 176c hit  
+f5eddadf    3d7 2ddadf      3  d7 hit          0      5 176b miss    b76   b miss
+f5eddade    3d7 2ddade      3  d7 hit          0      5 176b hit  
+c85877b0    321 1877b0      3  21 hit          1      b 1de miss   161d   e miss
+f5eddad7    3d7 2ddad7      3  d7 hit          0      5 176b hit  
+f5eddad6    3d7 2ddad6      3  d7 hit          0      5 176b hit  
+c8587de8    321 187de8      3  21 hit          1      b 1f7 hit  
+f5eddae0    3d7 2ddae0      3  d7 hit          0      5 176b hit  
+c85877c0    321 1877c0      3  21 hit          1      b 1df miss   161d   f miss
+f5eddad5    3d7 2ddad5      3  d7 hit          0      5 176b hit  
+c8587678    321 187678      3  21 hit          1      b 1d9 hit  
+f5eddac8    3d7 2ddac8      3  d7 hit          0      5 176b hit  
+c8587dd8    321 187dd8      3  21 hit          1      b 1f7 hit  
+f5eddad4    3d7 2ddad4      3  d7 hit          0      5 176b hit  
+f5eddae8    3d7 2ddae8      3  d7 hit          0      5 176b hit  
+c85876b0    321 1876b0      3  21 hit          1      b 1da miss   161d   a miss
+f5eddadc    3d7 2ddadc      3  d7 hit          0      5 176b hit  
+c8587698    321 187698      3  21 hit          1      b 1da hit  
+f5eddad8    3d7 2ddad8      3  d7 hit          0      5 176b hit  
+c85876b8    321 1876b8      3  21 hit          1      b 1da hit  
+f5eddac0    3d7 2ddac0      3  d7 hit          0      5 176b hit  
+c8380134    320 380134      3  20 hit          2     17   4 miss   2e00   4 miss
+f5eddd70    3d7 2ddd70      3  d7 hit          0      5 1775 hit  
+f5eddade    3d7 2ddade      3  d7 hit          0      5 176b hit  
+f5eddae0    3d7 2ddae0      3  d7 hit          0      5 176b hit  
+f5eddd78    3d7 2ddd78      3  d7 hit          0      5 1775 hit  
+c83800f0    320 3800f0      3  20 hit          2     17   3 miss   2e00   3 miss
+f5eddd80    3d7 2ddd80      3  d7 hit          0      5 1776 miss    b77   6 miss
+f5eddad4    3d7 2ddad4      3  d7 hit          0      5 176b hit  
+f5eddac0    3d7 2ddac0      3  d7 hit          0      5 176b hit  
+f5eddd88    3d7 2ddd88      3  d7 hit          0      5 1776 hit  
+c83800c8    320 3800c8      3  20 hit          2     17   3 hit  
+f5eddd90    3d7 2ddd90      3  d7 hit          0      5 1776 hit  
+f5eddd98    3d7 2ddd98      3  d7 hit          0      5 1776 hit  
+c83800f4    320 3800f4      3  20 hit          2     17   3 hit  
+f5eddda0    3d7 2ddda0      3  d7 hit          0      5 1776 hit  
+f5eddad6    3d7 2ddad6      3  d7 hit          0      5 176b hit  
+f5eddad8    3d7 2ddad8      3  d7 hit          0      5 176b hit  
+f5eddda8    3d7 2ddda8      3  d7 hit          0      5 1776 hit  
+c83800bc    320 3800bc      3  20 hit          2     17   2 miss   2e00   2 miss
+f5edddb0    3d7 2dddb0      3  d7 hit          0      5 1776 hit  
+f5edddb8    3d7 2dddb8      3  d7 hit          0      5 1776 hit  
+c83800c0    320 3800c0      3  20 hit          2     17   3 hit  
+f5edddc8    3d7 2dddc8      3  d7 hit          0      5 1777 miss    b77   7 miss
+c83800c4    320 3800c4      3  20 hit          2     17   3 hit  
+f5edddd0    3d7 2dddd0      3  d7 hit          0      5 1777 hit  
+f5edddd8    3d7 2dddd8      3  d7 hit          0      5 1777 hit  
+c83800cc    320 3800cc      3  20 hit          2     17   3 hit  
+f5eddde8    3d7 2ddde8      3  d7 hit          0      5 1777 hit  
+c83800d0    320 3800d0      3  20 hit          2     17   3 hit  
+f5edddf8    3d7 2dddf8      3  d7 hit          0      5 1777 hit  
+c83800d4    320 3800d4      3  20 hit          2     17   3 hit  
+f5edde00    3d7 2dde00      3  d7 hit          0      5 1778 miss    b77   8 miss
+f5edde08    3d7 2dde08      3  d7 hit          0      5 1778 hit  
+c83800dc    320 3800dc      3  20 hit          2     17   3 hit  
+f5edde18    3d7 2dde18      3  d7 hit          0      5 1778 hit  
+c83800e0    320 3800e0      3  20 hit          2     17   3 hit  
+f5edde28    3d7 2dde28      3  d7 hit          0      5 1778 hit  
+c83800e4    320 3800e4      3  20 hit          2     17   3 hit  
+f5edde38    3d7 2dde38      3  d7 hit          0      5 1778 hit  
+c83800e8    320 3800e8      3  20 hit          2     17   3 hit  
+f5edde48    3d7 2dde48      3  d7 hit          0      5 1779 miss    b77   9 miss
+c838010c    320 38010c      3  20 hit          2     17   4 hit  
+f5edde50    3d7 2dde50      3  d7 hit          0      5 1779 hit  
+f5edde58    3d7 2dde58      3  d7 hit          0      5 1779 hit  
+c8380114    320 380114      3  20 hit          2     17   4 hit  
 
 Simulation statistics
 
-dtlb hits        : 4
-dtlb misses      : 5
-dtlb hit ratio   : 0.444444
+dtlb hits        : 497
+dtlb misses      : 3
+dtlb hit ratio   : 0.994000
 
-pt hits          : 1
-pt faults        : 4
-pt hit ratio     : 0.200000
+pt hits          : 0
+pt faults        : 3
+pt hit ratio     : 0.000000
 
-dc hits          : 1
-dc misses        : 8
-dc hit ratio     : 0.111111
+dc hits          : 399
+dc misses        : 101
+dc hit ratio     : 0.798000
 
-L2 hits          : 5
-L2 misses        : 5
-L2 hit ratio     : 0.500000
+L2 hits          : 26
+L2 misses        : 101
+L2 hit ratio     : 0.204724
 
-Total reads      : 7
-Total writes     : 2
-Ratio of reads   : 0.777778
+Total reads      : 366
+Total writes     : 134
+Ratio of reads   : 0.732000
 
-main memory refs : 5
-page table refs  : 5
-disk refs        : 4
+main memory refs : 127
+page table refs  : 3
+disk refs        : 3
