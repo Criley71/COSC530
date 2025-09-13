@@ -415,12 +415,14 @@ void read_data_file(Config config) {
       cout << " " << setw(3) << setfill(' ') << hex << dc_index;
 
       // check data cache for block, if hit no need to check l2
+      // to be a hit, it would have to originally missed meaning it would then be in l2
+      // just need to have it that if l2 block is evicted the corresponding dc block is too
       if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, -1, false)) {
-        l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
-        l2_tag = stoi(l2_tag_bin, 0, 2);
-        l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
-        l2_index = stoi(l2_index_bin, 0, 2);
-        //L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+        // l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+        // l2_tag = stoi(l2_tag_bin, 0, 2);
+        // l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+        // l2_index = stoi(l2_index_bin, 0, 2);
+        // L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
         cout << " hit  \n";
         continue;
       } else {
@@ -553,20 +555,34 @@ void read_data_file(Config config) {
         l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
         l2_index = stoi(l2_index_bin, 0, 2);
         cout << setw(3) << setfill(' ') << hex << l2_index;
+        int dirty_bit;
         if (is_read) {
-
-          if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0, pfn, false, dc_index, dc_tag)) {
-            cout << " hit \n";
-          } else {
-            cout << " miss\n";
-          }
+          dirty_bit = 0;
         } else {
+          dirty_bit = 1;
+        }
+        if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, pfn, false, dc_index, dc_tag)) {
+          cout << " hit \n";
+        } else {
+          pair<bool, string> was_l2_replaced_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, pfn, dc_index, dc_tag, p_bin_string);
+          bool was_there_an_l2_eviction = was_l2_replaced_if_yes_dc_phys_address.first;
+          if (was_there_an_l2_eviction) {
+            string replace_address = was_l2_replaced_if_yes_dc_phys_address.second;
+            dc_tag_bin = replace_address.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+            dc_tag = stoi(dc_tag_bin, 0, 2);
+            dc_index_bin = replace_address.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+            dc_index = stoi(dc_index_bin, 0, 2);
+            DATA_CACHE.evict_given_l2_phys_address(dc_index, dc_tag);
+          }
+          cout << " miss\n";
+        }
+        /*
           if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 1, pfn, false, dc_index, dc_tag)) {
             cout << " hit \n";
           } else {
             cout << " miss\n";
           }
-        }
+        */
       }
     }
   }

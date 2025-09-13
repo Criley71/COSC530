@@ -24,11 +24,13 @@ DC::DC(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
 
 void DC::insert_to_cache(int dc_index, int dc_tag, int time, int dirty_bit, int pfn) {
   int oldest_used = INT32_MAX;
+  int old_dirty_bit = -1;
   int oldest_index = 0;
   for (int i = 0; i < set_size; i++) {
     if (data_cache[dc_index][i].time_last_accessed < oldest_used) {
       oldest_index = i;
       oldest_used = data_cache[dc_index][i].time_last_accessed;
+      old_dirty_bit = data_cache[dc_index][i].dirty_bit;
     }
   }
   data_cache[dc_index][oldest_index].index = dc_index;
@@ -36,6 +38,15 @@ void DC::insert_to_cache(int dc_index, int dc_tag, int time, int dirty_bit, int 
   data_cache[dc_index][oldest_index].time_last_accessed = time;
   data_cache[dc_index][oldest_index].dirty_bit = dirty_bit;
   data_cache[dc_index][oldest_index].pfn = pfn;
+  if(old_dirty_bit != -1){
+    if(old_dirty_bit = 1){
+      //return true; //TODO: UPDATE THE INSERT TO RETURN BOOL IF REPLACED WAS DIRTY
+      // PROBABLY ALSO NEED TO RETURN THE REPLACED BLOCKS PHYSICAL ADDRESS TO THEN CALCULATE L2 ADDRESS
+      // THIS WILL REQUIRE THE CACHE BLOCK STRUCTURE TO HOLD THE PHYS ADDRESS AS A STRING LIKE THE L2
+    }else{
+      //return false;
+    }
+  }
   // cout << " dirty bit: " << data_cache[dc_index][oldest_index].dirty_bit << " ";
   // cout << " INSERTING " << dc_tag << " at index: " << dc_index << " with time " << data_cache[dc_index][oldest_index].time_last_accessed;
 }
@@ -79,10 +90,10 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write,  int  pf
 void DC::evict_given_l2_phys_address(int dc_index, int dc_tag){
   for(int i = 0; i < set_size; i++){
     if(data_cache[dc_index][i].tag == dc_tag){
-      int dc_index_check = 0x1e8; 
-      if(dc_index == dc_index_check){
-        cout << "!!!!!!!!!!!!!EVICTING!!!!!!!!!!!!!!!!!!!";
-      }
+     // int dc_index_check = 0x1e8; 
+      //if(dc_index == dc_index_check){
+        //cout << "!!!!!!!!!!!!!EVICTING!!!!!!!!!!!!!!!!!!!";
+      //}
       data_cache[dc_index][i] = Cache_block(-1,-1,-1,-1,-1);
       return;
     }

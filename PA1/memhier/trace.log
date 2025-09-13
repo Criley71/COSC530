@@ -477,9 +477,9 @@ read at c835fdf0
 read at c835fdf8
 
 read at c835fe00
-writing back DC line with tag 190b and index 1d8 to L2 cache
-invalidating DC line with tag 190b and index 1d8 since L2 line with tag 32161d and index 8 is being replaced
-writing back L2 line with tag 32161d and index 8 to memory
+writing back DC line with tag b and index 1d8 to L2 cache
+invalidating DC line with tag b and index 1d8 since L2 line with tag 161d and index 8 is being replaced
+writing back L2 line with tag 161d and index 8 to memory
 
 write at c8587cf8
 
@@ -526,9 +526,9 @@ write at c8587dd0
 read at c8588b58
 
 read at c835fe88
-writing back DC line with tag 190b and index 1fa to L2 cache
-invalidating DC line with tag 190b and index 1fa since L2 line with tag 32161f and index a is being replaced
-writing back L2 line with tag 32161f and index a to memory
+writing back DC line with tag b and index 1fa to L2 cache
+invalidating DC line with tag b and index 1fa since L2 line with tag 161f and index a is being replaced
+writing back L2 line with tag 161f and index a to memory
 
 read at c835fe80
 
@@ -545,9 +545,9 @@ read at c837f8a0
 read at c835fe90
 
 write at c8587fd8
-writing back DC line with tag 1ebd and index 176f to L2 cache
-invalidating DC line with tag 1ebd and index 176f since L2 line with tag 3d7b76 and index f is being replaced
-writing back L2 line with tag 3d7b76 and index f to memory
+writing back DC line with tag 5 and index 176f to L2 cache
+invalidating DC line with tag 5 and index 176f since L2 line with tag b76 and index f is being replaced
+writing back L2 line with tag b76 and index f to memory
 
 read at c835fea0
 
@@ -582,7 +582,7 @@ read at c8588988
 read at c837f8a4
 
 read at c835fec0
-invalidating DC line with tag 190b and index 1fb since L2 line with tag 32161f and index b is being replaced
+invalidating DC line with tag b and index 1fb since L2 line with tag 161f and index b is being replaced
 
 write at c8587f98
 
@@ -591,9 +591,9 @@ read at c835fed0
 read at c835fec8
 
 read at c835f70c
-writing back DC line with tag 190b and index 1fc to L2 cache
-invalidating DC line with tag 190b and index 1fc since L2 line with tag 32161f and index c is being replaced
-writing back L2 line with tag 32161f and index c to memory
+writing back DC line with tag b and index 1fc to L2 cache
+invalidating DC line with tag b and index 1fc since L2 line with tag 161f and index c is being replaced
+writing back L2 line with tag 161f and index c to memory
 
 read at c835f70e
 
@@ -626,16 +626,16 @@ read at c835fef0
 write at c8587fa8
 
 read at c835ff00
-writing back DC line with tag 190b and index 22c to L2 cache
-invalidating DC line with tag 190b and index 22c since L2 line with tag 321622 and index c is being replaced
-writing back L2 line with tag 321622 and index c to memory
+writing back DC line with tag b and index 22c to L2 cache
+invalidating DC line with tag b and index 22c since L2 line with tag 1622 and index c is being replaced
+writing back L2 line with tag 1622 and index c to memory
 
 read at c835fef8
 
 read at c835f5ec
-writing back DC line with tag 190b and index 1f7 to L2 cache
-invalidating DC line with tag 190b and index 1f7 since L2 line with tag 32161f and index 7 is being replaced
-writing back L2 line with tag 32161f and index 7 to memory
+writing back DC line with tag b and index 1f7 to L2 cache
+invalidating DC line with tag b and index 1f7 since L2 line with tag 161f and index 7 is being replaced
+writing back L2 line with tag 161f and index 7 to memory
 
 read at c835f5ee
 
@@ -672,16 +672,16 @@ read at c835ff30
 read at c835ff28
 
 read at c835f67c
-writing back DC line with tag 190b and index 1f9 to L2 cache
-invalidating DC line with tag 190b and index 1f9 since L2 line with tag 32161f and index 9 is being replaced
-writing back L2 line with tag 32161f and index 9 to memory
+writing back DC line with tag b and index 1f9 to L2 cache
+invalidating DC line with tag b and index 1f9 since L2 line with tag 161f and index 9 is being replaced
+writing back L2 line with tag 161f and index 9 to memory
 
 read at c835f67e
 
 read at c835f680
-writing back DC line with tag 190b and index 22a to L2 cache
-invalidating DC line with tag 190b and index 22a since L2 line with tag 321622 and index a is being replaced
-writing back L2 line with tag 321622 and index a to memory
+writing back DC line with tag b and index 22a to L2 cache
+invalidating DC line with tag b and index 22a since L2 line with tag 1622 and index a is being replaced
+writing back L2 line with tag 1622 and index a to memory
 
 read at c8588988
 
@@ -728,31 +728,31 @@ read at c835ff68
 write at c8587fd0
 
 read at c8588ca4
-writing back DC line with tag 190b and index 1e2 to L2 cache
-invalidating DC line with tag 190b and index 1e2 since L2 line with tag 32161e and index 2 is being replaced
-writing back L2 line with tag 32161e and index 2 to memory
+writing back DC line with tag b and index 1e2 to L2 cache
+invalidating DC line with tag b and index 1e2 since L2 line with tag 161e and index 2 is being replaced
+writing back L2 line with tag 161e and index 2 to memory
 
 write at c8588ca4
 
 write at f5eddb68
-writing back DC line with tag 190b and index 22d to L2 cache
-invalidating DC line with tag 190b and index 22d since L2 line with tag 321622 and index d is being replaced
-writing back L2 line with tag 321622 and index d to memory
+writing back DC line with tag b and index 22d to L2 cache
+invalidating DC line with tag b and index 22d since L2 line with tag 1622 and index d is being replaced
+writing back L2 line with tag 1622 and index d to memory
 
 read at c8588c28
 
 read at c8587e18
 
 read at c835f338
-invalidating DC line with tag 1906 and index 17ec since L2 line with tag 320d7e and index c is being replaced
+invalidating DC line with tag 16 and index 17ec since L2 line with tag 2d7e and index c is being replaced
 
 write at c8588c7c
-writing back DC line with tag 190b and index 1e1 to L2 cache
-invalidating DC line with tag 190b and index 1e1 since L2 line with tag 32161e and index 1 is being replaced
-writing back L2 line with tag 32161e and index 1 to memory
+writing back DC line with tag b and index 1e1 to L2 cache
+invalidating DC line with tag b and index 1e1 since L2 line with tag 161e and index 1 is being replaced
+writing back L2 line with tag 161e and index 1 to memory
 
 read at c835f340
-invalidating DC line with tag 1906 and index 17ed since L2 line with tag 320d7e and index d is being replaced
+invalidating DC line with tag 16 and index 17ed since L2 line with tag 2d7e and index d is being replaced
 
 read at c835f33c
 
@@ -773,16 +773,16 @@ read at f5eddb68
 write at c85889b0
 
 write at c8588cd8
-writing back DC line with tag 190b and index 1e3 to L2 cache
-invalidating DC line with tag 190b and index 1e3 since L2 line with tag 32161e and index 3 is being replaced
-writing back L2 line with tag 32161e and index 3 to memory
+writing back DC line with tag b and index 1e3 to L2 cache
+invalidating DC line with tag b and index 1e3 since L2 line with tag 161e and index 3 is being replaced
+writing back L2 line with tag 161e and index 3 to memory
 
 write at c8588ce0
 
 write at c8587de0
-writing back DC line with tag 190b and index 227 to L2 cache
-invalidating DC line with tag 190b and index 227 since L2 line with tag 321622 and index 7 is being replaced
-writing back L2 line with tag 321622 and index 7 to memory
+writing back DC line with tag b and index 227 to L2 cache
+invalidating DC line with tag b and index 227 since L2 line with tag 1622 and index 7 is being replaced
+writing back L2 line with tag 1622 and index 7 to memory
 
 write at c8588ce8
 
@@ -799,26 +799,26 @@ write at f5eddb48
 write at f5eddb40
 
 write at f5eddb38
-writing back DC line with tag 190b and index 1ec to L2 cache
-invalidating DC line with tag 190b and index 1ec since L2 line with tag 32161e and index c is being replaced
-writing back L2 line with tag 32161e and index c to memory
+writing back DC line with tag b and index 1ec to L2 cache
+invalidating DC line with tag b and index 1ec since L2 line with tag 161e and index c is being replaced
+writing back L2 line with tag 161e and index c to memory
 
 read at f5eddbe0
-writing back DC line with tag 190b and index 1df to L2 cache
-invalidating DC line with tag 190b and index 1df since L2 line with tag 32161d and index f is being replaced
-writing back L2 line with tag 32161d and index f to memory
+writing back DC line with tag b and index 1df to L2 cache
+invalidating DC line with tag b and index 1df since L2 line with tag 161d and index f is being replaced
+writing back L2 line with tag 161d and index f to memory
 
 write at c8587de0
 
 write at c8587640
-writing back DC line with tag 190b and index 229 to L2 cache
-invalidating DC line with tag 190b and index 229 since L2 line with tag 321622 and index 9 is being replaced
-writing back L2 line with tag 321622 and index 9 to memory
+writing back DC line with tag b and index 229 to L2 cache
+invalidating DC line with tag b and index 229 since L2 line with tag 1622 and index 9 is being replaced
+writing back L2 line with tag 1622 and index 9 to memory
 
 write at c8587648
 
 write at c85890e8
-invalidating DC line with tag 1906 and index 17f3 since L2 line with tag 320d7f and index 3 is being replaced
+invalidating DC line with tag 16 and index 17f3 since L2 line with tag 2d7f and index 3 is being replaced
 
 read at f5eddbf8
 
@@ -839,7 +839,7 @@ read at f5eddc30
 read at f5eddc38
 
 read at f5eddc40
-invalidating DC line with tag 1906 and index 17f1 since L2 line with tag 320d7f and index 1 is being replaced
+invalidating DC line with tag 16 and index 17f1 since L2 line with tag 2d7f and index 1 is being replaced
 
 read at f5eddc48
 
@@ -856,7 +856,7 @@ read at f5eddc70
 read at f5eddc78
 
 read at f5eddc80
-invalidating DC line with tag 1906 and index 17f2 since L2 line with tag 320d7f and index 2 is being replaced
+invalidating DC line with tag 16 and index 17f2 since L2 line with tag 2d7f and index 2 is being replaced
 
 read at f5eddc88
 
@@ -873,9 +873,9 @@ read at f5eddcb0
 read at f5eddcb8
 
 read at f5eddcc0
-writing back DC line with tag 190b and index 1f3 to L2 cache
-invalidating DC line with tag 190b and index 1f3 since L2 line with tag 32161f and index 3 is being replaced
-writing back L2 line with tag 32161f and index 3 to memory
+writing back DC line with tag b and index 1f3 to L2 cache
+invalidating DC line with tag b and index 1f3 since L2 line with tag 161f and index 3 is being replaced
+writing back L2 line with tag 161f and index 3 to memory
 
 read at f5eddcc8
 
@@ -892,9 +892,9 @@ read at f5eddcf0
 read at f5eddcf8
 
 read at f5eddd00
-writing back DC line with tag 190b and index 1e4 to L2 cache
-invalidating DC line with tag 190b and index 1e4 since L2 line with tag 32161e and index 4 is being replaced
-writing back L2 line with tag 32161e and index 4 to memory
+writing back DC line with tag b and index 1e4 to L2 cache
+invalidating DC line with tag b and index 1e4 since L2 line with tag 161e and index 4 is being replaced
+writing back L2 line with tag 161e and index 4 to memory
 
 read at f5eddd08
 
@@ -911,9 +911,9 @@ read at f5eddd30
 read at f5eddd38
 
 read at f5eddd40
-writing back DC line with tag 190b and index 1e5 to L2 cache
-invalidating DC line with tag 190b and index 1e5 since L2 line with tag 32161e and index 5 is being replaced
-writing back L2 line with tag 32161e and index 5 to memory
+writing back DC line with tag b and index 1e5 to L2 cache
+invalidating DC line with tag b and index 1e5 since L2 line with tag 161e and index 5 is being replaced
+writing back L2 line with tag 161e and index 5 to memory
 
 read at f5eddd48
 
@@ -928,21 +928,21 @@ read at f5eddd68
 write at c8587668
 
 write at c85876c0
-writing back DC line with tag 190b and index 22b to L2 cache
-invalidating DC line with tag 190b and index 22b since L2 line with tag 321622 and index b is being replaced
-writing back L2 line with tag 321622 and index b to memory
+writing back DC line with tag b and index 22b to L2 cache
+invalidating DC line with tag b and index 22b since L2 line with tag 1622 and index b is being replaced
+writing back L2 line with tag 1622 and index b to memory
 
 write at f5eddb08
 
 write at f5eddadf
-invalidating DC line with tag 1906 and index 17eb since L2 line with tag 320d7e and index b is being replaced
+invalidating DC line with tag 16 and index 17eb since L2 line with tag 2d7e and index b is being replaced
 
 write at f5eddade
 
 read at c85877b0
-writing back DC line with tag 1ebd and index 176e to L2 cache
-invalidating DC line with tag 1ebd and index 176e since L2 line with tag 3d7b76 and index e is being replaced
-writing back L2 line with tag 3d7b76 and index e to memory
+writing back DC line with tag 5 and index 176e to L2 cache
+invalidating DC line with tag 5 and index 176e since L2 line with tag b76 and index e is being replaced
+writing back L2 line with tag b76 and index e to memory
 
 write at f5eddad7
 
@@ -953,7 +953,7 @@ read at c8587de8
 write at f5eddae0
 
 read at c85877c0
-invalidating DC line with tag 1906 and index 17ef since L2 line with tag 320d7e and index f is being replaced
+invalidating DC line with tag 16 and index 17ef since L2 line with tag 2d7e and index f is being replaced
 
 write at f5eddad5
 
@@ -968,7 +968,7 @@ write at f5eddad4
 write at f5eddae8
 
 read at c85876b0
-invalidating DC line with tag 1906 and index 17ea since L2 line with tag 320d7e and index a is being replaced
+invalidating DC line with tag 16 and index 17ea since L2 line with tag 2d7e and index a is being replaced
 
 write at f5eddadc
 
@@ -981,7 +981,7 @@ read at c85876b8
 write at f5eddac0
 
 read at c8380134
-invalidating DC line with tag 1906 and index 17f4 since L2 line with tag 320d7f and index 4 is being replaced
+invalidating DC line with tag 16 and index 17f4 since L2 line with tag 2d7f and index 4 is being replaced
 
 read at f5eddd70
 
@@ -992,12 +992,12 @@ write at f5eddae0
 read at f5eddd78
 
 read at c83800f0
-invalidating DC line with tag 1906 and index 17d3 since L2 line with tag 320d7d and index 3 is being replaced
+invalidating DC line with tag 16 and index 17d3 since L2 line with tag 2d7d and index 3 is being replaced
 
 read at f5eddd80
-writing back DC line with tag 190b and index 226 to L2 cache
-invalidating DC line with tag 190b and index 226 since L2 line with tag 321622 and index 6 is being replaced
-writing back L2 line with tag 321622 and index 6 to memory
+writing back DC line with tag b and index 226 to L2 cache
+invalidating DC line with tag b and index 226 since L2 line with tag 1622 and index 6 is being replaced
+writing back L2 line with tag 1622 and index 6 to memory
 
 write at f5eddad4
 
@@ -1022,9 +1022,9 @@ write at f5eddad8
 read at f5eddda8
 
 read at c83800bc
-writing back DC line with tag 190b and index 1f2 to L2 cache
-invalidating DC line with tag 190b and index 1f2 since L2 line with tag 32161f and index 2 is being replaced
-writing back L2 line with tag 32161f and index 2 to memory
+writing back DC line with tag b and index 1f2 to L2 cache
+invalidating DC line with tag b and index 1f2 since L2 line with tag 161f and index 2 is being replaced
+writing back L2 line with tag 161f and index 2 to memory
 
 read at f5edddb0
 
@@ -1033,9 +1033,9 @@ read at f5edddb8
 read at c83800c0
 
 read at f5edddc8
-writing back DC line with tag 190b and index 1e7 to L2 cache
-invalidating DC line with tag 190b and index 1e7 since L2 line with tag 32161e and index 7 is being replaced
-writing back L2 line with tag 32161e and index 7 to memory
+writing back DC line with tag b and index 1e7 to L2 cache
+invalidating DC line with tag b and index 1e7 since L2 line with tag 161e and index 7 is being replaced
+writing back L2 line with tag 161e and index 7 to memory
 
 read at c83800c4
 
@@ -1054,9 +1054,9 @@ read at f5edddf8
 read at c83800d4
 
 read at f5edde00
-writing back DC line with tag 190b and index 228 to L2 cache
-invalidating DC line with tag 190b and index 228 since L2 line with tag 321622 and index 8 is being replaced
-writing back L2 line with tag 321622 and index 8 to memory
+writing back DC line with tag b and index 228 to L2 cache
+invalidating DC line with tag b and index 228 since L2 line with tag 1622 and index 8 is being replaced
+writing back L2 line with tag 1622 and index 8 to memory
 
 read at f5edde08
 
@@ -1075,9 +1075,9 @@ read at f5edde38
 read at c83800e8
 
 read at f5edde48
-writing back DC line with tag 190b and index 1e9 to L2 cache
-invalidating DC line with tag 190b and index 1e9 since L2 line with tag 32161e and index 9 is being replaced
-writing back L2 line with tag 32161e and index 9 to memory
+writing back DC line with tag b and index 1e9 to L2 cache
+invalidating DC line with tag b and index 1e9 since L2 line with tag 161e and index 9 is being replaced
+writing back L2 line with tag 161e and index 9 to memory
 
 read at c838010c
 
@@ -1108,9 +1108,9 @@ read at f5edde78
 read at c838012c
 
 read at f5edde88
-writing back DC line with tag 190b and index 1ea to L2 cache
-invalidating DC line with tag 190b and index 1ea since L2 line with tag 32161e and index a is being replaced
-writing back L2 line with tag 32161e and index a to memory
+writing back DC line with tag b and index 1ea to L2 cache
+invalidating DC line with tag b and index 1ea since L2 line with tag 161e and index a is being replaced
+writing back L2 line with tag 161e and index a to memory
 
 read at c83800ec
 
@@ -1159,7 +1159,7 @@ read at f5eddae8
 write at c8587dd8
 
 write at f5eddab8
-invalidating DC line with tag 1906 and index 17fa since L2 line with tag 320d7f and index a is being replaced
+invalidating DC line with tag 16 and index 17fa since L2 line with tag 2d7f and index a is being replaced
 
 write at f5eddab0
 
@@ -1178,7 +1178,7 @@ read at c8587de8
 read at f5eddbf8
 
 read at f5eddf25
-invalidating DC line with tag 1906 and index 17dc since L2 line with tag 320d7d and index c is being replaced
+invalidating DC line with tag 16 and index 17dc since L2 line with tag 2d7d and index c is being replaced
 
 read at f5eddf26
 
@@ -1191,26 +1191,26 @@ read at f5eddf29
 read at c8587de8
 
 read at c8587888
-invalidating DC line with tag 1906 and index 1fe2 since L2 line with tag 320dfe and index 2 is being replaced
+invalidating DC line with tag 16 and index 1fe2 since L2 line with tag 2dfe and index 2 is being replaced
 
 read at c8587890
 
 read at c85878c0
-writing back DC line with tag 190b and index 233 to L2 cache
-invalidating DC line with tag 190b and index 233 since L2 line with tag 321623 and index 3 is being replaced
-writing back L2 line with tag 321623 and index 3 to memory
+writing back DC line with tag b and index 233 to L2 cache
+invalidating DC line with tag b and index 233 since L2 line with tag 1623 and index 3 is being replaced
+writing back L2 line with tag 1623 and index 3 to memory
 
 read at c85878c8
 
 read at c85878f8
 
 read at c8587900
-writing back DC line with tag 190b and index 1f4 to L2 cache
-invalidating DC line with tag 190b and index 1f4 since L2 line with tag 32161f and index 4 is being replaced
-writing back L2 line with tag 32161f and index 4 to memory
+writing back DC line with tag b and index 1f4 to L2 cache
+invalidating DC line with tag b and index 1f4 since L2 line with tag 161f and index 4 is being replaced
+writing back L2 line with tag 161f and index 4 to memory
 
 read at c83811dc
-invalidating DC line with tag 1906 and index 17f7 since L2 line with tag 320d7f and index 7 is being replaced
+invalidating DC line with tag 16 and index 17f7 since L2 line with tag 2d7f and index 7 is being replaced
 
 read at f5eddf25
 
@@ -1219,14 +1219,14 @@ read at c8587930
 read at c8587938
 
 read at c8381208
-writing back DC line with tag 190b and index 1f8 to L2 cache
-invalidating DC line with tag 190b and index 1f8 since L2 line with tag 32161f and index 8 is being replaced
-writing back L2 line with tag 32161f and index 8 to memory
+writing back DC line with tag b and index 1f8 to L2 cache
+invalidating DC line with tag b and index 1f8 since L2 line with tag 161f and index 8 is being replaced
+writing back L2 line with tag 161f and index 8 to memory
 
 read at f5eddf25
 
 read at c8587968
-invalidating DC line with tag 1906 and index 17f5 since L2 line with tag 320d7f and index 5 is being replaced
+invalidating DC line with tag 16 and index 17f5 since L2 line with tag 2d7f and index 5 is being replaced
 
 read at c8587970
 
@@ -1235,7 +1235,7 @@ read at c85879a0
 read at c85879a8
 
 read at c85879d8
-invalidating DC line with tag 1906 and index 17d7 since L2 line with tag 320d7d and index 7 is being replaced
+invalidating DC line with tag 16 and index 17d7 since L2 line with tag 2d7d and index 7 is being replaced
 
 read at c85879e0
 
@@ -1244,12 +1244,12 @@ read at c8587a10
 read at c8587a18
 
 read at c8587a48
-invalidating DC line with tag 1906 and index 17f9 since L2 line with tag 320d7f and index 9 is being replaced
+invalidating DC line with tag 16 and index 17f9 since L2 line with tag 2d7f and index 9 is being replaced
 
 read at c8587a50
 
 read at c8587a80
-invalidating DC line with tag 1906 and index 17da since L2 line with tag 320d7d and index a is being replaced
+invalidating DC line with tag 16 and index 17da since L2 line with tag 2d7d and index a is being replaced
 
 read at c8587a88
 
@@ -1258,9 +1258,9 @@ read at c8587ab8
 read at c8587ac0
 
 read at c83812af
-writing back DC line with tag 190b and index 1da to L2 cache
-invalidating DC line with tag 190b and index 1da since L2 line with tag 32161d and index a is being replaced
-writing back L2 line with tag 32161d and index a to memory
+writing back DC line with tag b and index 1da to L2 cache
+invalidating DC line with tag b and index 1da since L2 line with tag 161d and index a is being replaced
+writing back L2 line with tag 161d and index a to memory
 
 read at f5eddf25
 
@@ -1269,14 +1269,14 @@ read at c8587af0
 read at c8587af8
 
 read at c83812d5
-writing back DC line with tag 190b and index 1eb to L2 cache
-invalidating DC line with tag 190b and index 1eb since L2 line with tag 32161e and index b is being replaced
-writing back L2 line with tag 32161e and index b to memory
+writing back DC line with tag b and index 1eb to L2 cache
+invalidating DC line with tag b and index 1eb since L2 line with tag 161e and index b is being replaced
+writing back L2 line with tag 161e and index b to memory
 
 read at f5eddf25
 
 read at c8587b28
-invalidating DC line with tag 1906 and index 17fc since L2 line with tag 320d7f and index c is being replaced
+invalidating DC line with tag 16 and index 17fc since L2 line with tag 2d7f and index c is being replaced
 
 read at c8587b30
 
@@ -1307,12 +1307,12 @@ read at f5eddf25
 read at c8587c78
 
 read at c8587c80
-writing back DC line with tag 190b and index 232 to L2 cache
-invalidating DC line with tag 190b and index 232 since L2 line with tag 321623 and index 2 is being replaced
-writing back L2 line with tag 321623 and index 2 to memory
+writing back DC line with tag b and index 232 to L2 cache
+invalidating DC line with tag b and index 232 since L2 line with tag 1623 and index 2 is being replaced
+writing back L2 line with tag 1623 and index 2 to memory
 
 read at c8381321
-invalidating DC line with tag 1906 and index 17cc since L2 line with tag 320d7c and index c is being replaced
+invalidating DC line with tag 16 and index 17cc since L2 line with tag 2d7c and index c is being replaced
 
 read at f5eddf25
 
@@ -1321,28 +1321,28 @@ read at c8587cb0
 read at c8587cb8
 
 read at c838134e
-writing back DC line with tag 190b and index 1ed to L2 cache
-invalidating DC line with tag 190b and index 1ed since L2 line with tag 32161e and index d is being replaced
-writing back L2 line with tag 32161e and index d to memory
+writing back DC line with tag b and index 1ed to L2 cache
+invalidating DC line with tag b and index 1ed since L2 line with tag 161e and index d is being replaced
+writing back L2 line with tag 161e and index d to memory
 
 read at f5eddf25
 
 read at c8587ce8
-writing back DC line with tag 190b and index 243 to L2 cache
-invalidating DC line with tag 190b and index 243 since L2 line with tag 321624 and index 3 is being replaced
-writing back L2 line with tag 321624 and index 3 to memory
+writing back DC line with tag b and index 243 to L2 cache
+invalidating DC line with tag b and index 243 since L2 line with tag 1624 and index 3 is being replaced
+writing back L2 line with tag 1624 and index 3 to memory
 
 read at c8587cf0
 
 read at c8587d20
-invalidating DC line with tag 1906 and index 17d4 since L2 line with tag 320d7d and index 4 is being replaced
+invalidating DC line with tag 16 and index 17d4 since L2 line with tag 2d7d and index 4 is being replaced
 
 read at c8587d28
 
 read at c8381397
-writing back DC line with tag 190b and index 1fe to L2 cache
-invalidating DC line with tag 190b and index 1fe since L2 line with tag 32161f and index e is being replaced
-writing back L2 line with tag 32161f and index e to memory
+writing back DC line with tag b and index 1fe to L2 cache
+invalidating DC line with tag b and index 1fe since L2 line with tag 161f and index e is being replaced
+writing back L2 line with tag 161f and index e to memory
 
 read at f5eddf25
 
@@ -1359,9 +1359,9 @@ read at c8587dc8
 read at c8587dd0
 
 read at c83813d4
-writing back DC line with tag 190b and index 1ef to L2 cache
-invalidating DC line with tag 190b and index 1ef since L2 line with tag 32161e and index f is being replaced
-writing back L2 line with tag 32161e and index f to memory
+writing back DC line with tag b and index 1ef to L2 cache
+invalidating DC line with tag b and index 1ef since L2 line with tag 161e and index f is being replaced
+writing back L2 line with tag 161e and index f to memory
 
 read at f5eddf25
 
@@ -1436,7 +1436,7 @@ read at c8587a88
 read at c8587ab8
 
 read at c8587ac0
-invalidating DC line with tag 1906 and index 17fb since L2 line with tag 320d7f and index b is being replaced
+invalidating DC line with tag 16 and index 17fb since L2 line with tag 2d7f and index b is being replaced
 
 read at c83812af
 
@@ -1455,7 +1455,7 @@ read at c8587b28
 read at c8587b30
 
 read at c8587b60
-invalidating DC line with tag 1906 and index 17fd since L2 line with tag 320d7f and index d is being replaced
+invalidating DC line with tag 16 and index 17fd since L2 line with tag 2d7f and index d is being replaced
 
 read at c8587b68
 
@@ -1464,9 +1464,9 @@ read at c8587b98
 read at c8587ba0
 
 read at c8587bd0
-writing back DC line with tag 190b and index 1ff to L2 cache
-invalidating DC line with tag 190b and index 1ff since L2 line with tag 32161f and index f is being replaced
-writing back L2 line with tag 32161f and index f to memory
+writing back DC line with tag b and index 1ff to L2 cache
+invalidating DC line with tag b and index 1ff since L2 line with tag 161f and index f is being replaced
+writing back L2 line with tag 161f and index f to memory
 
 read at c8587bd8
 
@@ -1533,9 +1533,9 @@ read at f5eddf33
 read at f5eddc08
 
 read at f5eddf44
-writing back DC line with tag 1ebd and index 176d to L2 cache
-invalidating DC line with tag 1ebd and index 176d since L2 line with tag 3d7b76 and index d is being replaced
-writing back L2 line with tag 3d7b76 and index d to memory
+writing back DC line with tag 5 and index 176d to L2 cache
+invalidating DC line with tag 5 and index 176d since L2 line with tag b76 and index d is being replaced
+writing back L2 line with tag b76 and index d to memory
 
 read at f5eddf45
 
@@ -1836,7 +1836,7 @@ read at f5eddf58
 read at f5eddc18
 
 read at f5eddfb9
-invalidating DC line with tag 1906 and index 17ee since L2 line with tag 320d7e and index e is being replaced
+invalidating DC line with tag 16 and index 17ee since L2 line with tag 2d7e and index e is being replaced
 
 read at f5eddfba
 
@@ -1989,7 +1989,7 @@ read at f5eddfb9
 read at f5eddc20
 
 read at f5eddfcc
-invalidating DC line with tag 1ebd and index 176f since L2 line with tag 3d7b76 and index f is being replaced
+invalidating DC line with tag 5 and index 176f since L2 line with tag b76 and index f is being replaced
 
 read at f5eddfcd
 
@@ -2342,9 +2342,9 @@ read at f5eddffe
 read at f5eddfff
 
 read at f5ede000
-writing back DC line with tag 190b and index 230 to L2 cache
-invalidating DC line with tag 190b and index 230 since L2 line with tag 321623 and index 0 is being replaced
-writing back L2 line with tag 321623 and index 0 to memory
+writing back DC line with tag b and index 230 to L2 cache
+invalidating DC line with tag b and index 230 since L2 line with tag 1623 and index 0 is being replaced
+writing back L2 line with tag 1623 and index 0 to memory
 
 read at f5ede001
 
@@ -2881,9 +2881,9 @@ read at f5eddc48
 read at f5ede03f
 
 read at f5ede040
-writing back DC line with tag 190b and index 1f1 to L2 cache
-invalidating DC line with tag 190b and index 1f1 since L2 line with tag 32161f and index 1 is being replaced
-writing back L2 line with tag 32161f and index 1 to memory
+writing back DC line with tag b and index 1f1 to L2 cache
+invalidating DC line with tag b and index 1f1 since L2 line with tag 161f and index 1 is being replaced
+writing back L2 line with tag 161f and index 1 to memory
 
 read at f5ede041
 
@@ -3000,7 +3000,7 @@ read at c8587c08
 read at c8587c10
 
 read at c8587c40
-invalidating DC line with tag 1906 and index 17d1 since L2 line with tag 320d7d and index 1 is being replaced
+invalidating DC line with tag 16 and index 17d1 since L2 line with tag 2d7d and index 1 is being replaced
 
 read at c8587c48
 
