@@ -22,9 +22,9 @@ pt = page table
 l2 = second level data cache
 */
 class Config {
- public:
+public:
   // data translation lookaside buffer
-  int dtlb_set_count;  // max 256
+  int dtlb_set_count; // max 256
   int dtlb_set_size;
   int dltb_index_bits;
   bool dtlb_enabled;
@@ -34,19 +34,19 @@ class Config {
   int pt_offset_bit;
   int pt_index_bits;
 
-  int virtual_page_count;  // max 8192, must be power of 2
-  int virtual_page_size;   // (bytes)
+  int virtual_page_count; // max 8192, must be power of 2
+  int virtual_page_size;  // (bytes)
   int virtual_page_num;
 
-  int physical_page_count;  // max 1024, must be power of 2
+  int physical_page_count; // max 1024, must be power of 2
   int physical_page_size;
   // int physical_page_bit_count;
   int physical_page_num;
 
-  int dc_set_count;  // max 8192
+  int dc_set_count; // max 8192
   int dc_set_size;
   int dc_associativity;
-  int dc_line_size;  // min 8 (bytes)
+  int dc_line_size; // min 8 (bytes)
   bool dc_write_thru_no_allo;
   int dc_index_bits;
   int dc_offset_bits;
@@ -54,7 +54,7 @@ class Config {
   int l2_set_count;
   int l2_set_size;
   int l2_associativity;
-  int l2_line_size;  // >= dc_line_size (bytes)
+  int l2_line_size; // >= dc_line_size (bytes)
   bool l2_write_thru_no_allo;
   bool l2_enabled;
   int l2_index_bits;
@@ -63,7 +63,7 @@ class Config {
   bool virt_addr;
 };
 
-Config init();  // function to read in config and set variables
+Config init(); // function to read in config and set variables
 bool check_pwr_2(int val);
 void print_config_after_read(Config config);
 void read_data_file(Config config);
@@ -84,9 +84,9 @@ Config init() {
 
   while (getline(fin, line)) {
     if (!line.empty()) {
-      if (line.find("Data TLB configuration") == 0) {  // looks for dtlb header
+      if (line.find("Data TLB configuration") == 0) { // looks for dtlb header
         for (int i = 0; i < 2; i++) {
-          getline(fin, line);  // gets next line in dltb head, should be "Numer of sets:"
+          getline(fin, line); // gets next line in dltb head, should be "Numer of sets:"
           if (line.find("Number of sets") == 0) {
             colon_index = line.find(':') + 2;
             val = line.substr(colon_index, line.size());
@@ -264,7 +264,7 @@ Config init() {
   return config;
 }
 
-bool check_pwr_2(int val) {  // 8 = 1000, 7 = 0111 ---> 1000 & 0111 = 0000
+bool check_pwr_2(int val) { // 8 = 1000, 7 = 0111 ---> 1000 & 0111 = 0000
   return (0 == ((val - 1) & val));
 }
 
@@ -340,7 +340,7 @@ void read_data_file(Config config) {
   int l2_index;
   string l2_index_bin;
   int dc_res;
-  bool is_read;  // false will be on write, true on read
+  bool is_read; // false will be on write, true on read
   string l2_res;
   int virtual_page_calc;
   string virtual_page_calc_bin;
@@ -363,7 +363,7 @@ void read_data_file(Config config) {
   PT PAGE_TABLE = PT(config.virtual_page_count);
   DTLB translation_buffer = DTLB(config.dtlb_set_count, config.dtlb_set_size);
   while (getline(fin, line)) {
-    config.counter += 1; //i dont remember why i made this part of the config class but its too late to change
+    config.counter += 1; // i dont remember why i made this part of the config class but its too late to change
     if (line[0] == 'R') {
       is_read = true;
     } else if (line[0] == 'W') {
@@ -371,15 +371,15 @@ void read_data_file(Config config) {
     }
     hex_val = line.substr(2, line.size());
     ss << hex << hex_val;
-    unsigned temp;  // temp var that will hold all string stream values
+    unsigned temp; // temp var that will hold all string stream values
     // I learned how stringstreams work doing this, this is awesome
     // No more hex translation helper functions!
-    
+
     ss >> temp;
     ss.clear();
     b = bitset<64>(temp);
     bin_string = b.to_string();
-    
+
     was_l2_full = false;
     if (!config.virt_addr) {
       // CALCULATE PHYSICAL PAGE NUM TO MAKE SURE ITS IN BOUNDS
@@ -413,20 +413,20 @@ void read_data_file(Config config) {
       dc_index_bin = bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
       dc_index = stoi(dc_index_bin, 0, 2);
       cout << " " << setw(3) << setfill(' ') << hex << dc_index;
-      
+
       // check data cache for block, if hit no need to check l2
       if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, -1, false)) {
         l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
         l2_tag = stoi(l2_tag_bin, 0, 2);
         l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
         l2_index = stoi(l2_index_bin, 0, 2);
-        L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+        //L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
         cout << " hit  \n";
         continue;
       } else {
-        if(config.l2_enabled){
+        if (config.l2_enabled) {
           cout << " miss";
-        }else{
+        } else {
           cout << " miss ";
         }
       }
@@ -445,18 +445,24 @@ void read_data_file(Config config) {
         cout << setw(3) << setfill(' ') << hex << l2_index;
         was_l2_full = L2_CACHE.check_if_index_is_full(l2_index);
         int dirty_bit;
-        if(is_read){
+        if (is_read) {
           dirty_bit = 0;
-        }else{
+        } else {
           dirty_bit = 1;
         }
         if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, false, dc_index, dc_tag)) {
           cout << " hit \n";
-         
+
         } else {
-          if(was_l2_full){
-            pair<int, int> dc_index_tag_pair_to_invalidate = L2_CACHE.get_dc_index_tag(l2_index, l2_tag);
-            //DATA_CACHE.evict_given_l2_phys_address(dc_index_tag_pair_to_invalidate.first, dc_index_tag_pair_to_invalidate.second);
+          pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, bin_string);
+          bool was_there_an_l2_eviction = was_l2_replaced_and_if_yes_dc_phys_address.first;
+          if (was_there_an_l2_eviction) {
+            string replace_address = was_l2_replaced_and_if_yes_dc_phys_address.second;
+            dc_tag_bin = replace_address.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+            dc_tag = stoi(dc_tag_bin, 0, 2);
+            dc_index_bin = replace_address.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+            dc_index = stoi(dc_index_bin, 0, 2);
+            DATA_CACHE.evict_given_l2_phys_address(dc_index, dc_tag);
           }
           cout << " miss\n";
         }
@@ -488,24 +494,23 @@ void read_data_file(Config config) {
       } else {
         pt_res = "hit ";
       }
-      if(config.dtlb_enabled){
+      if (config.dtlb_enabled) {
         tlb_index_and_tag = tlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
-        //cout << "tlb_index = " << tlb_index_and_tag.first << " tlb_tag = " << tlb_index_and_tag.second << " "; 
+        // cout << "tlb_index = " << tlb_index_and_tag.first << " tlb_tag = " << tlb_index_and_tag.second << " ";
         tlb_index = tlb_index_and_tag.first;
         tlb_tag = tlb_index_and_tag.second;
         cout << setw(7) << setfill(' ') << hex << tlb_tag;
         cout << setw(4) << setfill(' ') << hex << tlb_index;
-        if (translation_buffer.check_dtlb(tlb_index, tlb_tag, config.counter)){
+        if (translation_buffer.check_dtlb(tlb_index, tlb_tag, config.counter)) {
           cout << setw(4) << setfill(' ') << " hit ";
           cout << setw(5) << setfill(' ') << " ";
-        }else{
+        } else {
           cout << setw(4) << setfill(' ') << " miss";
           translation_buffer.insert_to_dtlb(tlb_index, tlb_tag, config.counter, pfn);
           cout << setw(5) << setfill(' ') << pt_res;
         }
-      }else{
+      } else {
 
-        
         cout << setw(21) << setfill(' ') << pt_res;
       }
 
@@ -534,7 +539,7 @@ void read_data_file(Config config) {
         cout << " hit  \n";
         continue;
       } else {
-        
+
         cout << " miss ";
       }
       if (!config.l2_enabled) {
@@ -548,14 +553,14 @@ void read_data_file(Config config) {
         l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
         l2_index = stoi(l2_index_bin, 0, 2);
         cout << setw(3) << setfill(' ') << hex << l2_index;
-        if(is_read){
+        if (is_read) {
 
           if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 0, pfn, false, dc_index, dc_tag)) {
             cout << " hit \n";
           } else {
             cout << " miss\n";
           }
-        }else{
+        } else {
           if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, 1, pfn, false, dc_index, dc_tag)) {
             cout << " hit \n";
           } else {
@@ -565,16 +570,15 @@ void read_data_file(Config config) {
       }
     }
   }
-  
 }
 
-pair<int, int> tlb_index_tag_getter(int vpn, int tlb_set_count){
+pair<int, int> tlb_index_tag_getter(int vpn, int tlb_set_count) {
   bitset<64> v(vpn);
   int tlb_index_bits = log2(tlb_set_count);
   string vpn_str = v.to_string();
-  string ind_str = vpn_str.substr(64-tlb_index_bits);
+  string ind_str = vpn_str.substr(64 - tlb_index_bits);
   int index = stoi(ind_str, 0, 2);
-  string tag_str = vpn_str.substr(0, 64-tlb_index_bits);
+  string tag_str = vpn_str.substr(0, 64 - tlb_index_bits);
   int tag = stoi(tag_str, 0, 2);
   return {index, tag};
 }

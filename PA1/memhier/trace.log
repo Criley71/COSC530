@@ -1087,3 +1087,2064 @@ read at f5edde58
 
 read at c8380114
 
+read at f5edde60
+
+write at f5eddadf
+
+write at f5eddae8
+
+read at f5edde68
+
+read at c8380118
+
+read at f5edde70
+
+write at f5eddad5
+
+write at f5eddac8
+
+read at f5edde78
+
+read at c838012c
+
+read at f5edde88
+writing back DC line with tag 190b and index 1ea to L2 cache
+invalidating DC line with tag 190b and index 1ea since L2 line with tag 32161e and index a is being replaced
+writing back L2 line with tag 32161e and index a to memory
+
+read at c83800ec
+
+read at f5edde90
+
+read at f5edde98
+
+write at c8587678
+
+write at f5eddb08
+
+write at c8587de8
+
+write at c8587668
+
+read at f5eddad4
+
+read at f5eddac0
+
+write at c85876b8
+
+read at f5eddad5
+
+read at f5eddac8
+
+write at c85877c0
+
+read at f5eddad6
+
+read at f5eddad8
+
+write at c8587698
+
+read at f5eddad7
+
+read at f5eddade
+
+read at f5eddae0
+
+write at c85877b0
+
+read at f5eddadf
+
+read at f5eddae8
+
+write at c8587dd8
+
+write at f5eddab8
+invalidating DC line with tag 1906 and index 17fa since L2 line with tag 320d7f and index a is being replaced
+
+write at f5eddab0
+
+write at f5eddaa8
+
+write at f5eddaa0
+
+write at f5edda98
+
+write at f5edda90
+
+write at f5edda88
+
+read at c8587de8
+
+read at f5eddbf8
+
+read at f5eddf25
+invalidating DC line with tag 1906 and index 17dc since L2 line with tag 320d7d and index c is being replaced
+
+read at f5eddf26
+
+read at f5eddf27
+
+read at f5eddf28
+
+read at f5eddf29
+
+read at c8587de8
+
+read at c8587888
+invalidating DC line with tag 1906 and index 1fe2 since L2 line with tag 320dfe and index 2 is being replaced
+
+read at c8587890
+
+read at c85878c0
+writing back DC line with tag 190b and index 233 to L2 cache
+invalidating DC line with tag 190b and index 233 since L2 line with tag 321623 and index 3 is being replaced
+writing back L2 line with tag 321623 and index 3 to memory
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+writing back DC line with tag 190b and index 1f4 to L2 cache
+invalidating DC line with tag 190b and index 1f4 since L2 line with tag 32161f and index 4 is being replaced
+writing back L2 line with tag 32161f and index 4 to memory
+
+read at c83811dc
+invalidating DC line with tag 1906 and index 17f7 since L2 line with tag 320d7f and index 7 is being replaced
+
+read at f5eddf25
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+writing back DC line with tag 190b and index 1f8 to L2 cache
+invalidating DC line with tag 190b and index 1f8 since L2 line with tag 32161f and index 8 is being replaced
+writing back L2 line with tag 32161f and index 8 to memory
+
+read at f5eddf25
+
+read at c8587968
+invalidating DC line with tag 1906 and index 17f5 since L2 line with tag 320d7f and index 5 is being replaced
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+invalidating DC line with tag 1906 and index 17d7 since L2 line with tag 320d7d and index 7 is being replaced
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+invalidating DC line with tag 1906 and index 17f9 since L2 line with tag 320d7f and index 9 is being replaced
+
+read at c8587a50
+
+read at c8587a80
+invalidating DC line with tag 1906 and index 17da since L2 line with tag 320d7d and index a is being replaced
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+writing back DC line with tag 190b and index 1da to L2 cache
+invalidating DC line with tag 190b and index 1da since L2 line with tag 32161d and index a is being replaced
+writing back L2 line with tag 32161d and index a to memory
+
+read at f5eddf25
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+writing back DC line with tag 190b and index 1eb to L2 cache
+invalidating DC line with tag 190b and index 1eb since L2 line with tag 32161e and index b is being replaced
+writing back L2 line with tag 32161e and index b to memory
+
+read at f5eddf25
+
+read at c8587b28
+invalidating DC line with tag 1906 and index 17fc since L2 line with tag 320d7f and index c is being replaced
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddf25
+
+read at c8587c78
+
+read at c8587c80
+writing back DC line with tag 190b and index 232 to L2 cache
+invalidating DC line with tag 190b and index 232 since L2 line with tag 321623 and index 2 is being replaced
+writing back L2 line with tag 321623 and index 2 to memory
+
+read at c8381321
+invalidating DC line with tag 1906 and index 17cc since L2 line with tag 320d7c and index c is being replaced
+
+read at f5eddf25
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+writing back DC line with tag 190b and index 1ed to L2 cache
+invalidating DC line with tag 190b and index 1ed since L2 line with tag 32161e and index d is being replaced
+writing back L2 line with tag 32161e and index d to memory
+
+read at f5eddf25
+
+read at c8587ce8
+writing back DC line with tag 190b and index 243 to L2 cache
+invalidating DC line with tag 190b and index 243 since L2 line with tag 321624 and index 3 is being replaced
+writing back L2 line with tag 321624 and index 3 to memory
+
+read at c8587cf0
+
+read at c8587d20
+invalidating DC line with tag 1906 and index 17d4 since L2 line with tag 320d7d and index 4 is being replaced
+
+read at c8587d28
+
+read at c8381397
+writing back DC line with tag 190b and index 1fe to L2 cache
+invalidating DC line with tag 190b and index 1fe since L2 line with tag 32161f and index e is being replaced
+writing back L2 line with tag 32161f and index e to memory
+
+read at f5eddf25
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+writing back DC line with tag 190b and index 1ef to L2 cache
+invalidating DC line with tag 190b and index 1ef since L2 line with tag 32161e and index f is being replaced
+writing back L2 line with tag 32161e and index f to memory
+
+read at f5eddf25
+
+read at f5eddc00
+
+read at f5eddf33
+
+read at f5eddf34
+
+read at f5eddf35
+
+read at f5eddf36
+
+read at f5eddf37
+
+read at f5eddf38
+
+read at f5eddf39
+
+read at f5eddf3a
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5eddf33
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5eddf33
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+invalidating DC line with tag 1906 and index 17fb since L2 line with tag 320d7f and index b is being replaced
+
+read at c83812af
+
+read at f5eddf33
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5eddf33
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+invalidating DC line with tag 1906 and index 17fd since L2 line with tag 320d7f and index d is being replaced
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+writing back DC line with tag 190b and index 1ff to L2 cache
+invalidating DC line with tag 190b and index 1ff since L2 line with tag 32161f and index f is being replaced
+writing back L2 line with tag 32161f and index f to memory
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddf33
+
+read at c83812fd
+
+read at f5eddf34
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5eddf33
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5eddf33
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5eddf33
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5eddf33
+
+read at f5eddc08
+
+read at f5eddf44
+writing back DC line with tag 1ebd and index 176d to L2 cache
+invalidating DC line with tag 1ebd and index 176d since L2 line with tag 3d7b76 and index d is being replaced
+writing back L2 line with tag 3d7b76 and index d to memory
+
+read at f5eddf45
+
+read at f5eddf46
+
+read at f5eddf47
+
+read at f5eddf48
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5eddf44
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5eddf44
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5eddf44
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5eddf44
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddf44
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5eddf44
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5eddf44
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5eddf44
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5eddf44
+
+read at f5eddc10
+
+read at f5eddf58
+
+read at f5eddf59
+
+read at f5eddf5a
+
+read at f5eddf5b
+
+read at f5eddf5c
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5eddf58
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5eddf58
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5eddf58
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5eddf58
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddf58
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5eddf58
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5eddf58
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5eddf58
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5eddf58
+
+read at f5eddc18
+
+read at f5eddfb9
+invalidating DC line with tag 1906 and index 17ee since L2 line with tag 320d7e and index e is being replaced
+
+read at f5eddfba
+
+read at f5eddfbb
+
+read at f5eddfbc
+
+read at f5eddfbd
+
+read at f5eddfbe
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5eddfb9
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5eddfb9
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5eddfb9
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5eddfb9
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddfb9
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5eddfb9
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5eddfb9
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5eddfb9
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5eddfb9
+
+read at f5eddc20
+
+read at f5eddfcc
+invalidating DC line with tag 1ebd and index 176f since L2 line with tag 3d7b76 and index f is being replaced
+
+read at f5eddfcd
+
+read at f5eddfce
+
+read at f5eddfcf
+
+read at f5eddfd0
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5eddfcc
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5eddfcc
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5eddfcc
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5eddfcc
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddfcc
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5eddfcc
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5eddfcc
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5eddfcc
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5eddfcc
+
+read at f5eddc28
+
+read at f5eddfe0
+
+read at f5eddfe1
+
+read at f5eddfe2
+
+read at f5eddfe3
+
+read at f5eddfe4
+
+read at f5eddfe5
+
+read at f5eddfe6
+
+read at f5eddfe7
+
+read at f5eddfe8
+
+read at f5eddfe9
+
+read at f5eddfea
+
+read at f5eddfeb
+
+read at f5eddfec
+
+read at f5eddfed
+
+read at f5eddfee
+
+read at f5eddfef
+
+read at f5eddff0
+
+read at f5eddff1
+
+read at f5eddff2
+
+read at f5eddff3
+
+read at f5eddff4
+
+read at f5eddff5
+
+read at f5eddff6
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5eddfe0
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5eddfe0
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5eddfe0
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5eddfe0
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddfe0
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5eddfe0
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5eddfe0
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5eddfe0
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5eddfe0
+
+read at f5eddc30
+
+read at f5eddff8
+
+read at f5eddff9
+
+read at f5eddffa
+
+read at f5eddffb
+
+read at f5eddffc
+
+read at f5eddffd
+
+read at f5eddffe
+
+read at f5eddfff
+
+read at f5ede000
+writing back DC line with tag 190b and index 230 to L2 cache
+invalidating DC line with tag 190b and index 230 since L2 line with tag 321623 and index 0 is being replaced
+writing back L2 line with tag 321623 and index 0 to memory
+
+read at f5ede001
+
+read at f5ede002
+
+read at f5ede003
+
+read at f5ede004
+
+read at f5ede005
+
+read at f5ede006
+
+read at f5ede007
+
+read at f5ede008
+
+read at f5ede009
+
+read at f5ede00a
+
+read at f5ede00b
+
+read at f5ede00c
+
+read at f5ede00d
+
+read at f5ede00e
+
+read at f5ede00f
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5eddff8
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5eddff8
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5eddff8
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5eddff8
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5eddff8
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5eddff8
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5eddff8
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5eddff8
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5eddff8
+
+read at f5eddc38
+
+read at f5ede011
+
+read at f5ede012
+
+read at f5ede013
+
+read at f5ede014
+
+read at f5ede015
+
+read at f5ede016
+
+read at f5ede017
+
+read at f5ede018
+
+read at f5ede019
+
+read at f5ede01a
+
+read at f5ede01b
+
+read at f5ede01c
+
+read at f5ede01d
+
+read at f5ede01e
+
+read at f5ede01f
+
+read at f5ede020
+
+read at f5ede021
+
+read at f5ede022
+
+read at f5ede023
+
+read at f5ede024
+
+read at f5ede025
+
+read at f5ede026
+
+read at f5ede027
+
+read at f5ede028
+
+read at f5ede029
+
+read at f5ede02a
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5ede011
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5ede011
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5ede011
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5ede011
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5ede011
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5ede011
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5ede011
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5ede011
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5ede011
+
+read at f5eddc40
+
+read at f5ede02c
+
+read at f5ede02d
+
+read at f5ede02e
+
+read at f5ede02f
+
+read at f5ede030
+
+read at f5ede031
+
+read at f5ede032
+
+read at f5ede033
+
+read at f5ede034
+
+read at f5ede035
+
+read at f5ede036
+
+read at f5ede037
+
+read at f5ede038
+
+read at f5ede039
+
+read at f5ede03a
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5ede02c
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5ede02c
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5ede02c
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5ede02c
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5ede02c
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5ede02c
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5ede02c
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5ede02c
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5ede02c
+
+read at f5eddc48
+
+read at f5ede03f
+
+read at f5ede040
+writing back DC line with tag 190b and index 1f1 to L2 cache
+invalidating DC line with tag 190b and index 1f1 since L2 line with tag 32161f and index 1 is being replaced
+writing back L2 line with tag 32161f and index 1 to memory
+
+read at f5ede041
+
+read at f5ede042
+
+read at f5ede043
+
+read at f5ede044
+
+read at f5ede045
+
+read at f5ede046
+
+read at f5ede047
+
+read at f5ede048
+
+read at f5ede049
+
+read at f5ede04a
+
+read at f5ede04b
+
+read at f5ede04c
+
+read at f5ede04d
+
+read at f5ede04e
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5ede03f
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5ede03f
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+
+read at c8587a50
+
+read at c8587a80
+
+read at c8587a88
+
+read at c8587ab8
+
+read at c8587ac0
+
+read at c83812af
+
+read at f5ede03f
+
+read at c8587af0
+
+read at c8587af8
+
+read at c83812d5
+
+read at f5ede03f
+
+read at c8587b28
+
+read at c8587b30
+
+read at c8587b60
+
+read at c8587b68
+
+read at c8587b98
+
+read at c8587ba0
+
+read at c8587bd0
+
+read at c8587bd8
+
+read at c8587c08
+
+read at c8587c10
+
+read at c8587c40
+invalidating DC line with tag 1906 and index 17d1 since L2 line with tag 320d7d and index 1 is being replaced
+
+read at c8587c48
+
+read at c83812fc
+
+read at f5ede03f
+
+read at c8587c78
+
+read at c8587c80
+
+read at c8381321
+
+read at f5ede03f
+
+read at c8587cb0
+
+read at c8587cb8
+
+read at c838134e
+
+read at f5ede03f
+
+read at c8587ce8
+
+read at c8587cf0
+
+read at c8587d20
+
+read at c8587d28
+
+read at c8381397
+
+read at f5ede03f
+
+read at c8587d58
+
+read at c8587d60
+
+read at c8587d90
+
+read at c8587d98
+
+read at c8587dc8
+
+read at c8587dd0
+
+read at c83813d4
+
+read at f5ede03f
+
+read at f5eddc50
+
+read at f5ede05e
+
+read at f5ede05f
+
+read at f5ede060
+
+read at f5ede061
+
+read at f5ede062
+
+read at f5ede063
+
+read at f5ede064
+
+read at f5ede065
+
+read at f5ede066
+
+read at f5ede067
+
+read at f5ede068
+
+read at f5ede069
+
+read at f5ede06a
+
+read at f5ede06b
+
+read at f5ede06c
+
+read at f5ede06d
+
+read at f5ede06e
+
+read at f5ede06f
+
+read at f5ede070
+
+read at f5ede071
+
+read at f5ede072
+
+read at f5ede073
+
+read at f5ede074
+
+read at f5ede075
+
+read at f5ede076
+
+read at c8587de8
+
+read at c8587888
+
+read at c8587890
+
+read at c85878c0
+
+read at c85878c8
+
+read at c85878f8
+
+read at c8587900
+
+read at c83811dc
+
+read at f5ede05e
+
+read at c8587930
+
+read at c8587938
+
+read at c8381208
+
+read at f5ede05e
+
+read at c8587968
+
+read at c8587970
+
+read at c85879a0
+
+read at c85879a8
+
+read at c85879d8
+
+read at c85879e0
+
+read at c8587a10
+
+read at c8587a18
+
+read at c8587a48
+

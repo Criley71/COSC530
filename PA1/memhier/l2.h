@@ -15,7 +15,8 @@ public:
   int pfn;
   int dc_tag = -1;
   int dc_index = -1;
-  L2_block(int i, int t, int a, int db, int pf, int dct, int dci);
+  string dc_address = "";
+  L2_block(int i, int t, int a, int db, int pf, int dct, int dci, string dca);
 };
 
 class L2 {
@@ -30,7 +31,7 @@ public:
 
   vector<vector<L2_block>> l2_cache;
   L2(int sc, int ss, int ls, bool wawb, int ibs, int obs);
-  void insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, int dc_index, int dc_tag);
+  pair<bool, string> insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, int dc_index, int dc_tag, string dc_address);
   bool check_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, bool page_fault, int dc_index, int dc_tag);
   bool check_if_index_is_full(int l2_index);
   uint64_t l2_index_and_tag_evicted_phys_address(int l2_index);

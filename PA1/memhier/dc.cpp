@@ -79,7 +79,10 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write,  int  pf
 void DC::evict_given_l2_phys_address(int dc_index, int dc_tag){
   for(int i = 0; i < set_size; i++){
     if(data_cache[dc_index][i].tag == dc_tag){
-
+      int dc_index_check = 0x1e8; 
+      if(dc_index == dc_index_check){
+        cout << "!!!!!!!!!!!!!EVICTING!!!!!!!!!!!!!!!!!!!";
+      }
       data_cache[dc_index][i] = Cache_block(-1,-1,-1,-1,-1);
       return;
     }

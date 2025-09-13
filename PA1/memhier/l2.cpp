@@ -1,7 +1,7 @@
 #include "l2.h"
 using namespace std;
 // pretty much the same set up as the dc
-L2_block::L2_block(int i, int t, int a, int db, int pf, int dct, int dci) {
+L2_block::L2_block(int i, int t, int a, int db, int pf, int dct, int dci, string dca) {
   index = i;
   tag = t;
   time_last_accessed = a;
@@ -9,6 +9,7 @@ L2_block::L2_block(int i, int t, int a, int db, int pf, int dct, int dci) {
   pfn = pf;
   dc_tag = dct;
   dc_index = dci;
+  dc_address = dca;
 }
 
 L2::L2(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
@@ -21,20 +22,21 @@ L2::L2(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
 
   l2_cache.resize(set_count); // have the outer vector be sets
   for (int i = 0; i < set_count; i++) {
-    l2_cache[i].resize(set_size, L2_block(-1, -1, -1, -1, -1, -1,-1));
+    l2_cache[i].resize(set_size, L2_block(-1, -1, -1, -1, -1, -1,-1,""));
   }
 }
 
-void L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, int dc_index, int dc_tag) {
-  bool replaced = false;
+pair<bool,string> L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, int dc_index, int dc_tag, string dc_address) {
+  bool was_full = check_if_index_is_full(l2_index);
   int oldest_used = INT32_MAX;
-  int oldest_index = -1;
+  int oldest_index = 0;
   for (int i = 0; i < set_size; i++) {
     if (l2_cache[l2_index][i].time_last_accessed < oldest_used) {
       oldest_index = i;
       oldest_used = l2_cache[l2_index][i].time_last_accessed;
     }
   }
+  string old_dc_address = l2_cache[l2_index][oldest_index].dc_address;
   l2_cache[l2_index][oldest_index].index = l2_index;
   l2_cache[l2_index][oldest_index].tag = l2_tag;
   l2_cache[l2_index][oldest_index].time_last_accessed = time;
@@ -42,6 +44,8 @@ void L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn
   l2_cache[l2_index][oldest_index].pfn = pfn;
   l2_cache[l2_index][oldest_index].dc_index = dc_index;
   l2_cache[l2_index][oldest_index].dc_tag = dc_tag;
+  l2_cache[l2_index][oldest_index].dc_address = dc_address;
+  return {was_full, old_dc_address};
 
   
 }
@@ -51,7 +55,7 @@ bool L2::check_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, bo
     for (int i = 0; i < set_count; i++) {
       for (int j = 0; j < set_size; j++) {
         if (l2_cache[i][j].pfn == pfn) {
-          l2_cache[i][j] = L2_block(-1, -1, -1, -1, -1,-1,-1);
+          l2_cache[i][j] = L2_block(-1, -1, -1, -1, -1,-1,-1,"");
           return true;
         }
       }
@@ -65,7 +69,7 @@ bool L2::check_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, bo
       return true;
     }
   }
-  insert_to_l2(l2_index, l2_tag, time, dirty_bit, pfn, dc_index, dc_tag);
+  //insert_to_l2(l2_index, l2_tag, time, dirty_bit, pfn, dc_index, dc_tag);
   return false;
 }
 
