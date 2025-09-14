@@ -67,6 +67,7 @@ Config init(); // function to read in config and set variables
 bool check_pwr_2(int val);
 void print_config_after_read(Config config);
 void read_data_file(Config config);
+void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs);
 pair<int, int> tlb_index_tag_getter(int vpn, int tlb_set_count);
 int main(int argc, char *argv[]) {
   Config config = init();
@@ -77,7 +78,7 @@ int main(int argc, char *argv[]) {
 Config init() {
   Config config;
   ifstream fin("trace.config");
-
+  config.counter = 0;
   string line;
   string val;
   int colon_index;
@@ -320,6 +321,19 @@ void print_config_after_read(Config config) {
 }
 
 void read_data_file(Config config) {
+  double dtlb_hits = 0;
+  double dtlb_misses = 0;
+  double pt_hits = 0;
+  double pt_faults = 0;
+  double dc_hits = 0;
+  double dc_misses = 0;
+  double l2_hits = 0;
+  double l2_misses = 0;
+  double total_reads = 0;
+  double total_writes = 0;
+  int memory_refs = 0;
+  int pt_refs = 0;
+  int disk_refs = 0;
   int address;
   int virt_page_num;
   string virt_page_num_bin;
@@ -362,12 +376,17 @@ void read_data_file(Config config) {
   L2 L2_CACHE = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits);
   PT PAGE_TABLE = PT(config.virtual_page_count);
   DTLB translation_buffer = DTLB(config.dtlb_set_count, config.dtlb_set_size);
+  int dirty_bit;
   while (getline(fin, line)) {
     config.counter += 1; // i dont remember why i made this part of the config class but its too late to change
     if (line[0] == 'R') {
       is_read = true;
+      dirty_bit = 0;
+      total_reads += 1;
     } else if (line[0] == 'W') {
       is_read = false;
+      dirty_bit = 1;
+      total_writes += 1;
     }
     hex_val = line.substr(2, line.size());
     ss << hex << hex_val;
@@ -418,15 +437,48 @@ void read_data_file(Config config) {
       // to be a hit, it would have to originally missed meaning it would then be in l2
       // just need to have it that if l2 block is evicted the corresponding dc block is too
       if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, -1, false)) {
-        // l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
-        // l2_tag = stoi(l2_tag_bin, 0, 2);
-        // l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
-        // l2_index = stoi(l2_index_bin, 0, 2);
-        // L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+         l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+         l2_tag = stoi(l2_tag_bin, 0, 2);
+         l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+         l2_index = stoi(l2_index_bin, 0, 2);
+         //if(!L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, false, dc_index, dc_tag)){
+          //cout << " WHY THE FUCK ISNT IT IN THERE ";
+         //}
+         //if(!is_read){
+           //L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+        // }
+          
+        dc_hits += 1;
         cout << " hit  \n";
         continue;
       } else {
+        pair<bool, string> was_dc_replaced_and_was_dirty = DATA_CACHE.insert_to_cache(dc_index, dc_tag, config.counter, dirty_bit, -1, bin_string);
+        bool dirty_replaced = was_dc_replaced_and_was_dirty.first;
+        string check_for_replace = was_dc_replaced_and_was_dirty.second;
+      
+        dc_misses +=1;
         if (config.l2_enabled) {
+          if(check_for_replace == "replace_but_not_dirty"){
+            l2_hits += 1;
+            string old_address = was_dc_replaced_and_was_dirty.second;
+            l2_tag_bin = old_address.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+            l2_tag = stoi(l2_tag_bin, 0, 2);
+            l2_index_bin = old_address.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+            l2_index = stoi(l2_index_bin, 0, 2);
+            //L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+          }
+          if (dirty_replaced == true) {
+            l2_hits += 1;
+            string old_address = was_dc_replaced_and_was_dirty.second;
+            l2_tag_bin = old_address.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+            l2_tag = stoi(l2_tag_bin, 0, 2);
+            l2_index_bin = old_address.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+            l2_index = stoi(l2_index_bin, 0, 2);
+            L2_CACHE.update_dirty_bit(l2_index, l2_tag, config.counter);
+            //cout << "TEST";
+            //l2_hits += 1;
+            //L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+          }
           cout << " miss";
         } else {
           cout << " miss ";
@@ -439,24 +491,29 @@ void read_data_file(Config config) {
         // L2 TAG CALC & PRINT
         l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
         l2_tag = stoi(l2_tag_bin, 0, 2);
-        cout << " " << setw(5) << setfill(' ') << hex << l2_tag << " ";
+        cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
 
         // L2 INDEX CALC & PRINT
         l2_index_bin = bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
         l2_index = stoi(l2_index_bin, 0, 2);
         cout << setw(3) << setfill(' ') << hex << l2_index;
         was_l2_full = L2_CACHE.check_if_index_is_full(l2_index);
-        int dirty_bit;
         if (is_read) {
           dirty_bit = 0;
         } else {
           dirty_bit = 1;
         }
+        if(l2_index == 0x8){
+
+         // cout << " | current counter " << dec << config.counter << " |  ";
+        }
         if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, false, dc_index, dc_tag)) {
           cout << " hit \n";
-
+          l2_hits += 1;
         } else {
-          pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, bin_string);
+          l2_misses += 1;
+          int temp_counter_to_see_if_l2_incremented = memory_refs;
+          pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, bin_string, memory_refs);
           bool was_there_an_l2_eviction = was_l2_replaced_and_if_yes_dc_phys_address.first;
           if (was_there_an_l2_eviction) {
             string replace_address = was_l2_replaced_and_if_yes_dc_phys_address.second;
@@ -464,10 +521,15 @@ void read_data_file(Config config) {
             dc_tag = stoi(dc_tag_bin, 0, 2);
             dc_index_bin = replace_address.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
             dc_index = stoi(dc_index_bin, 0, 2);
-            DATA_CACHE.evict_given_l2_phys_address(dc_index, dc_tag);
+            bool was_dc_dirty = DATA_CACHE.evict_given_l2_phys_address(dc_index, dc_tag);
+            if (was_dc_dirty && memory_refs == temp_counter_to_see_if_l2_incremented) {
+              memory_refs += 1;
+            }
           }
+          memory_refs += 1;
           cout << " miss\n";
         }
+        
       }
     } else if (config.virt_addr) {
       // VIRTUAL ADDRESS AND PAGE NUMBER PRINTING
@@ -541,7 +603,7 @@ void read_data_file(Config config) {
         cout << " hit  \n";
         continue;
       } else {
-
+        DATA_CACHE.insert_to_cache(dc_index, dc_tag, config.counter, dirty_bit, pfn, p_bin_string);
         cout << " miss ";
       }
       if (!config.l2_enabled) {
@@ -564,7 +626,7 @@ void read_data_file(Config config) {
         if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, pfn, false, dc_index, dc_tag)) {
           cout << " hit \n";
         } else {
-          pair<bool, string> was_l2_replaced_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, pfn, dc_index, dc_tag, p_bin_string);
+          pair<bool, string> was_l2_replaced_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, pfn, dc_index, dc_tag, p_bin_string, memory_refs);
           bool was_there_an_l2_eviction = was_l2_replaced_if_yes_dc_phys_address.first;
           if (was_there_an_l2_eviction) {
             string replace_address = was_l2_replaced_if_yes_dc_phys_address.second;
@@ -586,6 +648,63 @@ void read_data_file(Config config) {
       }
     }
   }
+  print_stats(dtlb_hits, dtlb_misses, pt_hits, pt_faults, dc_hits, dc_misses, l2_hits, l2_misses, total_reads, total_writes, memory_refs, pt_refs, disk_refs);
+}
+
+void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs) {
+  cout << "\nSimulation statistics\n\n";
+  cout << "dtlb hits        : " << dtlb_hits << "\n";
+  cout << "dtlb misses      : " << dtlb_misses << "\n";
+  if (dtlb_misses == 0 && dtlb_hits == 0) {
+    cout << "dtlb hit ratio   : N/A\n\n";
+  } else if (dtlb_misses == 0 && dtlb_hits != 0) {
+    cout << "dtlb hit ratio   : 1\n\n";
+  } else {
+    double dtlb_ratio = dtlb_hits / (dtlb_misses+dtlb_hits);
+    cout << "dtlb hit ratio   : " << setprecision(7) << dtlb_ratio << "\n\n";
+  }
+
+  cout << "pt hits          : " << pt_hits << "\n";
+  cout << "pt faults        : " << pt_faults << "\n";
+  if (pt_faults == 0 && pt_hits == 0) {
+    cout << "pt hit ratio     : N/A\n\n";
+  } else if (pt_faults == 0 && pt_hits != 0) {
+    cout << "pt hit ratio     : 1\n\n";
+  } else {
+    double pt_ratio = pt_hits /(pt_faults+pt_hits);
+    cout << "pt hit ratio     : " << setprecision(6) << pt_ratio << "\n\n";
+  }
+
+  cout << "dc hits          : " << dc_hits << "\n";
+  cout << "dc misses        : " << dc_misses << "\n";
+  if(dc_hits == 0 && dc_misses == 0){
+    cout << "dc hit ratio     : N/A\n\n"; 
+  }else if(dc_misses == 0 && dc_hits != 0){
+    cout << "dc hit ratio     : 1\n\n";
+  }else{
+    double dc_ratio = dc_hits / (dc_misses+dc_hits);
+    cout << "dc hit ratio     : "<< setprecision(6) << dc_ratio << "\n\n";
+  }
+
+  cout << "L2 hits          : " << l2_hits << "\n";
+  cout << "L2 misses        : " << l2_misses << "\n";
+  if(l2_hits == 0 && l2_misses == 0){
+    cout << "L2 hit ratio     : N/A\n\n";
+  }else if(l2_hits != 0 && l2_misses == 0){
+    cout << "L2 hit ratio     : 1\n\n";
+  }else{
+    double l2_ratio = l2_hits / (l2_misses + l2_hits);
+    cout << "L2 hit ratio     : " << setprecision(6) << l2_hits << "\n\n";
+  }
+
+  cout << "Total reads      : " << total_reads << "\n";
+  cout << "Total writes     : " << total_writes << "\n";
+  double read_ratio = total_reads / (total_writes+total_reads);
+  cout << "Ratio of reads   : " << setprecision(6) << read_ratio << "\n\n";
+
+  cout << "main memory refs : " << mem_refs << "\n";
+  cout << "page table refs  : " << pt_refs << "\n";
+  cout << "disk refs        : " << disk_refs << "\n";
 }
 
 pair<int, int> tlb_index_tag_getter(int vpn, int tlb_set_count) {

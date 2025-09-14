@@ -26,15 +26,26 @@ L2::L2(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
   }
 }
 
-pair<bool,string> L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, int dc_index, int dc_tag, string dc_address) {
+pair<bool,string> L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, int dc_index, int dc_tag, string dc_address, int &counter) {
   bool was_full = check_if_index_is_full(l2_index);
   int oldest_used = INT32_MAX;
   int oldest_index = 0;
+  int old_dirty = 0;
   for (int i = 0; i < set_size; i++) {
+    if(l2_index == 0x8){
+      //cout << " l2_index " << hex << l2_index << " with tag " << hex << l2_cache[l2_index][i].tag << " and time = " << dec <<l2_cache[l2_index][i].time_last_accessed << "|  " ; 
+    }
     if (l2_cache[l2_index][i].time_last_accessed < oldest_used) {
       oldest_index = i;
       oldest_used = l2_cache[l2_index][i].time_last_accessed;
+      old_dirty = l2_cache[l2_index][i].dirty_bit;
     }
+  }
+  if(oldest_used != -1 && l2_index == 0x8){
+   // cout << "Replaceing " << " l2_index " << hex << l2_index << " with tag " << hex << l2_cache[l2_index][oldest_index].tag << " and time = " << dec <<l2_cache[l2_index][oldest_index].time_last_accessed << "|  ";
+  }
+  if(old_dirty == 1){
+    counter += 1;
   }
   string old_dc_address = l2_cache[l2_index][oldest_index].dc_address;
   l2_cache[l2_index][oldest_index].index = l2_index;
@@ -62,13 +73,14 @@ bool L2::check_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, bo
     }
     return false;
   }
-
+  bool was_found = false;
   for (int i = 0; i < set_size; i++) {
     if (l2_cache[l2_index][i].tag == l2_tag) {
       l2_cache[l2_index][i].time_last_accessed = time;
-      return true;
+      was_found = true;
     }
   }
+  return was_found;
   //insert_to_l2(l2_index, l2_tag, time, dirty_bit, pfn, dc_index, dc_tag);
   return false;
 }
@@ -128,6 +140,19 @@ void L2::update_access_time(int l2_index, int l2_tag, int time){
   for(int i = 0; i < set_size; i++){
     if(l2_cache[l2_index][i].tag == l2_tag){
       l2_cache[l2_index][i].time_last_accessed = time;
+      return;
+    }
+  }
+}
+
+void L2::update_dirty_bit(int l2_index, int l2_tag, int time){
+   for(int i = 0; i < set_size; i++){
+    if(l2_cache[l2_index][i].tag == l2_tag){
+      //cout << " updating dirty bit of index:" << hex << l2_index << " tag: " << l2_tag << "|";
+      //if(l2_index != 0xd){
+        //l2_cache[l2_index][i].time_last_accessed = time;
+      //}
+      l2_cache[l2_index][i].dirty_bit = 1;
       return;
     }
   }

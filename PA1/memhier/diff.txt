@@ -1,0 +1,109 @@
+--- out.txt	2025-09-14 16:55:02.735945401 -0400
++++ ref_out.txt	2025-09-14 16:07:35.980615487 -0400
+@@ -18874,7 +18874,7 @@
+ f5edd5f0        2dd5f0                       3d7   1ebd 1757 hit  
+ f5edd5e8        2dd5e8                       3d7   1ebd 1757 hit  
+ f5edd5e0        2dd5e0                       3d7   1ebd 1757 hit  
+-f5edd630        2dd630                       3d7   1ebd 1758 hit  
++f5edd630        2dd630                       3d7   1ebd 1758 miss 3d7b75   8 miss
+ f5edd5d8        2dd5d8                       3d7   1ebd 1757 hit  
+ f5edd5d0        2dd5d0                       3d7   1ebd 1757 hit  
+ f5edd610        2dd610                       3d7   1ebd 1758 hit  
+@@ -20793,7 +20793,7 @@
+ f5edd5f0        2dd5f0                       3d7   1ebd 1757 hit  
+ f5edd5e8        2dd5e8                       3d7   1ebd 1757 hit  
+ f5edd5e0        2dd5e0                       3d7   1ebd 1757 hit  
+-f5edd630        2dd630                       3d7   1ebd 1758 miss 3d7b75   8 miss
++f5edd630        2dd630                       3d7   1ebd 1758 hit  
+ f5edd5d8        2dd5d8                       3d7   1ebd 1757 hit  
+ f5edd5d0        2dd5d0                       3d7   1ebd 1757 hit  
+ f5edd610        2dd610                       3d7   1ebd 1758 hit  
+@@ -23388,7 +23388,7 @@
+ f5edd680        2dd680                       3d7   1ebd 175a hit  
+ f5edd678        2dd678                       3d7   1ebd 1759 hit  
+ c8589418        189418                       321   190b 250 hit  
+-f5edd618        2dd618                       3d7   1ebd 1758 hit  
++f5edd618        2dd618                       3d7   1ebd 1758 miss 3d7b75   8 miss
+ f5edd6b0        2dd6b0                       3d7   1ebd 175a hit  
+ f5edd648        2dd648                       3d7   1ebd 1759 hit  
+ f5edd6c8        2dd6c8                       3d7   1ebd 175b hit  
+@@ -23453,7 +23453,7 @@
+ f5edd5f0        2dd5f0                       3d7   1ebd 1757 hit  
+ f5edd5e8        2dd5e8                       3d7   1ebd 1757 hit  
+ f5edd5e0        2dd5e0                       3d7   1ebd 1757 hit  
+-f5edd630        2dd630                       3d7   1ebd 1758 miss 3d7b75   8 miss
++f5edd630        2dd630                       3d7   1ebd 1758 hit  
+ f5edd5d8        2dd5d8                       3d7   1ebd 1757 hit  
+ f5edd5d0        2dd5d0                       3d7   1ebd 1757 hit  
+ f5edd610        2dd610                       3d7   1ebd 1758 hit  
+@@ -24551,7 +24551,7 @@
+ f5edd680        2dd680                       3d7   1ebd 175a hit  
+ f5edd678        2dd678                       3d7   1ebd 1759 hit  
+ c8589418        189418                       321   190b 250 hit  
+-f5edd618        2dd618                       3d7   1ebd 1758 hit  
++f5edd618        2dd618                       3d7   1ebd 1758 miss 3d7b75   8 miss
+ f5edd6b0        2dd6b0                       3d7   1ebd 175a hit  
+ f5edd648        2dd648                       3d7   1ebd 1759 hit  
+ f5edd6c8        2dd6c8                       3d7   1ebd 175b hit  
+@@ -25770,7 +25770,7 @@
+ f5edd5f0        2dd5f0                       3d7   1ebd 1757 miss 3d7b75   7 miss
+ f5edd5e8        2dd5e8                       3d7   1ebd 1757 hit  
+ f5edd5e0        2dd5e0                       3d7   1ebd 1757 hit  
+-f5edd630        2dd630                       3d7   1ebd 1758 miss 3d7b75   8 miss
++f5edd630        2dd630                       3d7   1ebd 1758 hit  
+ f5edd5d8        2dd5d8                       3d7   1ebd 1757 hit  
+ f5edd5d0        2dd5d0                       3d7   1ebd 1757 hit  
+ f5edd610        2dd610                       3d7   1ebd 1758 hit  
+@@ -27438,7 +27438,7 @@
+ f5edd5f0        2dd5f0                       3d7   1ebd 1757 hit  
+ f5edd5e8        2dd5e8                       3d7   1ebd 1757 hit  
+ f5edd5e0        2dd5e0                       3d7   1ebd 1757 hit  
+-f5edd630        2dd630                       3d7   1ebd 1758 hit  
++f5edd630        2dd630                       3d7   1ebd 1758 miss 3d7b75   8 miss
+ f5edd5d8        2dd5d8                       3d7   1ebd 1757 hit  
+ f5edd5d0        2dd5d0                       3d7   1ebd 1757 hit  
+ f5edd610        2dd610                       3d7   1ebd 1758 hit  
+@@ -28630,7 +28630,7 @@
+ f5edd5f0        2dd5f0                       3d7   1ebd 1757 hit  
+ f5edd5e8        2dd5e8                       3d7   1ebd 1757 hit  
+ f5edd5e0        2dd5e0                       3d7   1ebd 1757 hit  
+-f5edd630        2dd630                       3d7   1ebd 1758 miss 3d7b75   8 miss
++f5edd630        2dd630                       3d7   1ebd 1758 hit  
+ f5edd5d8        2dd5d8                       3d7   1ebd 1757 hit  
+ f5edd5d0        2dd5d0                       3d7   1ebd 1757 hit  
+ f5edd610        2dd610                       3d7   1ebd 1758 hit  
+@@ -29982,7 +29982,7 @@
+ f5edd680        2dd680                       3d7   1ebd 175a hit  
+ f5edd678        2dd678                       3d7   1ebd 1759 hit  
+ c8589418        189418                       321   190b 250 miss 321625   0 miss
+-f5edd618        2dd618                       3d7   1ebd 1758 hit  
++f5edd618        2dd618                       3d7   1ebd 1758 miss 3d7b75   8 miss
+ f5edd6b0        2dd6b0                       3d7   1ebd 175a hit  
+ f5edd648        2dd648                       3d7   1ebd 1759 hit  
+ f5edd6c8        2dd6c8                       3d7   1ebd 175b hit  
+@@ -30040,18 +30040,18 @@
+ pt faults        : 0
+ pt hit ratio     : N/A
+ 
+-dc hits          : 27745
+-dc misses        : 2256
+-dc hit ratio     : 0.924803
++dc hits          : 27744
++dc misses        : 2257
++dc hit ratio     : 0.924769
+ 
+-L2 hits          : 282
+-L2 misses        : 2129
+-L2 hit ratio     : 282
++L2 hits          : 860
++L2 misses        : 2130
++L2 hit ratio     : 0.287625
+ 
+ Total reads      : 22176
+ Total writes     : 7825
+ Ratio of reads   : 0.739175
+ 
+-main memory refs : 2889
++main memory refs : 2863
+ page table refs  : 0
+ disk refs        : 0
