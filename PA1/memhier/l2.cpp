@@ -32,7 +32,7 @@ pair<bool,string> L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty
   int oldest_index = 0;
   int old_dirty = 0;
   for (int i = 0; i < set_size; i++) {
-    if(l2_index == 0x8){
+    if(l2_index == 0xb){
       //cout << " l2_index " << hex << l2_index << " with tag " << hex << l2_cache[l2_index][i].tag << " and time = " << dec <<l2_cache[l2_index][i].time_last_accessed << "|  " ; 
     }
     if (l2_cache[l2_index][i].time_last_accessed < oldest_used) {
@@ -41,8 +41,8 @@ pair<bool,string> L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty
       old_dirty = l2_cache[l2_index][i].dirty_bit;
     }
   }
-  if(oldest_used != -1 && l2_index == 0x8){
-   // cout << "Replaceing " << " l2_index " << hex << l2_index << " with tag " << hex << l2_cache[l2_index][oldest_index].tag << " and time = " << dec <<l2_cache[l2_index][oldest_index].time_last_accessed << "|  ";
+  if(oldest_used != -1 && l2_index == 0xb){
+    //cout << "  Replaceing " << " l2_index " << hex << l2_index << " with tag " << hex << l2_cache[l2_index][oldest_index].tag << " and time = " << dec <<l2_cache[l2_index][oldest_index].time_last_accessed << "|  ";
   }
   if(old_dirty == 1){
     counter += 1;
@@ -149,9 +149,7 @@ void L2::update_dirty_bit(int l2_index, int l2_tag, int time){
    for(int i = 0; i < set_size; i++){
     if(l2_cache[l2_index][i].tag == l2_tag){
       //cout << " updating dirty bit of index:" << hex << l2_index << " tag: " << l2_tag << "|";
-      //if(l2_index != 0xd){
-        //l2_cache[l2_index][i].time_last_accessed = time;
-      //}
+        l2_cache[l2_index][i].time_last_accessed = time;
       l2_cache[l2_index][i].dirty_bit = 1;
       return;
     }

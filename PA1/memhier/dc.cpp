@@ -43,13 +43,13 @@ pair<bool, string> DC::insert_to_cache(int dc_index, int dc_tag, int time, int d
   data_cache[dc_index][oldest_index].pfn = pfn;
   data_cache[dc_index][oldest_index].phys_addr = phys_address;
   if(old_dirty_bit != -1){
-    if(old_dirty_bit = 1){
+    if(old_dirty_bit == 1){
       return {true, old_addr};
       //return true; //TODO: UPDATE THE INSERT TO RETURN BOOL IF REPLACED WAS DIRTY
       // PROBABLY ALSO NEED TO RETURN THE REPLACED BLOCKS PHYSICAL ADDRESS TO THEN CALCULATE L2 ADDRESS
       // THIS WILL REQUIRE THE CACHE BLOCK STRUCTURE TO HOLD THE PHYS ADDRESS AS A STRING LIKE THE L2
     }else{
-      return {false, "replace_but_not_dirty"};
+      return {false, old_addr};
       //return false;
     }
   }else{
