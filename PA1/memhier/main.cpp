@@ -1446,7 +1446,7 @@ void read_data_file(Config config) {
           } else {
             l2_misses += 1;
             if (!is_read) {
-              memory_refs += 1;
+              //memory_refs += 1;
             }
             int temp_counter_to_see_if_l2_incremented = memory_refs;
             pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, p_bin_string, memory_refs);
@@ -1462,7 +1462,7 @@ void read_data_file(Config config) {
               if (was_dc_dirty == true) {
                 l2_hits += 1;
               }
-              
+              memory_refs = temp_counter_to_see_if_l2_incremented;
               if (was_dc_dirty) {
                 memory_refs += 1;
               }

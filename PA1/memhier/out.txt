@@ -50051,6 +50051,6 @@ Total reads      : 36296
 Total writes     : 13704
 Ratio of reads   : 0.725920
 
-main memory refs : 10476
+main memory refs : 7925
 page table refs  : 50000
 disk refs        : 8
