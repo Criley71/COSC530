@@ -1651,7 +1651,7 @@ void read_data_file(Config config) {
         dc_index_bin = bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
         dc_index = stoi(dc_index_bin, 0, 2);
         cout << " " << setw(3) << setfill(' ') << hex << dc_index;
-        
+
         if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, -1, false)) {
           if (!is_read) {
             l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
@@ -1661,7 +1661,7 @@ void read_data_file(Config config) {
             // L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
             //   l2_hits += 1; weird imo, wouldnt this be accessessing and hitting the l2 ?
             config.counter += 1;
-            //memory_refs+=1;
+            // memory_refs+=1;
           }
 
           dc_hits += 1;
@@ -1669,8 +1669,8 @@ void read_data_file(Config config) {
           if (is_read) {
             cout << " \n";
             continue;
-          }else{
-            //memory_refs += 1;
+          } else {
+            // memory_refs += 1;
           }
         } else {
           if (is_read) {
@@ -1682,14 +1682,14 @@ void read_data_file(Config config) {
           } else {
             cout << " miss ";
           }
-          //memory_refs += 1;
+          // memory_refs += 1;
         }
         if (!config.l2_enabled) {
           cout << "\n";
         } else {
-          if(!is_read){
-            //t1 +=1;
-            //memory_refs += 1;
+          if (!is_read) {
+            // t1 +=1;
+            // memory_refs += 1;
           }
           l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
           l2_tag = stoi(l2_tag_bin, 0, 2);
@@ -1704,17 +1704,14 @@ void read_data_file(Config config) {
             cout << " hit \n";
             l2_hits += 1;
             if (is_read == false) {
-              //t2+=1;
+              // t2+=1;
               memory_refs += 1; // write hit in l2 writes through to main memory
             }
           } else {
             l2_misses += 1;
-            if (is_read) {
-              //memory_refs += 1;
-            }
             int temp_counter_to_see_if_l2_incremented = memory_refs;
             if (is_read) {
-              pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, bin_string, memory_refs);
+              pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, p_bin_string, memory_refs);
               bool was_there_an_l2_eviction = was_l2_replaced_and_if_yes_dc_phys_address.first;
               if (was_there_an_l2_eviction) {
 
@@ -1724,14 +1721,302 @@ void read_data_file(Config config) {
                 dc_index_bin = replace_address.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
                 dc_index = stoi(dc_index_bin, 0, 2);
                 bool was_dc_dirty = DATA_CACHE.evict_given_l2_phys_address(dc_index, dc_tag);
-                
-                if (was_dc_dirty) {
-                   //memory_refs += 1;
-                }
               }
             }
-            //memory_refs = temp_counter_to_see_if_l2_incremented;
-            //t3+=1;
+            // memory_refs = temp_counter_to_see_if_l2_incremented;
+            // t3+=1;
+            memory_refs += 1;
+            cout << " miss\n";
+          }
+        }
+      } else if (config.virt_addr && !config.dtlb_enabled) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        // PAGE OFFSET CALCULATION AND PRINTING
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        // PAGE TABLE RESULT PRINTING
+        pfn = PAGE_TABLE.check_page_table(virt_page_num);
+        // cout << " " << PAGE_TABLE.page_table[virt_page_num].valid << "<-isvalid";
+        if (pfn == -1) {
+          pfn = PAGE_TABLE.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, !is_read, DATA_CACHE, L2_CACHE).first;
+          // cout << "wasnt valid so insert with pfn value->" << pfn << " pfn used count=" << PAGE_TABLE.pfn_used_count << " ";
+          // page_was_dirty = PAGE_TABLE.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, !is_read).second;
+          pt_faults += 1;
+          pt_res = "miss";
+          pt_refs += 1;
+          disk_refs += 1;
+        } else {
+          pt_refs += 1;
+          pt_hits += 1;
+          pt_res = "hit ";
+        }
+        if (config.dtlb_enabled) {
+          tlb_index_and_tag = tlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
+          // cout << "tlb_index = " << tlb_index_and_tag.first << " tlb_tag = " << tlb_index_and_tag.second << " ";
+          tlb_index = tlb_index_and_tag.first;
+          tlb_tag = tlb_index_and_tag.second;
+          cout << setw(7) << setfill(' ') << hex << tlb_tag;
+          cout << setw(4) << setfill(' ') << hex << tlb_index;
+          if (translation_buffer.check_dtlb(tlb_index, tlb_tag, config.counter)) {
+            cout << setw(4) << setfill(' ') << " hit ";
+            cout << setw(5) << setfill(' ') << " ";
+          } else {
+            cout << setw(4) << setfill(' ') << " miss";
+            translation_buffer.insert_to_dtlb(tlb_index, tlb_tag, config.counter, pfn);
+            cout << setw(5) << setfill(' ') << pt_res;
+          }
+        } else {
+
+          cout << setw(21) << setfill(' ') << pt_res;
+        }
+
+        // PHYSICAL ADDRESS TRANSFORMATION
+        int physical_address = PAGE_TABLE.vpn_to_phys_address(virt_page_num, page_off, config.pt_offset_bit, config.virtual_page_count, config.physical_page_count, config.counter, !is_read, DATA_CACHE, L2_CACHE);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        phys_page_num_bin = p_bin_string.substr(0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = p_bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = p_bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        dc_index = stoi(dc_index_bin, 0, 2);
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+
+        if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, pfn, false)) {
+          if (!is_read) {
+            l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+            l2_tag = stoi(l2_tag_bin, 0, 2);
+            l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+            l2_index = stoi(l2_index_bin, 0, 2);
+            // L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+            //   l2_hits += 1; weird imo, wouldnt this be accessessing and hitting the l2 ?
+            config.counter += 1;
+            // memory_refs+=1;
+          }
+
+          dc_hits += 1;
+          cout << " hit ";
+          if (is_read) {
+            cout << " \n";
+            continue;
+          } else {
+            // memory_refs += 1;
+          }
+        } else {
+          if (is_read) {
+            DATA_CACHE.insert_to_cache(dc_index, dc_tag, config.counter, dirty_bit, -1, phys_page_num_bin);
+          }
+          dc_misses += 1;
+          if (config.l2_enabled) {
+            cout << " miss";
+          } else {
+            cout << " miss ";
+          }
+          // memory_refs += 1;
+        }
+        if (!config.l2_enabled) {
+          cout << "\n";
+        } else {
+          if (!is_read) {
+            // t1 +=1;
+            // memory_refs += 1;
+          }
+          l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+          l2_tag = stoi(l2_tag_bin, 0, 2);
+          cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
+
+          // L2 INDEX CALC & PRINT
+          l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+          l2_index = stoi(l2_index_bin, 0, 2);
+          cout << setw(3) << setfill(' ') << hex << l2_index;
+          was_l2_full = L2_CACHE.check_if_index_is_full(l2_index);
+          if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, false, dc_index, dc_tag)) {
+            cout << " hit \n";
+            l2_hits += 1;
+            if (is_read == false) {
+              // t2+=1;
+              memory_refs += 1; // write hit in l2 writes through to main memory
+            }
+          } else {
+            l2_misses += 1;
+            int temp_counter_to_see_if_l2_incremented = memory_refs;
+            if (is_read) {
+              pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, p_bin_string, memory_refs);
+              bool was_there_an_l2_eviction = was_l2_replaced_and_if_yes_dc_phys_address.first;
+              if (was_there_an_l2_eviction) {
+
+                string replace_address = was_l2_replaced_and_if_yes_dc_phys_address.second;
+                dc_tag_bin = replace_address.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+                dc_tag = stoi(dc_tag_bin, 0, 2);
+                dc_index_bin = replace_address.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+                dc_index = stoi(dc_index_bin, 0, 2);
+                bool was_dc_dirty = DATA_CACHE.evict_given_l2_phys_address(dc_index, dc_tag);
+              }
+            }
+            // memory_refs = temp_counter_to_see_if_l2_incremented;
+            // t3+=1;
+            memory_refs += 1;
+            cout << " miss\n";
+          }
+        }
+      } else if (config.dtlb_enabled && config.virt_addr) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        // PAGE OFFSET CALCULATION AND PRINTING
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        tlb_index_and_tag = tlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
+        // cout << "tlb_index = " << tlb_index_and_tag.first << " tlb_tag = " << tlb_index_and_tag.second << " ";
+        tlb_index = tlb_index_and_tag.first;
+        tlb_tag = tlb_index_and_tag.second;
+        cout << setw(7) << setfill(' ') << hex << tlb_tag;
+        cout << setw(4) << setfill(' ') << hex << tlb_index;
+        if (translation_buffer.check_dtlb(tlb_index, tlb_tag, config.counter)) {
+          cout << setw(4) << setfill(' ') << " hit ";
+          cout << setw(5) << setfill(' ') << " ";
+          dtlb_hits += 1;
+        } else {
+          cout << setw(4) << setfill(' ') << " miss";
+          dtlb_misses += 1;
+          pfn = PAGE_TABLE.check_page_table(virt_page_num);
+          // cout << " " << PAGE_TABLE.page_table[virt_page_num].valid << "<-isvalid";
+          if (pfn == -1) {
+            pfn = PAGE_TABLE.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, !is_read, DATA_CACHE, L2_CACHE).first;
+            // cout << "wasnt valid so insert with pfn value->" << pfn << " pfn used count=" << PAGE_TABLE.pfn_used_count << " ";
+            // page_was_dirty = PAGE_TABLE.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, !is_read).second;
+            pt_faults += 1;
+            pt_res = "miss";
+            pt_refs += 1;
+            disk_refs += 1;
+          } else {
+            pt_refs += 1;
+            pt_hits += 1;
+            pt_res = "hit ";
+          }
+          translation_buffer.insert_to_dtlb(tlb_index, tlb_tag, config.counter, pfn);
+          cout << setw(5) << setfill(' ') << pt_res;
+        }
+
+        // PHYSICAL ADDRESS TRANSFORMATION
+        int physical_address = PAGE_TABLE.vpn_to_phys_address(virt_page_num, page_off, config.pt_offset_bit, config.virtual_page_count, config.physical_page_count, config.counter, !is_read, DATA_CACHE, L2_CACHE);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        phys_page_num_bin = p_bin_string.substr(0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = p_bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = p_bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        dc_index = stoi(dc_index_bin, 0, 2);
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+
+        if (DATA_CACHE.check_cache(dc_index, dc_tag, config.counter, !is_read, pfn, false)) {
+          if (!is_read) {
+            l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+            l2_tag = stoi(l2_tag_bin, 0, 2);
+            l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+            l2_index = stoi(l2_index_bin, 0, 2);
+            // L2_CACHE.update_access_time(l2_index, l2_tag, config.counter);
+            //   l2_hits += 1; weird imo, wouldnt this be accessessing and hitting the l2 ?
+            config.counter += 1;
+            // memory_refs+=1;
+          }
+
+          dc_hits += 1;
+          cout << " hit ";
+          if (is_read) {
+            cout << " \n";
+            continue;
+          } else {
+            // memory_refs += 1;
+          }
+        } else {
+          if (is_read) {
+            DATA_CACHE.insert_to_cache(dc_index, dc_tag, config.counter, dirty_bit, -1, phys_page_num_bin);
+          }
+          dc_misses += 1;
+          if (config.l2_enabled) {
+            cout << " miss";
+          } else {
+            cout << " miss ";
+          }
+          // memory_refs += 1;
+        }
+        if (!config.l2_enabled) {
+          cout << "\n";
+        } else {
+          if (!is_read) {
+            // t1 +=1;
+            // memory_refs += 1;
+          }
+          l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+          l2_tag = stoi(l2_tag_bin, 0, 2);
+          cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
+
+          // L2 INDEX CALC & PRINT
+          l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+          l2_index = stoi(l2_index_bin, 0, 2);
+          cout << setw(3) << setfill(' ') << hex << l2_index;
+          was_l2_full = L2_CACHE.check_if_index_is_full(l2_index);
+          if (L2_CACHE.check_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, false, dc_index, dc_tag)) {
+            cout << " hit \n";
+            l2_hits += 1;
+            if (is_read == false) {
+              // t2+=1;
+              memory_refs += 1; // write hit in l2 writes through to main memory
+            }
+          } else {
+            l2_misses += 1;
+            int temp_counter_to_see_if_l2_incremented = memory_refs;
+            if (is_read) {
+              pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, p_bin_string, memory_refs);
+              bool was_there_an_l2_eviction = was_l2_replaced_and_if_yes_dc_phys_address.first;
+              if (was_there_an_l2_eviction) {
+
+                string replace_address = was_l2_replaced_and_if_yes_dc_phys_address.second;
+                dc_tag_bin = replace_address.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+                dc_tag = stoi(dc_tag_bin, 0, 2);
+                dc_index_bin = replace_address.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+                dc_index = stoi(dc_index_bin, 0, 2);
+                bool was_dc_dirty = DATA_CACHE.evict_given_l2_phys_address(dc_index, dc_tag);
+              }
+            }
+            // memory_refs = temp_counter_to_see_if_l2_incremented;
+            // t3+=1;
             memory_refs += 1;
             cout << " miss\n";
           }
@@ -1740,7 +2025,7 @@ void read_data_file(Config config) {
     }
   }
   print_stats(dtlb_hits, dtlb_misses, pt_hits, pt_faults, dc_hits, dc_misses, l2_hits, l2_misses, total_reads, total_writes, memory_refs, pt_refs, disk_refs);
-  //cout << dec << t1 << "\n" << t2 << "\n" << t3 << "\n";
+  // cout << dec << t1 << "\n" << t2 << "\n" << t3 << "\n";
 }
 
 void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs) {
