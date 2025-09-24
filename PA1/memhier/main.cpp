@@ -361,7 +361,7 @@ void read_data_file(Config config) {
   string virtual_page_calc_hex;
   int pfn;
   bool page_was_dirty;
-  ifstream fin("long_trace.dat");
+  ifstream fin("long_trace_backup.dat");
   string line;
   string hex_val;
   string bin_string;
@@ -1276,7 +1276,8 @@ void read_data_file(Config config) {
           if (config.l2_enabled) {
             if (dirty_replaced == true) {
               l2_hits += 1;
-              memory_refs += 1; // write through, write allocate immediatly writes to main memory from l2
+              // memory_refs += 1; // write through, write allocate immediatly writes to main memory from l2
+               //t1 += 1;
               string old_address = was_dc_replaced_and_was_dirty.second;
               l2_tag_bin = old_address.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
               l2_tag = stoi(l2_tag_bin, 0, 2);
@@ -1305,12 +1306,14 @@ void read_data_file(Config config) {
             cout << " hit \n";
             l2_hits += 1;
             if (is_read == false) {
-              memory_refs += 1; // write hit in l2 writes through to main memory
+              // memory_refs += 1; // write hit in l2 writes through to main memory
+               //t2+=1;
             }
           } else {
             l2_misses += 1;
             if (!is_read) {
-              memory_refs += 1;
+              // memory_refs += 1;
+              //t3+=1;
             }
             int temp_counter_to_see_if_l2_incremented = memory_refs;
             pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, bin_string, memory_refs);
@@ -1326,11 +1329,14 @@ void read_data_file(Config config) {
               if (was_dc_dirty == true) {
                 l2_hits += 1;
               }
+              memory_refs = temp_counter_to_see_if_l2_incremented;
               if (was_dc_dirty) {
                 memory_refs += 1;
+                 t4+=1;
               }
             }
             memory_refs += 1;
+             t5+=1;
             cout << " miss\n";
           }
         }
@@ -1711,11 +1717,15 @@ void read_data_file(Config config) {
             l2_misses += 1;
             int temp_counter_to_see_if_l2_incremented = memory_refs;
             if (is_read) {
-              pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, p_bin_string, memory_refs);
+              pair<bool, string> was_l2_replaced_and_if_yes_dc_phys_address = L2_CACHE.insert_to_l2(l2_index, l2_tag, config.counter, dirty_bit, -1, dc_index, dc_tag, bin_string, memory_refs);
               bool was_there_an_l2_eviction = was_l2_replaced_and_if_yes_dc_phys_address.first;
               if (was_there_an_l2_eviction) {
 
                 string replace_address = was_l2_replaced_and_if_yes_dc_phys_address.second;
+                if (replace_address == "") {
+                  cout << "\n";
+                  continue;
+                }
                 dc_tag_bin = replace_address.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
                 dc_tag = stoi(dc_tag_bin, 0, 2);
                 dc_index_bin = replace_address.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
@@ -2025,8 +2035,18 @@ void read_data_file(Config config) {
     }
   }
   print_stats(dtlb_hits, dtlb_misses, pt_hits, pt_faults, dc_hits, dc_misses, l2_hits, l2_misses, total_reads, total_writes, memory_refs, pt_refs, disk_refs);
-  // cout << dec << t1 << "\n" << t2 << "\n" << t3 << "\n";
+   //cout << dec << t1 << "\n" << t2 << "\n" << t3 << "\n" << t4 << "\n" << t5 << "\n";
 }
+
+
+/*TODO
+l2 cache needs to support being larger, instead of string dca parameter in block it will need to be a vector of strings
+honestly, probably easier to make a whole new data structure for this case
+on evict need to have a function that returns if there was a replacement and if so the vector of dca strings. then go through,
+convert the dca strings to their index and tag and evict them
+call new data structure l2_but_evil
+*/
+
 
 void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs) {
   cout << "\nSimulation statistics\n\n";
