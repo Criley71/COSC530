@@ -307,7 +307,7 @@ void print_config_after_read(Config config) {
     cout << "TLB is disabled in this configuration.\n";
   }
   if (!config.l2_enabled) {
-    cout << "L2 cache is disabled in this configuration.";
+    cout << "L2 cache is disabled in this configuration.\n";
   }
 
   cout << "\n";
@@ -361,7 +361,7 @@ void read_data_file(Config config) {
   string virtual_page_calc_hex;
   int pfn;
   bool page_was_dirty;
-  ifstream fin("long_trace_backup.dat");
+  ifstream fin("trace.dat");
   string line;
   string hex_val;
   string bin_string;
@@ -384,7 +384,7 @@ void read_data_file(Config config) {
   int t4 = 0;
   int t5 = 0;
   int t6 = 0;
-  while (getline(fin, line)) {
+  while (getline(cin, line)) {
     config.counter += 1; // i dont remember why i made this part of the config class but its too late to change
     if (line[0] == 'R') {
       is_read = true;

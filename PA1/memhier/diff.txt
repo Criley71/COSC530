@@ -1,0 +1,10 @@
+--- ref_out.txt	2025-09-26 11:48:18.591367902 -0400
++++ out.txt	2025-09-26 11:54:20.331348017 -0400
+@@ -152,6 +152,6 @@
+ Total writes     : 47
+ Ratio of reads   : 0.530000
+ 
+-main memory refs : 100
++main memory refs : 0
+ page table refs  : 0
+ disk refs        : 0
