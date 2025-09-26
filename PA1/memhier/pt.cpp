@@ -1,24 +1,31 @@
 #include "pt.h"
 
-PT::PT(int virtual_page_count){
+PT::PT(int virtual_page_count) {
   page_table.resize(virtual_page_count);
   pfn_used_count = 0;
 }
 
-int PT::check_page_table(int vpn){
+int PT::check_page_table(int vpn, int timer, bool is_write) {
+  
+  if (page_table[vpn].pfn != -1) {
+    if(is_write){
+      page_table[vpn].dirty = true;
+    }
+    page_table[vpn].time = timer;
+  }
   return page_table[vpn].pfn; //-1 means not set
 }
 
-pair<int,bool> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_write, DC cache, L2 l2){
+pair<int, bool> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_write, DC &cache, L2 &l2, int &disk_ref, DTLB &dtlb) {
   int pfn;
-  if(ppc == pfn_used_count){
+  if (ppc == pfn_used_count) {
     bool was_dirty = false;
     int oldest_time = INT32_MAX;
     int oldest_pfn = -1;
     int oldest_index = 0;
-    for(int i = 0; i < vpc; i++){
-      if(page_table[i].valid == true){
-        if(page_table[i].time < oldest_time){
+    for (int i = 0; i < vpc; i++) {
+      if (page_table[i].valid == true) {
+        if (page_table[i].time < oldest_time) {
           oldest_time = page_table[i].time;
           oldest_pfn = page_table[i].pfn;
           was_dirty = page_table[i].dirty;
@@ -26,22 +33,38 @@ pair<int,bool> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wri
         }
       }
     }
+    if(page_table[oldest_index].dirty){
+      disk_ref +=1;
+    }
 
-    page_table[vpn].dirty = is_write;
-    page_table[vpn].time = timer;
-    page_table[vpn].pfn = oldest_pfn;
-    page_table[vpn].valid = true;
-
-    cache.check_cache(-1, -1, -1,false, pfn, true);
-    l2.check_l2(-1,-1,-1,-1,pfn, true, -1,-1);
-    //cout << "IS THIS USED\n";
+    pfn = oldest_pfn; // use the evicted pfn for cache invalidation
+    // Invalidate any cache/L2 entries that reference this pfn
+    cache.check_cache(-1, -1, -1, false, pfn, true);
+    // Remove L2 entries that reference this physical frame and evict associated DC entries
+    vector<pair<int,int>> dc_pairs = l2.evict_entries_by_pfn(pfn);
+    // For each DC pair, evict from the data cache
+    for (int i = 0; i < dc_pairs.size(); i++) {
+      int dc_index = dc_pairs[i].first;
+      int dc_tag = dc_pairs[i].second;
+      cache.evict_given_l2_phys_address(dc_index, dc_tag);
+    }
+    //cout << "checking pfn " << pfn << " |" << flush;
+    int evicted_vpn = oldest_index;
+  dtlb.remove_dtlb_entries_bc_pt_eviction(evicted_vpn, pfn);
+    // cout << "IS THIS USED\n";
     page_table[oldest_index].dirty = false;
     page_table[oldest_index].time = -1;
     page_table[oldest_index].pfn = -1;
     page_table[oldest_index].valid = false;
 
+    page_table[vpn].dirty = is_write;
+    page_table[vpn].time = timer;
+    page_table[vpn].pfn = oldest_pfn;
+    page_table[vpn].valid = true;
+    disk_ref += 1;
     return {oldest_pfn, was_dirty};
-  }else{
+  } else {
+    disk_ref += 1;
     pfn = pfn_used_count;
     page_table[vpn].dirty = is_write;
     page_table[vpn].time = timer;
@@ -49,21 +72,23 @@ pair<int,bool> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wri
     page_table[vpn].valid = true;
     pfn_used_count += 1;
   }
-  return{pfn, false};
-
+  return {pfn, false};
 }
 
-uint64_t PT::vpn_to_phys_address(int vpn, int page_offset, int page_offset_bits, int vpc, int ppc, int timer, bool is_write, DC cache, L2 l2){
+uint64_t PT::vpn_to_phys_address(int vpn, int page_offset, int page_offset_bits, int vpc, int ppc, int timer, bool is_write, DC &cache, L2 &l2, int& disk_ref, DTLB &dtlb) {
   int pfn;
   bool was_dirty_page;
-  if(check_page_table(vpn) == -1){
-    pfn = insert_page(vpn, vpc, ppc, timer, is_write, cache, l2).first;
-    //was_dirty_page = insert_page(vpn, vpc, ppc, timer, is_write).second; CANT CALL IT SECOND TIME LIKE THIS BRUH
-    //dont think this ^ variable is actually necessary, should just add 1 to main mem ref
-  }else{
-    pfn = check_page_table(vpn);
+  if (check_page_table(vpn, timer, is_write) == -1) {
+    pfn = insert_page(vpn, vpc, ppc, timer, is_write, cache, l2, disk_ref, dtlb).first;
+    // was_dirty_page = insert_page(vpn, vpc, ppc, timer, is_write).second; CANT CALL IT SECOND TIME LIKE THIS BRUH
+    // dont think this ^ variable is actually necessary, should just add 1 to main mem ref
+  } else {
+    pfn = check_page_table(vpn, timer, is_write);
   }
   uint64_t physical_address = (static_cast<uint64_t>(pfn) << page_offset_bits) | page_offset;
   return physical_address;
-  
+}
+
+int PT::get_current_page_count(){
+  return pfn_used_count;
 }

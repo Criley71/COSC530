@@ -9,8 +9,9 @@ using namespace std;
 class DTLB_entry {
 public:
   int tag = -1;
-  int ppn = -1;
+  int pfn = -1;
   int timer = -1;
+  bool valid; 
   DTLB_entry(int t, int p);
 };
 
@@ -22,6 +23,7 @@ public:
   DTLB(int set_count, int set_size);
   void insert_to_dtlb(int index, int tag, int time, int ppn);
   bool check_dtlb(int index, int tag, int time);
+  void remove_dtlb_entries_bc_pt_eviction(int vpn, int pfn);
 };
 
 #endif

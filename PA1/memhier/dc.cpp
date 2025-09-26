@@ -63,16 +63,17 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write,  int  pf
   // cout << "SIZE: " << data_cache.size();
   // cout << "DATA CACHE INDEX 1: " << data_cache[1][0].tag << "\n";
   //
+  bool page_replace = false;
   if(page_fault){ //need to invalidate the block with pfn because a page fault occured
     for(int i = 0; i < set_count; i++){
-      for(int j = 0; j < set_size; i++){
-        if(data_cache[i][j].pfn == pfn){   
+      for(int j = 0; j < set_size; j++){
+        if(data_cache[i][j].pfn == pfn && data_cache[i][j].tag != -1){   
           data_cache[i][j] = Cache_block(-1,-1,-1,-1,-1,"");
-          return true;
+          page_replace= true;
         }
       }
     }
-    return false;
+    return page_replace;
   }
 
 
@@ -102,11 +103,8 @@ bool DC::evict_given_l2_phys_address(int dc_index, int dc_tag){
     if(data_cache[dc_index][i].tag == dc_tag){
      if(data_cache[dc_index][i].dirty_bit == 1){
       was_dirty = true;
-     }else{
-      was_dirty = false;
      }
       data_cache[dc_index][i] = Cache_block(-1,-1,-1,-1,-1, "");
-      
     }
   }
   return was_dirty;

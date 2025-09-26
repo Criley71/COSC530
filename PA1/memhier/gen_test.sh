@@ -83,7 +83,7 @@ EOF
 echo "Generated trace.config"
 
 # --- Generate Input Trace (~100 lines) ---
-> long_trace.dat
+> trace.dat
 
 # Effective virtual address space (at most 2^32)
 virt_space=$((virt_pages * page_size))
@@ -108,3 +108,14 @@ for j in $(seq 1 5000); do
 done
 
 echo "Generated trace.dat"
+
+./main < trace.dat > out.txt
+./memhier_ref < trace.dat > ref_out.txt
+diff -u out.txt ref_out.txt > diff.txt
+
+# Optional: show summary
+if [ $? -eq 0 ]; then
+    echo "Outputs match. No differences."
+else
+    echo "Outputs differ. See diff.txt"
+fi

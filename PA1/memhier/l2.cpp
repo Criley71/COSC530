@@ -12,6 +12,26 @@ L2_block::L2_block(int i, int t, int a, int db, int pf, int dct, int dci, string
   dc_address = dca;
 }
 
+vector<pair<int,int>> L2::evict_entries_by_pfn(int pfn, int& mem_refs){
+  vector<pair<int,int>> removed;
+  for(int i = 0; i < set_count; i++){
+    for(int j = 0; j < set_size; j++){
+      if(l2_cache[i][j].pfn == pfn){
+        // for some reason this is different than the dc one and acctually evicts based on pfn
+        //returns a vector of pairs of dc index and tag corresponding to the l2 that was removed
+        if(l2_cache[i][j].dc_index != -1 && l2_cache[i][j].dc_tag != -1){
+          removed.push_back({l2_cache[i][j].dc_index, l2_cache[i][j].dc_tag});
+          if(l2_cache[i][j].dirty_bit == 1){
+            mem_refs += 1;
+          }
+        }
+        l2_cache[i][j] = L2_block(-1,-1,-1,-1,-1,-1,-1,"");
+      }
+    }
+  }
+  return removed;
+}
+
 L2::L2(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
   set_count = sc;
   set_size = ss;
@@ -62,16 +82,17 @@ pair<bool,string> L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty
 }
 
 bool L2::check_l2(int l2_index, int l2_tag, int time, int dirty_bit, int pfn, bool page_fault, int dc_index, int dc_tag) {
+  bool page_replace = false;
   if (page_fault) {
     for (int i = 0; i < set_count; i++) {
       for (int j = 0; j < set_size; j++) {
         if (l2_cache[i][j].pfn == pfn) {
           l2_cache[i][j] = L2_block(-1, -1, -1, -1, -1,-1,-1,"");
-          return true;
+          page_replace =  true;
         }
       }
     }
-    return false;
+    return page_replace;
   }
   bool was_found = false;
   for (int i = 0; i < set_size; i++) {
@@ -108,7 +129,7 @@ uint64_t L2::l2_index_and_tag_evicted_phys_address(int index){
       l2_tag = l2_cache[index][i].tag;
     }
   }
-  cout << "    invalidate index " << hex << index << " with tag " << hex << l2_tag << "    "; 
+  //cout << "    invalidate index " << hex << index << " with tag " << hex << l2_tag << "    "; 
   uint64_t phys_base = (l2_tag << (index_bit_size + offset_bit_size)) | (index << offset_bit_size);
   return phys_base;
 }
@@ -121,7 +142,7 @@ pair<int, int> L2::get_dc_index_tag(int l2_index, int l2_tag){
   int ltag;
   int lndex;
   for(int i = 0; i < set_size; i++){
-    cout << hex << " l2tag: "<< l2_cache[l2_index][i].tag<< dec << " counter " << l2_cache[l2_index][i].time_last_accessed << ", ";
+   // cout << hex << " l2tag: "<< l2_cache[l2_index][i].tag<< dec << " counter " << l2_cache[l2_index][i].time_last_accessed << ", ";
     if(l2_cache[l2_index][i].time_last_accessed < oldest_time && l2_cache[l2_index][i].dc_tag!= -1 ){
       dc_index = l2_cache[l2_index][i].dc_index;
       dc_tag = l2_cache[l2_index][i].dc_tag;
@@ -130,9 +151,9 @@ pair<int, int> L2::get_dc_index_tag(int l2_index, int l2_tag){
       ltag = l2_cache[l2_index][i].tag;
     }
   }
-    cout << "      evict l2 cache tag " << hex << ltag << " at index " << hex << lndex << " "; 
+    //cout << "      evict l2 cache tag " << hex << ltag << " at index " << hex << lndex << " "; 
 
-  cout << "      evict data cache tag " << hex << dc_tag << " at index " << hex << dc_index << "     "; 
+  //cout << "      evict data cache tag " << hex << dc_tag << " at index " << hex << dc_index << "     "; 
   return {dc_index, dc_tag};
 }
 
