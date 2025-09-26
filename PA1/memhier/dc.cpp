@@ -103,6 +103,7 @@ bool DC::evict_given_l2_phys_address(int dc_index, int dc_tag){
     if(data_cache[dc_index][i].tag == dc_tag){
      if(data_cache[dc_index][i].dirty_bit == 1){
       was_dirty = true;
+
      }
       data_cache[dc_index][i] = Cache_block(-1,-1,-1,-1,-1, "");
     }

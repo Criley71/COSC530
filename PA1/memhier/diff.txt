@@ -1,21 +1,10 @@
---- out.txt	2025-09-26 17:46:47.706176741 -0400
-+++ ref_out.txt	2025-09-26 15:30:23.968558805 -0400
-@@ -5042,14 +5042,14 @@
- dc misses        : 5000
- dc hit ratio     : 0.000000
+--- out.txt	2025-09-26 19:40:48.647394102 -0400
++++ ref_out.txt	2025-09-26 19:24:24.236665612 -0400
+@@ -5051,6 +5051,6 @@
+ Total writes     : 2577
+ Ratio of reads   : 0.484600
  
--L2 hits          : 0
-+L2 hits          : 2508
- L2 misses        : 5000
--L2 hit ratio     : 0.000000
-+L2 hit ratio     : 0.334044
- 
- Total reads      : 2491
- Total writes     : 2509
- Ratio of reads   : 0.498200
- 
--main memory refs : 10000
-+main memory refs : 7508
- page table refs  : 4378
--disk refs        : 11090
-+disk refs        : 6712
+-main memory refs : 12253
++main memory refs : 7577
+ page table refs  : 5000
+ disk refs        : 7392

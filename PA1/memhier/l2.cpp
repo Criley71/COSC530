@@ -14,6 +14,7 @@ L2_block::L2_block(int i, int t, int a, int db, int pf, int dct, int dci, string
 
 vector<pair<int,int>> L2::evict_entries_by_pfn(int pfn, int& mem_refs){
   vector<pair<int,int>> removed;
+  int temp = mem_refs;
   for(int i = 0; i < set_count; i++){
     for(int j = 0; j < set_size; j++){
       if(l2_cache[i][j].pfn == pfn){
@@ -22,7 +23,9 @@ vector<pair<int,int>> L2::evict_entries_by_pfn(int pfn, int& mem_refs){
         if(l2_cache[i][j].dc_index != -1 && l2_cache[i][j].dc_tag != -1){
           removed.push_back({l2_cache[i][j].dc_index, l2_cache[i][j].dc_tag});
           if(l2_cache[i][j].dirty_bit == 1){
-            mem_refs += 1;
+            if(mem_refs == temp){
+              mem_refs += 1;
+            }
           }
         }
         l2_cache[i][j] = L2_block(-1,-1,-1,-1,-1,-1,-1,"");
