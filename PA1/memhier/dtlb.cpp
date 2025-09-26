@@ -12,7 +12,7 @@ DTLB::DTLB(int sc, int ss) {
   set_size = ss;
   dtlb.resize(set_count);
   for (int i = 0; i < set_count; i++) {
-    dtlb[i].resize(set_count, DTLB_entry(-1, -1));
+    dtlb[i].resize(set_count, DTLB_entry(-100, -1));
   }
 }
 
@@ -33,6 +33,7 @@ void DTLB::insert_to_dtlb(int index, int tag, int time, int ppn) {
 bool DTLB::check_dtlb(int index, int tag, int time) {
   for(int i = 0; i < set_size; i++){
     if(dtlb[index][i].tag == tag){
+      //cout << "I FOUND THIS SOMEHOW i = " << i << "and the tag is " << dtlb[index][i].tag << " ";
       dtlb[index][i].timer = time;
       return true;
     }

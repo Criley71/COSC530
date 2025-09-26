@@ -1,10 +1,38 @@
---- ref_out.txt	2025-09-26 11:48:18.591367902 -0400
-+++ out.txt	2025-09-26 11:54:20.331348017 -0400
-@@ -152,6 +152,6 @@
- Total writes     : 47
- Ratio of reads   : 0.530000
+--- ref_out.txt	2025-09-26 12:26:22.142201740 -0400
++++ out.txt	2025-09-26 13:14:46.302048900 -0400
+@@ -27,7 +27,7 @@
+ Virtual  Virt.  Page TLB    TLB TLB  PT   Phys        DC  DC          L2  L2
+ Address  Page # Off  Tag    Ind Res. Res. Pg # DC Tag Ind Res. L2 Tag Ind Res.
+ -------- ------ ---- ------ --- ---- ---- ---- ------ --- ---- ------ --- ----
+-00000c84      0  c84      0   0 miss miss    0      0   6 miss      3   0 miss
++00000c84      0  c84      0   0 hit          0      0   6 miss      3   0 miss
+ 00000c1c      0  c1c      0   0 hit          0      0   6 hit  
+ 0000014c      0  14c      0   0 hit          0      0   0 miss      0   0 miss
+ 00000c84      0  c84      0   0 hit          0      0   6 hit  
+@@ -5039,13 +5039,13 @@
  
--main memory refs : 100
-+main memory refs : 0
- page table refs  : 0
- disk refs        : 0
+ Simulation statistics
+ 
+-dtlb hits        : 5008
+-dtlb misses      : 1
+-dtlb hit ratio   : 0.999800
++dtlb hits        : 5009
++dtlb misses      : 0
++dtlb hit ratio   : 1
+ 
+ pt hits          : 0
+-pt faults        : 1
+-pt hit ratio     : 0.000000
++pt faults        : 0
++pt hit ratio     : N/A
+ 
+ dc hits          : 962
+ dc misses        : 4047
+@@ -5060,5 +5060,5 @@
+ Ratio of reads   : 0.491116
+ 
+ main memory refs : 4511
+-page table refs  : 1
+-disk refs        : 1
++page table refs  : 0
++disk refs        : 0

@@ -100,7 +100,7 @@ addr_bits=$(awk -v v=$virt_space 'BEGIN {
 
 mask=$(( (1 << addr_bits) - 1 ))
 
-for j in $(seq 1 100); do
+for j in $(seq 1 5000); do
     op=$([ $((RANDOM % 2)) -eq 0 ] && echo "R" || echo "W")
     raw=$(( (RANDOM<<16 | RANDOM) & mask ))
     addr=$(printf "%08x" $raw)
