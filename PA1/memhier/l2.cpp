@@ -12,28 +12,6 @@ L2_block::L2_block(int i, int t, int a, int db, int pf, int dct, int dci, string
   dc_address = dca;
 }
 
-vector<pair<int,int>> L2::evict_entries_by_pfn(int pfn, int& mem_refs){
-  vector<pair<int,int>> removed;
-  int temp = mem_refs;
-  for(int i = 0; i < set_count; i++){
-    for(int j = 0; j < set_size; j++){
-      if(l2_cache[i][j].pfn == pfn){
-        // for some reason this is different than the dc one and acctually evicts based on pfn
-        //returns a vector of pairs of dc index and tag corresponding to the l2 that was removed
-        if(l2_cache[i][j].dc_index != -1 && l2_cache[i][j].dc_tag != -1){
-          removed.push_back({l2_cache[i][j].dc_index, l2_cache[i][j].dc_tag});
-          if(l2_cache[i][j].dirty_bit == 1){
-            if(mem_refs == temp){
-              mem_refs += 1;
-            }
-          }
-        }
-        l2_cache[i][j] = L2_block(-1,-1,-1,-1,-1,-1,-1,"");
-      }
-    }
-  }
-  return removed;
-}
 
 L2::L2(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
   set_count = sc;
@@ -42,7 +20,7 @@ L2::L2(int sc, int ss, int ls, bool wawb, int ibs, int obs) {
   write_allo_write_back = wawb;
   index_bit_size = ibs;
   offset_bit_size = obs;
-
+  
   l2_cache.resize(set_count); // have the outer vector be sets
   for (int i = 0; i < set_count; i++) {
     l2_cache[i].resize(set_size, L2_block(-1, -1, -1, -1, -1, -1,-1,""));
@@ -80,7 +58,7 @@ pair<bool,string> L2::insert_to_l2(int l2_index, int l2_tag, int time, int dirty
   l2_cache[l2_index][oldest_index].dc_tag = dc_tag;
   l2_cache[l2_index][oldest_index].dc_address = dc_address;
   return {was_full, old_dc_address};
-
+  
   
 }
 
@@ -138,14 +116,14 @@ uint64_t L2::l2_index_and_tag_evicted_phys_address(int index){
 }
 
 pair<int, int> L2::get_dc_index_tag(int l2_index, int l2_tag){
-
+  
   int oldest_time = INT32_MAX;
   int dc_index;
   int dc_tag;
   int ltag;
   int lndex;
   for(int i = 0; i < set_size; i++){
-   // cout << hex << " l2tag: "<< l2_cache[l2_index][i].tag<< dec << " counter " << l2_cache[l2_index][i].time_last_accessed << ", ";
+    // cout << hex << " l2tag: "<< l2_cache[l2_index][i].tag<< dec << " counter " << l2_cache[l2_index][i].time_last_accessed << ", ";
     if(l2_cache[l2_index][i].time_last_accessed < oldest_time && l2_cache[l2_index][i].dc_tag!= -1 ){
       dc_index = l2_cache[l2_index][i].dc_index;
       dc_tag = l2_cache[l2_index][i].dc_tag;
@@ -154,8 +132,8 @@ pair<int, int> L2::get_dc_index_tag(int l2_index, int l2_tag){
       ltag = l2_cache[l2_index][i].tag;
     }
   }
-    //cout << "      evict l2 cache tag " << hex << ltag << " at index " << hex << lndex << " "; 
-
+  //cout << "      evict l2 cache tag " << hex << ltag << " at index " << hex << lndex << " "; 
+  
   //cout << "      evict data cache tag " << hex << dc_tag << " at index " << hex << dc_index << "     "; 
   return {dc_index, dc_tag};
 }
@@ -170,12 +148,40 @@ void L2::update_access_time(int l2_index, int l2_tag, int time){
 }
 
 void L2::update_dirty_bit(int l2_index, int l2_tag, int time){
-   for(int i = 0; i < set_size; i++){
+  for(int i = 0; i < set_size; i++){
     if(l2_cache[l2_index][i].tag == l2_tag){
       //cout << " updating dirty bit of index:" << hex << l2_index << " tag: " << l2_tag << "|";
-        l2_cache[l2_index][i].time_last_accessed = time;
+      l2_cache[l2_index][i].time_last_accessed = time;
       l2_cache[l2_index][i].dirty_bit = 1;
       return;
     }
   }
+}
+
+vector<pair<int,int>> L2::evict_entries_by_pfn(int pfn, int& mem_refs, double& l2_refs){
+  vector<pair<int,int>> removed;
+  int temp = mem_refs;
+  int temmp2 = l2_refs;
+  for(int i = 0; i < set_count; i++){
+    for(int j = 0; j < set_size; j++){
+      if(l2_cache[i][j].pfn == pfn){
+        // for some reason this is different than the dc one and acctually evicts based on pfn
+        //returns a vector of pairs of dc index and tag corresponding to the l2 that was removed
+        if(l2_cache[i][j].dc_index != -1 && l2_cache[i][j].dc_tag != -1){
+          removed.push_back({l2_cache[i][j].dc_index, l2_cache[i][j].dc_tag});
+          if(l2_refs == temmp2){
+
+            //l2_refs+=1;
+          }
+          if(l2_cache[i][j].dirty_bit == 1){
+            if(mem_refs == temp){
+              mem_refs += 1;
+            }
+          }
+        }
+        l2_cache[i][j] = L2_block(-1,-1,-1,-1,-1,-1,-1,"");
+      }
+    }
+  }
+  return removed;
 }

@@ -1,10 +1,10 @@
---- out.txt	2025-09-26 19:40:48.647394102 -0400
-+++ ref_out.txt	2025-09-26 19:24:24.236665612 -0400
+--- out.txt	2025-09-27 20:46:11.451706903 -0400
++++ ref_out.txt	2025-09-27 20:46:11.461706898 -0400
 @@ -5051,6 +5051,6 @@
- Total writes     : 2577
- Ratio of reads   : 0.484600
+ Total writes     : 2502
+ Ratio of reads   : 0.499600
  
--main memory refs : 12253
-+main memory refs : 7577
- page table refs  : 5000
- disk refs        : 7392
+-main memory refs : 272
++main memory refs : 2630
+ page table refs  : 8
+ disk refs        : 8

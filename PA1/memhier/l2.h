@@ -36,7 +36,7 @@ public:
   bool check_if_index_is_full(int l2_index);
   uint64_t l2_index_and_tag_evicted_phys_address(int l2_index);
   pair<int, int> get_dc_index_tag(int l2_index, int l2_tag);
-  vector<pair<int,int>> evict_entries_by_pfn(int pfn, int&mem_refs);
+  vector<pair<int,int>> evict_entries_by_pfn(int pfn, int&mem_refs, double &l2_refs);
   void update_access_time(int l2_index, int l2_tag, int time);
   void update_dirty_bit(int l2_index, int l2_tag, int time); //on dc eviction, update dirty bit if was dirty does that mean l2 time needs to be updated?
 };

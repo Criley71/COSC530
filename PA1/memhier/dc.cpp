@@ -67,7 +67,7 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write,  int  pf
   if(page_fault){ //need to invalidate the block with pfn because a page fault occured
     for(int i = 0; i < set_count; i++){
       for(int j = 0; j < set_size; j++){
-        if(data_cache[i][j].pfn == pfn && data_cache[i][j].tag != -1){   
+        if(data_cache[i][j].pfn == pfn){   
           data_cache[i][j] = Cache_block(-1,-1,-1,-1,-1,"");
           page_replace= true;
         }

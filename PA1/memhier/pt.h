@@ -25,8 +25,8 @@ public:
   vector<Page> page_table;
   PT(int virtual_page_count);
   int check_page_table(int vpn, int timer, bool is_write); //return pfn or -1 if not found
-  pair<int,bool> insert_page(int vpn, int vpc, int ppc, int timer, bool is_write, DC &cache, L2 &l2, int &disk_ref, DTLB &dtlb, int &mem_refs); //check if its full by seeing if pfn_used_count = phys pagec count, return pfn
-  uint64_t vpn_to_phys_address(int vpn, int page_offset, int page_offset_bits, int vpc, int ppc, int timer, bool is_write, DC &cache, L2 &l2, int &disk_ref, DTLB &dtlb, int & mem_refs);
+  pair<int,bool> insert_page(int vpn, int vpc, int ppc, int timer, bool is_write, DC &cache, L2 &l2, int &disk_ref, DTLB &dtlb, int &mem_refs, double &l2_refs); //check if its full by seeing if pfn_used_count = phys pagec count, return pfn
+  uint64_t vpn_to_phys_address(int vpn, int page_offset, int page_offset_bits, int vpc, int ppc, int timer, bool is_write, DC &cache, L2 &l2, int &disk_ref, DTLB &dtlb, int & mem_refs, double &l2_refs);
   int get_current_page_count();
 
 };
