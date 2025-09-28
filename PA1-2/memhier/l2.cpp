@@ -1,12 +1,13 @@
 #include "l2.h"
 
-L2_block::L2_block(int i, int t, int a, bool d, int pf, int dcr) {
+L2_block::L2_block(int i, int t, int a, bool d, int pf, int dcr, bool v) {
   index = i;
   tag = t;
   time_last_used = a;
   dirty = d;
   pfn = pf;
   dc_ratio = dcr;
+  valid =v;
   dc_index_and_tags.resize(dc_ratio, {-1, -1});
 }
 
@@ -20,7 +21,7 @@ L2::L2(int sc, int ss, int ls, bool wa, int ibs, int obs, int dcr) {
   dc_ratio = dcr;
   l2_cache.resize(set_count);
   for (int i = 0; i < set_count; i++) {
-    l2_cache[i].resize(set_size, L2_block(-1, -1, -1, false, -1, dc_ratio));
+    l2_cache[i].resize(set_size, L2_block(-1, -1, -1, false, -1, dc_ratio, false));
   }
 }
 
@@ -43,7 +44,7 @@ pair<bool, vector<pair<int, int>>> L2::insert_to_l2(int l2_index, int l2_tag, in
     // cout << "  Replaceing " << " l2_index " << hex << l2_index << " with tag " << hex << l2_cache[l2_index][oldest_index].tag << " and time = " << dec <<l2_cache[l2_index][oldest_index].time_last_accessed << "|  ";
   }
   if (old_dirty == 1) {
-    memory_refs += 1;
+    memory_refs += 1; //if the old block was dirty then write to memory
   }
   vector<pair<int, int>> old_dc_address = l2_cache[l2_index][oldest_index].dc_index_and_tags;
   l2_cache[l2_index][oldest_index].index = l2_index;
@@ -53,6 +54,7 @@ pair<bool, vector<pair<int, int>>> L2::insert_to_l2(int l2_index, int l2_tag, in
   l2_cache[l2_index][oldest_index].pfn = pfn;
   l2_cache[l2_index][oldest_index].dc_index_and_tags.resize(dc_ratio, {-1, -1});
   l2_cache[l2_index][oldest_index].dc_index_and_tags[0] = {dc_i, dc_t};
+  l2_cache[l2_index][oldest_index].valid = true;
   return {was_full, old_dc_address};
 }
 
@@ -76,7 +78,7 @@ bool L2::check_l2(int l2_index, int l2_tag, int time, bool dirty, int pfn, bool 
     for (int i = 0; i < set_count; i++) {
       for (int j = 0; j < set_size; j++) {
         if (l2_cache[i][j].pfn == pfn) {
-          l2_cache[i][j] = L2_block(-1, -1, -1, false, -1, dc_ratio);
+          l2_cache[i][j] = L2_block(-1, -1, -1, false, -1, dc_ratio, false);
           page_replace = true;
         }
       }
@@ -122,3 +124,41 @@ void L2::update_dirty_bit(int l2_index, int l2_tag, int timer) {
     }
   }
 }
+
+pair<bool, vector<pair<int,int>>> L2::evict_given_pfn(int pfn, int &memory_refs, double &l2_hits, DC &dc){
+  vector<pair<int,int>> evicted_dc_blocks = {};
+  int amount_of_dirty = 0;
+  bool replace = false;
+  for(int i = 0; i < set_count; i ++){
+    for(int j = 0; j < set_size; j++){
+      if(l2_cache[i][j].pfn == pfn && l2_cache[i][j].valid){
+        for(int k = 0; k < l2_cache[i][j].dc_index_and_tags.size(); k++){
+          if(l2_cache[i][j].dc_index_and_tags[k].first != -1){
+            evicted_dc_blocks.push_back({l2_cache[i][j].dc_index_and_tags[k].first, l2_cache[i][j].dc_index_and_tags[k].second});
+            if(dc.is_dirty(l2_cache[i][j].dc_index_and_tags[k].first, l2_cache[i][j].dc_index_and_tags[k].second, pfn)){
+              amount_of_dirty+=1;
+            }
+          }
+        }
+        // we need to avoid double counting memory refs if both the dc and l2 were dirty, 
+        // this handles the case of l2 being larger than dc
+        if (l2_cache[i][j].dirty) {
+          if (amount_of_dirty == 0) {
+            memory_refs += 1; // write the dirty L2 block
+          } else if (amount_of_dirty > 1) {
+            memory_refs += (amount_of_dirty - 1); // avoid double-count
+          } else { // amount_of_dirty == 1
+            memory_refs += 1;
+          }
+        } else {
+          memory_refs += amount_of_dirty;
+        }
+        amount_of_dirty = 0;
+        l2_cache[i][j] = L2_block(-1, -1, -1, false, -1, dc_ratio, false);
+        replace = true;
+      } 
+    }
+  }
+  
+  return {replace, evicted_dc_blocks};
+} 

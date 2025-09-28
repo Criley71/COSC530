@@ -20,7 +20,7 @@ public:
   int set_count;
   int set_size;
   int line_size;
-  bool write_allo;
+  bool no_write_allo;
   int index_bit_size;
   int offset_bit_size;
   vector<vector<Cache_Block>> data_cache;
@@ -29,7 +29,7 @@ public:
   bool check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn , bool page_fault);
   void invalidate_bc_l2_eviction(int dc_index, int dc_tag, double& l2_refs, int& memory_refs);
   bool evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs);
-
+  bool is_dirty(int index, int tag, int pfn);
 };
 
 #endif

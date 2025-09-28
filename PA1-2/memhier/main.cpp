@@ -17,6 +17,8 @@
 
 using namespace std;
 
+// safe substring for bitstrings: checks bounds and clamps length to avoid std::out_of_range
+
 void read_data_no_virtual(Config config); // reads in the line and will call the appropraite set of functions based on the config
 void read_data_virtual(Config config);
 
@@ -26,6 +28,7 @@ void simulate_with_l2_enabled(Config config);
 void physical_write_back_dc_no_l2(Config config, string address);
 void physical_write_back_dc_with_l2(Config config, string address);
 void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs);
+string substr_safe(const string &s, int pos, int len);
 
 int main() {
   Config config = Config();
@@ -56,19 +59,31 @@ void simulate_withOUT_l2_enable(Config config) {
   string hex_val;
   stringstream ss;
   bitset<64> b;
+  bitset<64> p;
 
   string bin_string;
   string phys_page_num_bin;
-  int phys_page_num;
+  long phys_page_num;
   string page_off_bin;
   int page_off;
   string dc_tag_bin;
   int dc_tag;
   string dc_index_bin;
   int dc_index;
-  DC dc(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
+
+  string virt_page_num_bin;
+  int virt_page_num;
+  int pfn;
+  string pt_res;
+  string p_bin_string;
+
+  DC dc = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
+  PT pt = PT(config.virtual_page_count, config.pt_to_l2_ratio, config.physical_page_count);
+  // only have l2 since it is a pt check parameter
+  L2 l2 = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits, config.l2_to_dc_ratio);
+
   while (getline(cin, line)) {
-    config.counter += 1; // i dont remember why i made this part of the config class but its too late to change
+    config.counter += 1;
     if (line[0] == 'R') {
       is_write = false;
       total_reads += 1;
@@ -85,13 +100,14 @@ void simulate_withOUT_l2_enable(Config config) {
     bin_string = b.to_string();
     config.counter += 1;
     if (!config.dc_write_thru_no_allo) {
-      if (!config.virt_addr) {
+      if (!config.virt_addr) { // no virtual address
         phys_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
-        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        phys_page_num = stoi(phys_page_num_bin, 0, 2); // physical page number calculations
         if (phys_page_num >= config.physical_page_count) {
           cout << "hierarchy: physical address " << hex << temp << " is too large.\n";
           exit(-1);
         }
+        // print out address and basic stuff
         cout << hex << setw(8) << setfill('0') << temp << "  ";
         cout << setw(6) << setfill(' ') << " ";
         page_off_bin = bin_string.substr(64 - (config.pt_offset_bit));
@@ -106,6 +122,7 @@ void simulate_withOUT_l2_enable(Config config) {
         cout << setw(4) << setfill(' ');
         cout << " ";
         cout << setw(4) << setfill(' ') << hex << phys_page_num;
+        // dc calculations
         dc_tag_bin = bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
         dc_tag = stoi(dc_tag_bin, 0, 2);
         cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
@@ -116,18 +133,89 @@ void simulate_withOUT_l2_enable(Config config) {
           dc_index = stoi(dc_index_bin, 0, 2);
         }
         cout << " " << setw(3) << setfill(' ') << hex << dc_index << " ";
+        // check if the block is in the data cache
         if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, -1, false)) {
           cout << setfill(' ') << setw(4) << "hit  \n";
           dc_hits += 1;
-          config.counter += 1;
+          config.counter += 1; // if so then its a dc hit
         } else {
+          // was not found and need to be inserted.
+          // check if the evicted block was dirty
           pair<bool, string> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, bin_string);
           if (was_replace.first) {
-            memory_refs += 1;
+            memory_refs += 1; // the replaced block was dirty so write to memory
           }
-          dc_misses += 1;
+          dc_misses += 1; // its a dc miss and need to grab block from memory
           memory_refs += 1;
           cout << setfill(' ') << setw(4) << "miss \n";
+          config.counter += 1;
+        }
+      } else if (config.virt_addr && !config.dtlb_enabled) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
+        if (pfn == -1) {
+          pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs).second;
+          pt_faults += 1;
+          pt_refs += 1;
+          disk_refs += 1;
+          pt_res = "miss";
+        } else {
+          pt_refs += 1;
+          pt_hits += 1;
+          pt_res = "hit ";
+        }
+        cout << setw(21) << setfill(' ') << pt_res;
+
+        // PHYSICAL ADDRESS TRANSFORMATION
+        int physical_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        // cout << " ->" << config.pt_offset_bit << "<- ";
+        phys_page_num_bin = substr_safe(p_bin_string, 0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = substr_safe(p_bin_string, 0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = substr_safe(p_bin_string, (64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        if (config.dc_index_bits == 0) {
+          dc_index = 0;
+        } else {
+          dc_index = stoi(dc_index_bin, 0, 2);
+        }
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+
+        if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, pfn, false)) {
+          cout << setfill(' ') << setw(4) << " hit  \n";
+          dc_hits += 1;
+          config.counter += 1;
+          continue;
+        } else {
+          pair<bool, string> was_dc_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, pfn, p_bin_string);
+          dc_misses += 1;
+          memory_refs += 1;
+          if (was_dc_replace.first) {
+            memory_refs += 1; // replaced block was dirty
+          }
+          cout << setfill(' ') << setw(4) << " miss \n";
           config.counter += 1;
         }
       }
@@ -156,6 +244,7 @@ void simulate_with_l2_enabled(Config config) {
   string hex_val;
   stringstream ss;
   bitset<64> b;
+  bitset<64> p;
 
   string bin_string;
   string phys_page_num_bin;
@@ -171,8 +260,15 @@ void simulate_with_l2_enabled(Config config) {
   int l2_index;
   string l2_index_bin;
 
+  string virt_page_num_bin;
+  int virt_page_num;
+  int pfn;
+  string pt_res;
+  string p_bin_string;
+
   DC dc(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
   L2 l2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits, config.l2_to_dc_ratio);
+  PT pt = PT(config.virtual_page_count, config.pt_to_l2_ratio, config.physical_page_count);
   while (getline(cin, line)) {
     config.counter += 1; // i dont remember why i made this part of the config class but its too late to change
     if (line[0] == 'R') {
@@ -191,15 +287,15 @@ void simulate_with_l2_enabled(Config config) {
     bin_string = b.to_string();
 
     if (!config.dc_write_thru_no_allo && !config.l2_write_thru_no_allo) {
-      if (!config.virt_addr) { //No virtual address enabled
-        //begin calculating basic information and make sure address is valid
+      if (!config.virt_addr) { // No virtual address enabled
+        // begin calculating basic information and make sure address is valid
         phys_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
         phys_page_num = stoi(phys_page_num_bin, 0, 2);
         if (phys_page_num >= config.physical_page_count) {
           cout << "hierarchy: physical address " << hex << temp << " is too large.\n";
           exit(-1);
         }
-        //print out addres, page offset and page num
+        // print out addres, page offset and page num
         cout << hex << setw(8) << setfill('0') << temp << "  ";
         cout << setw(6) << setfill(' ') << " ";
         page_off_bin = bin_string.substr(64 - (config.pt_offset_bit));
@@ -214,7 +310,7 @@ void simulate_with_l2_enabled(Config config) {
         cout << setw(4) << setfill(' ');
         cout << " ";
         cout << setw(4) << setfill(' ') << hex << phys_page_num;
-        //start calculating dc stuff
+        // start calculating dc stuff
         dc_tag_bin = bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
         dc_tag = stoi(dc_tag_bin, 0, 2);
         cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
@@ -229,30 +325,30 @@ void simulate_with_l2_enabled(Config config) {
           cout << setfill(' ') << setw(4) << "hit  \n";
           dc_hits += 1;
           continue;
-          //address was found in dc
+          // address was found in dc
         } else {
-          //address wasnt found. need to check if a block was evicted to then see if it was dirty and write that to l2
+          // address wasnt found. need to check if a block was evicted to then see if it was dirty and write that to l2
           pair<bool, string> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, bin_string);
           dc_misses += 1;
 
           cout << setfill(' ') << setw(4) << "miss";
           bool dirty_replaced = was_dc_replaced_and_was_dirty.first;
-          if(dirty_replaced){
-            l2_hits+=1;
+          if (dirty_replaced) {
+            l2_hits += 1; // if it was dirty then we hit the l2 block and update it
             string old_address = was_dc_replaced_and_was_dirty.second;
             l2_tag_bin = old_address.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
-              l2_tag = stoi(l2_tag_bin, 0, 2);
-              l2_index_bin = old_address.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
-              if (config.l2_index_bits == 0) {
-                l2_index = 0;
-              } else {
-                l2_index = stoi(l2_index_bin, 0, 2);
-              }
-              l2.update_dirty_bit(l2_index, l2_tag, config.counter);
-              config.counter += 1;
+            l2_tag = stoi(l2_tag_bin, 0, 2);
+            l2_index_bin = old_address.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+            if (config.l2_index_bits == 0) {
+              l2_index = 0;
+            } else {
+              l2_index = stoi(l2_index_bin, 0, 2);
+            }
+            l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update only the dirty bit and access time
+            config.counter += 1;
           }
         }
-        //start l2 calculations
+        // start l2 calculations
         l2_tag_bin = bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
         l2_tag = stoi(l2_tag_bin, 0, 2);
         cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
@@ -263,29 +359,155 @@ void simulate_with_l2_enabled(Config config) {
           l2_index = stoi(l2_index_bin, 0, 2);
         }
         cout << setw(3) << setfill(' ') << hex << l2_index;
-        
+        // check if the block was in l2
         if (l2.check_l2(l2_index, l2_tag, config.counter, is_write, -1, false)) {
-          l2_hits+=1;
+          l2_hits += 1; // was found so l2 hit
           cout << " hit \n";
-          config.counter+=1;
-        }else{
+          config.counter += 1;
+        } else {
+          // was not found, so l2 miss and need to reference memory to get it.
           cout << " miss\n";
-          memory_refs+=1;
+          memory_refs += 1;
           l2_misses += 1;
+          int temp_mem_refs = memory_refs;
+          // so basically we need this temp counter as the insert and invalidate functions will increment them but
+          // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
+          // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
+          // we then take the larger of the 2
           pair<bool, vector<pair<int, int>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, memory_refs, dc_index, dc_tag);
-          if(check_for_l2_evict.first){
+          if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<int, int>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
-            for(int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++){
-              if(dc_index_and_tags_to_invalidate[i].first == -1){
+            for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
+              if (dc_index_and_tags_to_invalidate[i].first == -1) {
                 continue;
               }
-              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
+              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_mem_refs);
             }
-            config.counter+=1;
+            if (temp_mem_refs >= memory_refs) {
+              memory_refs = temp_mem_refs;
+            }
+            config.counter += 1;
+          }
+        }
+      } else if (config.virt_addr && !config.dtlb_enabled) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
+        if (pfn == -1) {
+          pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs).second;
+          pt_faults += 1;
+          pt_refs += 1;
+          disk_refs += 1;
+          pt_res = "miss";
+        } else {
+          pt_refs += 1;
+          pt_hits += 1;
+          pt_res = "hit ";
+        }
+        cout << setw(21) << setfill(' ') << pt_res;
+
+        // PHYSICAL ADDRESS TRANSFORMATION
+        int physical_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        // cout << " ->" << config.pt_offset_bit << "<- ";
+        phys_page_num_bin = substr_safe(p_bin_string, 0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = substr_safe(p_bin_string, 0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = substr_safe(p_bin_string, (64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        if (config.dc_index_bits == 0) {
+          dc_index = 0;
+        } else {
+          dc_index = stoi(dc_index_bin, 0, 2);
+        }
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+        if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, pfn, false)) {
+          cout << setfill(' ') << setw(4) << " hit  \n";
+          dc_hits += 1;
+          config.counter += 1;
+          continue;
+        } else {
+          pair<bool, string> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, pfn, p_bin_string);
+          dc_misses += 1;
+          if (was_dc_replaced_and_was_dirty.first) {
+            l2_hits += 1; // replaced block was dirty maybe dont need
+            string old_address = was_dc_replaced_and_was_dirty.second;
+            l2_tag_bin = old_address.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+            l2_tag = stoi(l2_tag_bin, 0, 2);
+            l2_index_bin = old_address.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+            if (config.l2_index_bits == 0) {
+              l2_index = 0;
+            } else {
+              l2_index = stoi(l2_index_bin, 0, 2);
+            }
+            l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update only the dirty bit and access time
+            config.counter += 1;
+          }
+          cout << setfill(' ') << setw(4) << " miss";
+          config.counter += 1;
+        }
+
+        l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+        l2_tag = stoi(l2_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
+        l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+        if (config.l2_index_bits == 0) {
+          l2_index = 0;
+        } else {
+          l2_index = stoi(l2_index_bin, 0, 2);
+        }
+        cout << setw(3) << setfill(' ') << hex << l2_index;
+        if (l2.check_l2(l2_index, l2_tag, config.counter, is_write, pfn, false)) {
+          l2_hits += 1; // was found so l2 hit
+          cout << " hit \n";
+          config.counter += 1;
+        } else {
+          // was not found, so l2 miss and need to reference memory to get it.
+          cout << " miss\n";
+          memory_refs += 1;
+          l2_misses += 1;
+          int temp_mem_refs = memory_refs;
+          // so basically we need this temp counter as the insert and invalidate functions will increment them but
+          // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
+          // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
+          // we then take the larger of the 2
+          //cout << " pfn for l2 " << pfn << "||";
+          pair<bool, vector<pair<int, int>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, pfn, memory_refs, dc_index, dc_tag);
+          if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
+            vector<pair<int, int>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
+            for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
+              if (dc_index_and_tags_to_invalidate[i].first == -1) {
+                continue;
+              }
+              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_mem_refs);
+            }
+            memory_refs = max(memory_refs, temp_mem_refs);
+            config.counter += 1;
           }
         }
       }
     }
+    config.counter += 1;
   }
   print_stats(dtlb_hits, dtlb_misses, pt_hits, pt_faults, dc_hits, dc_misses, l2_hits, l2_misses, total_reads, total_writes, memory_refs, pt_refs, disk_refs);
 }
@@ -344,4 +566,23 @@ void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt
   cout << "main memory refs : " << defaultfloat << mem_refs << "\n";
   cout << "page table refs  : " << pt_refs << "\n";
   cout << "disk refs        : " << disk_refs << "\n";
+}
+
+// with small page amount of physical pages stoi would break and this was the solution
+//  and error checking
+string substr_safe(const string &s, int pos, int len) {
+  int string_length = s.length();
+  if (pos < 0 || pos > string_length) {
+    cerr << "substr_safe: requested pos " << pos << " is out of range for string of size " << string_length << "\n";
+    exit(-1);
+  }
+  if (len < 0) {
+    cerr << "substr_safe: requested len " << len << " is negative\n";
+    exit(-1);
+  }
+  if (pos + len > string_length) {
+    // clamp length to available characters
+    len = string_length - pos;
+  }
+  return s.substr(pos, len);
 }

@@ -12,7 +12,7 @@ DC::DC(int sc, int ss, int ls, bool wa, int ibs, int obs) {
   set_count = sc;
   set_size = ss;
   line_size = ls;
-  write_allo = wa;
+  no_write_allo = wa;
   index_bit_size = ibs;
   offset_bit_size = obs;
   data_cache.resize(set_count);
@@ -74,6 +74,9 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn,
   }
   for (int i = 0; i < set_size; i++) {
     if (data_cache[dc_index][i].tag == dc_tag) {
+      if (pfn != -1 && data_cache[dc_index][i].pfn != pfn) {
+        continue; // treat as miss for this entry
+      }
       data_cache[dc_index][i].time_last_used = time;
       if (is_write) {
         data_cache[dc_index][i].dirty = true;
@@ -84,13 +87,15 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn,
   return false;
 }
 void DC::invalidate_bc_l2_eviction(int dc_index, int dc_tag, double &l2_refs, int &memory_refs) {
-    for(int i = 0; i < set_size; i++){
-      if(data_cache[dc_index][i].tag == dc_tag){
-        data_cache[dc_index][i] = Cache_Block(-1,-1,false,-1,"");
-        //possibly if dirty is it an l2 hit?
+  for (int i = 0; i < set_size; i++) {
+    if (data_cache[dc_index][i].tag == dc_tag) {
+      if (data_cache[dc_index][i].dirty && !no_write_allo) {
+        l2_refs += 1; // possibly a hit also on no write allocate
+        memory_refs += 1; // write dirty block back to main memory (count it)
       }
+      data_cache[dc_index][i] = Cache_Block(-1, -1, false, -1, "");
     }
-  
+  }
 }
 
 bool DC::evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs) {
@@ -98,10 +103,31 @@ bool DC::evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs) 
   for (int i = 0; i < set_count; i++) {
     for (int j = 0; j < set_size; j++) {
       if (data_cache[i][j].pfn == pfn) {
+        if (data_cache[i][j].dirty) {
+          mem_refs += 1; // this is called when a page fault occurs with no l2 enabled
+          // any dirty will write to memory
+        }
         data_cache[i][j] = Cache_Block(-1, -1, false, -1, "");
         page_replace = true;
       }
     }
   }
   return page_replace;
+}
+
+bool DC::is_dirty(int index, int tag, int pfn) {
+  for (int i = 0; i < set_size; i++) {
+    if (data_cache[index][i].tag == tag) {
+      if (pfn != -1 && data_cache[index][i].pfn != pfn) {
+        continue;
+      } else {
+        if (data_cache[index][i].dirty) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+  }
+  return false;
 }

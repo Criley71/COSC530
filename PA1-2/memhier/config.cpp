@@ -188,6 +188,8 @@ Config::Config() {
     }
   }
   l2_to_dc_ratio = l2_line_size / dc_line_size;
+  pt_to_l2_ratio = page_size / l2_line_size;
+  pt_to_dc_ratio = page_size / dc_line_size;
 }
 
 bool Config::check_pwr_2(int val){// 8 = 1000, 7 = 0111 ---> 1000 & 0111 = 0000

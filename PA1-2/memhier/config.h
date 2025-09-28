@@ -51,6 +51,8 @@ public:
   bool virt_addr;
   
   int l2_to_dc_ratio;
+  int pt_to_l2_ratio;
+  int pt_to_dc_ratio;
   Config();
   void print_config_after_read();
   bool check_pwr_2(int val);

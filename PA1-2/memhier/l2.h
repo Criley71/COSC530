@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include "dc.h"
 #ifndef L2_H
 #define L2_H
 using namespace std;
@@ -14,8 +15,9 @@ public:
   bool dirty = false;
   int pfn;
   int dc_ratio;
+  bool valid = false;
   vector<pair<int, int>> dc_index_and_tags;
-  L2_block(int i, int t, int a, bool d, int pf, int dcr);
+  L2_block(int i, int t, int a, bool d, int pf, int dcr, bool v);
 };
 
 class L2 {
@@ -35,7 +37,8 @@ class L2 {
   bool check_if_index_is_full(int index);
   void update_used_time(int l2_index, int l2_tag, int timer);
   void update_dirty_bit(int l2_index, int l2_tag, int timer);
-
+  pair<bool, vector<pair<int,int>>> evict_given_pfn(int pfn, int &memory_refs, double &l2_hits, DC &dc);
+  
 };
 
 #endif
