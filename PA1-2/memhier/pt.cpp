@@ -47,12 +47,12 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
       disk_ref+=1;
     }
     if(!l2_enabled){
-      cache.evict_given_pfn(pfn, disk_ref, mem_ref, page_refs);
+      cache.evict_given_pfn(pfn, disk_ref, mem_ref, page_refs, l2_enabled, l2_ref);
     }else{
       int temp_mem_refs = mem_ref;
       pair<bool, vector<pair<int,int>>> dc_to_evict = l2.evict_given_pfn(pfn, mem_ref, l2_ref, cache);
       if(dc_to_evict.first){
-       // cout << "test || Evicting page VPN " << hex << vpns_in_use[oldest_index] << " from PFN " << hex << pfn << " || "; 
+        //cout << "test || Evicting page VPN " << hex << vpns_in_use[oldest_index] << " from PFN " << hex << pfn << " || "; 
         for(int i = 0; i < dc_to_evict.second.size(); i++){
           if(dc_to_evict.second[i].first == -1){
             continue;
@@ -63,6 +63,9 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
         }
       }
       mem_ref = max(mem_ref, temp_mem_refs);
+      //temp_mem_refs = mem_ref;
+      cache.evict_given_pfn(pfn, disk_ref, mem_ref, page_refs, l2_enabled, l2_ref);
+      
     }
     if(dtlb_enabled){
       dtlb.remove_dtlb_entries_bc_pt_eviction(vpn, pfn);

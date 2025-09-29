@@ -314,6 +314,223 @@ void simulate_withOUT_l2_enable(Config config) {
         }
       }
       config.counter += 1;
+    } else if (config.dc_write_thru_no_allo) {
+      if (!config.virt_addr) {
+        phys_page_num_bin = bin_string.substr(0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2); // physical page number calculations
+        if (phys_page_num >= config.physical_page_count) {
+          cout << "hierarchy: physical address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+        // print out address and basic stuff
+        cout << hex << setw(8) << setfill('0') << temp << "  ";
+        cout << setw(6) << setfill(' ') << " ";
+        page_off_bin = bin_string.substr(64 - (config.pt_offset_bit));
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << page_off << "  ";
+        cout << " " << setw(6) << setfill(' ');
+        cout << " ";
+        cout << " " << setw(3) << setfill(' ');
+        cout << " ";
+        cout << " " << setw(4) << setfill(' ');
+        cout << " ";
+        cout << setw(4) << setfill(' ');
+        cout << " ";
+        cout << setw(4) << setfill(' ') << hex << phys_page_num;
+        // dc calculations
+        dc_tag_bin = bin_string.substr(0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+        dc_index_bin = bin_string.substr((64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        if (config.dc_index_bits == 0) {
+          dc_index = 0;
+        } else {
+          dc_index = stoi(dc_index_bin, 0, 2);
+        }
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index << " ";
+        // check if the block is in the data cache
+        if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, -1, false)) {
+          cout << setfill(' ') << setw(4) << "hit  \n";
+          dc_hits += 1;
+          config.counter += 1; // if so then its a dc hit
+          if (is_write) {
+            memory_refs += 1;
+          }
+        } else {
+          cout << setfill(' ') << setw(4) << "miss \n";
+          config.counter += 1;
+          dc_misses += 1;
+          memory_refs;
+          if (!is_write) {
+            pair<bool, string> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, bin_string);
+          }
+          memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
+          // dont have to write back a dirty block
+        }
+      } else if (config.virt_addr && !config.dtlb_enabled) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
+        if (pfn == -1) {
+          pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second;
+          pt_faults += 1;
+          pt_refs += 1;
+          disk_refs += 1;
+          pt_res = "miss";
+        } else {
+          pt_refs += 1;
+          pt_hits += 1;
+          pt_res = "hit ";
+        }
+        cout << setw(21) << setfill(' ') << pt_res;
+
+        // PHYSICAL ADDRESS TRANSFORMATION
+        int physical_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        // cout << " ->" << config.pt_offset_bit << "<- ";
+        phys_page_num_bin = substr_safe(p_bin_string, 0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = substr_safe(p_bin_string, 0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = substr_safe(p_bin_string, (64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        if (config.dc_index_bits == 0) {
+          dc_index = 0;
+        } else {
+          dc_index = stoi(dc_index_bin, 0, 2);
+        }
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+
+        if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, pfn, false)) {
+          cout << setfill(' ') << setw(4) << " hit  \n";
+          dc_hits += 1;
+          config.counter += 1; // if so then its a dc hit
+          if (is_write) {
+            memory_refs += 1;
+          }
+        } else {
+          cout << setfill(' ') << setw(4) << " miss \n";
+          config.counter += 1;
+          dc_misses += 1;
+          memory_refs;
+          if (!is_write) {
+            pair<bool, string> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, pfn, p_bin_string);
+          }
+          memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
+          // dont have to write back a dirty block
+        }
+      } else if (config.virt_addr && config.dtlb_enabled) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        // PAGE OFFSET CALCULATION AND PRINTING
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        dtlb_index_and_tag = dtlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
+        dtlb_index = dtlb_index_and_tag.first;
+        dtlb_tag = dtlb_index_and_tag.second;
+        cout << setw(7) << setfill(' ') << hex << dtlb_tag;
+        cout << setw(4) << setfill(' ') << hex << dtlb_index;
+
+        dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
+        if (dtlb_search_result.first) {
+          cout << setw(4) << setfill(' ') << " hit ";
+          cout << setw(5) << setfill(' ') << " ";
+          dtlb_hits += 1;
+          pfn = dtlb_search_result.second;     
+          config.counter += 1;
+          pt.check_page_table(virt_page_num, config.counter, is_write);
+        } else {
+          cout << setw(4) << setfill(' ') << " miss";
+          dtlb_misses += 1;
+          pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
+          if (pfn == -1) {
+            pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second;
+            pt_faults += 1;
+            pt_refs += 1;
+            disk_refs += 1;
+            pt_res = "miss";
+          } else {
+            pt_refs += 1;
+            pt_hits += 1;
+            pt_res = "hit ";
+          }
+          dtlb.insert_to_dtlb(dtlb_index, dtlb_tag, config.counter, pfn);
+          cout << setw(5) << setfill(' ') << pt_res;
+        }
+
+        int physical_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        // cout << " ->" << config.pt_offset_bit << "<- ";
+        // cout << "||||| " << p_bin_string << " ||||  ";
+        phys_page_num_bin = substr_safe(p_bin_string, 0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = substr_safe(p_bin_string, 0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = substr_safe(p_bin_string, (64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        if (config.dc_index_bits == 0) {
+          dc_index = 0;
+        } else {
+          dc_index = stoi(dc_index_bin, 0, 2);
+        }
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+
+        if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, pfn, false)) {
+          cout << setfill(' ') << setw(4) << " hit  \n";
+          dc_hits += 1;
+          config.counter += 1; // if so then its a dc hit
+          if (is_write) {
+            memory_refs += 1;
+          }
+        } else {
+          cout << setfill(' ') << setw(4) << " miss \n";
+          config.counter += 1;
+          dc_misses += 1;
+          memory_refs;
+          if (!is_write) {
+            pair<bool, string> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, pfn, p_bin_string);
+          }
+          memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
+          // dont have to write back a dirty block
+        }
+      }
     }
   }
   print_stats(dtlb_hits, dtlb_misses, pt_hits, pt_faults, dc_hits, dc_misses, l2_hits, l2_misses, total_reads, total_writes, memory_refs, pt_refs, disk_refs);
@@ -545,6 +762,7 @@ void simulate_with_l2_enabled(Config config) {
           cout << setfill(' ') << setw(4) << " hit  \n";
           dc_hits += 1;
           config.counter += 1;
+          
           continue;
         } else {
           pair<bool, string> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, pfn, p_bin_string);
@@ -599,7 +817,7 @@ void simulate_with_l2_enabled(Config config) {
               if (dc_index_and_tags_to_invalidate[i].first == -1) {
                 continue;
               }
-              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_mem_refs);
+              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
             }
             memory_refs = max(memory_refs, temp_mem_refs);
             config.counter += 1;
@@ -743,6 +961,7 @@ void simulate_with_l2_enabled(Config config) {
           }
         }
       }
+    } else if (config.dc_write_thru_no_allo, !config.l2_write_thru_no_allo) {
     }
     config.counter += 1;
   }

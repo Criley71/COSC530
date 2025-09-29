@@ -145,7 +145,7 @@ pair<bool, vector<pair<int,int>>> L2::evict_given_pfn(int pfn, int &memory_refs,
         if (l2_cache[i][j].dirty) {
           if (amount_of_dirty == 0) {
             memory_refs += 1; // write the dirty L2 block
-          } else if (amount_of_dirty > 1) {
+          } else if (amount_of_dirty > 1 && dc_ratio == 1) {
             memory_refs += (amount_of_dirty - 1); // avoid double-count
           } else { // amount_of_dirty == 1
             memory_refs += 1;

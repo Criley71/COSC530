@@ -28,7 +28,7 @@ public:
   pair<bool, string> insert_to_cache(int dc_index, int dc_tag, int time, bool dirty, int pfn, string phys_addr);
   bool check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn , bool page_fault);
   void invalidate_bc_l2_eviction(int dc_index, int dc_tag, double& l2_refs, int& memory_refs);
-  bool evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs);
+  bool evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs, bool l2_enabled, double &l2_hits);
   bool is_dirty(int index, int tag, int pfn);
 };
 
