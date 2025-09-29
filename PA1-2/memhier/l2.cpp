@@ -40,6 +40,12 @@ pair<bool, vector<pair<int, int>>> L2::insert_to_l2(int l2_index, int l2_tag, in
       old_dirty = l2_cache[l2_index][i].dirty;
     }
   }
+  //if(l2_cache[l2_index][oldest_index].tag == 0x16765 && l2_index == 0x766){
+   // cout << "evicting it here ";
+    //for(int i = 0; i < set_size; i++){
+      //cout << "l2 index " << l2_index << " with tag " << l2_cache[l2_index][i].tag << " has a time of " << dec << l2_cache[l2_index][i].time_last_used << " | " << hex;
+    //}
+ // }
   if (oldest_used != -1 && l2_index == 0xb) {
     // cout << "  Replaceing " << " l2_index " << hex << l2_index << " with tag " << hex << l2_cache[l2_index][oldest_index].tag << " and time = " << dec <<l2_cache[l2_index][oldest_index].time_last_accessed << "|  ";
   }
@@ -120,7 +126,7 @@ void L2::update_dirty_bit(int l2_index, int l2_tag, int timer) {
     if (l2_cache[l2_index][i].tag == l2_tag) {
       l2_cache[l2_index][i].time_last_used = timer;
       l2_cache[l2_index][i].dirty = true;
-      return;
+      //return;
     }
   }
 }

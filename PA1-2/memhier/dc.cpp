@@ -64,9 +64,9 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn,
   if (page_fault) { // need to invalidate the block with pfn because a page fault occured
     for (int i = 0; i < set_count; i++) {
       for (int j = 0; j < set_size; j++) {
-        if(data_cache[0x2d][j].tag == 0xd3dd){
-          cout << "FOUND IT the associated pfn is " << data_cache[0x2d][j].pfn;
-        }
+        //if(data_cache[0x2d][j].tag == 0xd3dd){
+          //cout << "FOUND IT the associated pfn is " << data_cache[0x2d][j].pfn;
+        //}
         if (data_cache[i][j].pfn == pfn) {
           data_cache[i][j] = Cache_Block(-1, -1, false, -1, "");
           page_replace = true;
@@ -84,7 +84,7 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn,
         continue; // treat as miss for this entry
       }
         data_cache[dc_index][i].time_last_used = time;
-      if (is_write) {
+      if (is_write && !no_write_allo) {
         data_cache[dc_index][i].dirty = true;
       }
       return true;
