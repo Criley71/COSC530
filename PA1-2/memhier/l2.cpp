@@ -1,5 +1,5 @@
 #include "l2.h"
-
+using namespace std;
 L2_block::L2_block(int i, int t, int a, bool d, int pf, int dcr, bool v) {
   index = i;
   tag = t;

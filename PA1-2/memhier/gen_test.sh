@@ -79,8 +79,8 @@ Line size: $l2_line
 Write through/no write allocate: n
 
 Virtual addresses: $virt_addr
-TLB: n
-L2 cache: $l2
+TLB: $tlb
+L2 cache: n
 EOF
 
 echo "Generated trace.config"

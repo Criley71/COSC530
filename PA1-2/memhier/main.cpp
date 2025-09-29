@@ -29,7 +29,7 @@ void physical_write_back_dc_no_l2(Config config, string address);
 void physical_write_back_dc_with_l2(Config config, string address);
 void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs);
 string substr_safe(const string &s, int pos, int len);
-
+pair<int, int> dtlb_index_tag_getter(int vpn, int tlb_set_count);
 int main() {
   Config config = Config();
   config.print_config_after_read();
@@ -77,10 +77,15 @@ void simulate_withOUT_l2_enable(Config config) {
   string pt_res;
   string p_bin_string;
 
+  int dtlb_index;
+  int dtlb_tag;
+  pair<int, int> dtlb_index_and_tag;
+  pair<bool, int> dtlb_search_result;
   DC dc = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
   PT pt = PT(config.virtual_page_count, config.pt_to_l2_ratio, config.physical_page_count);
   // only have l2 since it is a pt check parameter
   L2 l2 = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits, config.l2_to_dc_ratio);
+  DTLB dtlb = DTLB(config.dtlb_set_count, config.dtlb_set_size);
 
   while (getline(cin, line)) {
     config.counter += 1;
@@ -166,7 +171,7 @@ void simulate_withOUT_l2_enable(Config config) {
 
         pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
         if (pfn == -1) {
-          pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs).second;
+          pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second;
           pt_faults += 1;
           pt_refs += 1;
           disk_refs += 1;
@@ -185,6 +190,95 @@ void simulate_withOUT_l2_enable(Config config) {
 
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
         // cout << " ->" << config.pt_offset_bit << "<- ";
+        phys_page_num_bin = substr_safe(p_bin_string, 0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = substr_safe(p_bin_string, 0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = substr_safe(p_bin_string, (64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        if (config.dc_index_bits == 0) {
+          dc_index = 0;
+        } else {
+          dc_index = stoi(dc_index_bin, 0, 2);
+        }
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+
+        if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, pfn, false)) {
+          cout << setfill(' ') << setw(4) << " hit  \n";
+          dc_hits += 1;
+          config.counter += 1;
+          continue;
+        } else {
+          pair<bool, string> was_dc_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, pfn, p_bin_string);
+          dc_misses += 1;
+          memory_refs += 1;
+          if (was_dc_replace.first) {
+            memory_refs += 1; // replaced block was dirty
+          }
+          cout << setfill(' ') << setw(4) << " miss \n";
+          config.counter += 1;
+        }
+      } else if (config.virt_addr && config.dtlb_enabled) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        // PAGE OFFSET CALCULATION AND PRINTING
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        dtlb_index_and_tag = dtlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
+        dtlb_index = dtlb_index_and_tag.first;
+        dtlb_tag = dtlb_index_and_tag.second;
+        cout << setw(7) << setfill(' ') << hex << dtlb_tag;
+        cout << setw(4) << setfill(' ') << hex << dtlb_index;
+
+        dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
+        if (dtlb_search_result.first) {
+          cout << setw(4) << setfill(' ') << " hit ";
+          cout << setw(5) << setfill(' ') << " ";
+          dtlb_hits += 1;
+          pfn = dtlb_search_result.second;
+          config.counter += 1;
+          pt.check_page_table(virt_page_num, config.counter, is_write);
+        } else {
+          cout << setw(4) << setfill(' ') << " miss";
+          dtlb_misses += 1;
+          pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
+          if (pfn == -1) {
+            pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second;
+            pt_faults += 1;
+            pt_refs += 1;
+            disk_refs += 1;
+            pt_res = "miss";
+          } else {
+            pt_refs += 1;
+            pt_hits += 1;
+            pt_res = "hit ";
+          }
+          dtlb.insert_to_dtlb(dtlb_index, dtlb_tag, config.counter, pfn);
+          cout << setw(5) << setfill(' ') << pt_res;
+        }
+
+        int physical_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        // cout << " ->" << config.pt_offset_bit << "<- ";
+        // cout << "||||| " << p_bin_string << " ||||  ";
         phys_page_num_bin = substr_safe(p_bin_string, 0, (64 - config.pt_offset_bit));
         phys_page_num = stoi(phys_page_num_bin, 0, 2);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
@@ -266,9 +360,15 @@ void simulate_with_l2_enabled(Config config) {
   string pt_res;
   string p_bin_string;
 
+  int dtlb_index;
+  int dtlb_tag;
+  pair<int, int> dtlb_index_and_tag;
+  pair<bool, int> dtlb_search_result;
+
   DC dc(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
   L2 l2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits, config.l2_to_dc_ratio);
   PT pt = PT(config.virtual_page_count, config.pt_to_l2_ratio, config.physical_page_count);
+  DTLB dtlb = DTLB(config.dtlb_set_count, config.dtlb_set_size);
   while (getline(cin, line)) {
     config.counter += 1; // i dont remember why i made this part of the config class but its too late to change
     if (line[0] == 'R') {
@@ -405,7 +505,7 @@ void simulate_with_l2_enabled(Config config) {
 
         pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
         if (pfn == -1) {
-          pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs).second;
+          pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second;
           pt_faults += 1;
           pt_refs += 1;
           disk_refs += 1;
@@ -491,7 +591,144 @@ void simulate_with_l2_enabled(Config config) {
           // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
-          //cout << " pfn for l2 " << pfn << "||";
+          // cout << " pfn for l2 " << pfn << "||";
+          pair<bool, vector<pair<int, int>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, pfn, memory_refs, dc_index, dc_tag);
+          if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
+            vector<pair<int, int>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
+            for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
+              if (dc_index_and_tags_to_invalidate[i].first == -1) {
+                continue;
+              }
+              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_mem_refs);
+            }
+            memory_refs = max(memory_refs, temp_mem_refs);
+            config.counter += 1;
+          }
+        }
+      } else if (config.virt_addr && config.dtlb_enabled) {
+        virt_page_num_bin = bin_string.substr(0, 64 - config.pt_offset_bit);
+        virt_page_num = stoi(virt_page_num_bin, 0, 2);
+        if (virt_page_num >= config.virtual_page_count) {
+          cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
+          exit(-1);
+        }
+
+        cout << hex << setw(8) << setfill('0') << temp;
+        cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
+
+        // PAGE OFFSET CALCULATION AND PRINTING
+        page_off_bin = bin_string.substr(64 - config.pt_offset_bit);
+        page_off = stoi(page_off_bin, 0, 2);
+        cout << setw(4) << hex << setfill(' ') << page_off;
+
+        dtlb_index_and_tag = dtlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
+        dtlb_index = dtlb_index_and_tag.first;
+        dtlb_tag = dtlb_index_and_tag.second;
+        cout << setw(7) << setfill(' ') << hex << dtlb_tag;
+        cout << setw(4) << setfill(' ') << hex << dtlb_index;
+
+        dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
+        if (dtlb_search_result.first) {
+          cout << setw(4) << setfill(' ') << " hit ";
+          cout << setw(5) << setfill(' ') << " ";
+          dtlb_hits += 1;
+          pfn = dtlb_search_result.second;
+          config.counter += 1;
+          pt.check_page_table(virt_page_num, config.counter, is_write);
+        } else {
+          cout << setw(4) << setfill(' ') << " miss";
+          dtlb_misses += 1;
+          pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
+          if (pfn == -1) {
+            pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second;
+            pt_faults += 1;
+            pt_refs += 1;
+            disk_refs += 1;
+            pt_res = "miss";
+          } else {
+            pt_refs += 1;
+            pt_hits += 1;
+            pt_res = "hit ";
+          }
+          dtlb.insert_to_dtlb(dtlb_index, dtlb_tag, config.counter, pfn);
+          cout << setw(5) << setfill(' ') << pt_res;
+        }
+
+        int physical_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
+        p = bitset<64>(physical_address);
+        p_bin_string = p.to_string();
+
+        // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
+        // cout << " ->" << config.pt_offset_bit << "<- ";
+        // cout << "||||| " << p_bin_string << " ||||  ";
+        phys_page_num_bin = substr_safe(p_bin_string, 0, (64 - config.pt_offset_bit));
+        phys_page_num = stoi(phys_page_num_bin, 0, 2);
+        cout << setw(5) << setfill(' ') << hex << phys_page_num;
+
+        // DC TAG FOR VIRTUAL ADDRESSES
+        dc_tag_bin = substr_safe(p_bin_string, 0, (64 - (config.dc_index_bits + config.dc_offset_bits)));
+        dc_tag = stoi(dc_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << dc_tag;
+
+        // DC INDEX FOR VIRTUAL ADDRESSES
+        dc_index_bin = substr_safe(p_bin_string, (64 - (config.dc_index_bits + config.dc_offset_bits)), config.dc_index_bits);
+        if (config.dc_index_bits == 0) {
+          dc_index = 0;
+        } else {
+          dc_index = stoi(dc_index_bin, 0, 2);
+        }
+        cout << " " << setw(3) << setfill(' ') << hex << dc_index;
+        if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, pfn, false)) {
+          cout << setfill(' ') << setw(4) << " hit  \n";
+          dc_hits += 1;
+          config.counter += 1;
+          continue;
+        } else {
+          pair<bool, string> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, pfn, p_bin_string);
+          dc_misses += 1;
+          if (was_dc_replaced_and_was_dirty.first) {
+            l2_hits += 1; // replaced block was dirty maybe dont need
+            string old_address = was_dc_replaced_and_was_dirty.second;
+            l2_tag_bin = old_address.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+            l2_tag = stoi(l2_tag_bin, 0, 2);
+            l2_index_bin = old_address.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+            if (config.l2_index_bits == 0) {
+              l2_index = 0;
+            } else {
+              l2_index = stoi(l2_index_bin, 0, 2);
+            }
+            l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update only the dirty bit and access time
+            config.counter += 1;
+          }
+          cout << setfill(' ') << setw(4) << " miss";
+          config.counter += 1;
+        }
+
+        l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
+        l2_tag = stoi(l2_tag_bin, 0, 2);
+        cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
+        l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
+        if (config.l2_index_bits == 0) {
+          l2_index = 0;
+        } else {
+          l2_index = stoi(l2_index_bin, 0, 2);
+        }
+        cout << setw(3) << setfill(' ') << hex << l2_index;
+        if (l2.check_l2(l2_index, l2_tag, config.counter, is_write, pfn, false)) {
+          l2_hits += 1; // was found so l2 hit
+          cout << " hit \n";
+          config.counter += 1;
+        } else {
+          // was not found, so l2 miss and need to reference memory to get it.
+          cout << " miss\n";
+          memory_refs += 1;
+          l2_misses += 1;
+          int temp_mem_refs = memory_refs;
+          // so basically we need this temp counter as the insert and invalidate functions will increment them but
+          // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
+          // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
+          // we then take the larger of the 2
+          // cout << " pfn for l2 " << pfn << "||";
           pair<bool, vector<pair<int, int>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, pfn, memory_refs, dc_index, dc_tag);
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<int, int>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
@@ -585,4 +822,31 @@ string substr_safe(const string &s, int pos, int len) {
     len = string_length - pos;
   }
   return s.substr(pos, len);
+}
+
+pair<int, int> dtlb_index_tag_getter(int vpn, int tlb_set_count) {
+  // i orignally calculated this like i did the other indexs and tags
+  // but i kept getting errors on it so bit shift time.
+  int tlb_index_bits = 0;
+  int sets = tlb_set_count;
+  while (sets > 1) {
+    sets >>= 1;
+    tlb_index_bits++;
+    // increment the amount of bits and right shift
+    // the amount of sets by 1. this is equivelant to power of 2
+    // 8 = 1000 -> 0100 = 4, tlb_index_bits=1
+    // 0100-> 0010 = 2, tlb_index_bits=2
+    // 0010 ->0001 = 1, tlb_index_bits=3
+  }
+  // shift 1 to the left, tlb_index_bit times and subtrace 1
+  // ex: 1 << 3 = 8
+  // 8 - 1 = 7 or 0111
+  // this will make a mask for the index
+  int index_mask = (1ULL << tlb_index_bits) - 1;
+  int index = vpn & index_mask;
+  // tag is the remaining parts of the vpn, so right shift it
+  // tlb_index_bits times
+  int tag = vpn >> tlb_index_bits;
+
+  return {index, tag};
 }

@@ -1,5 +1,5 @@
 #include "pt.h"
-
+using namespace std;
 Page::Page(int pt_l2_ratio) {
   //l2_index_tag_map.resize(pt_l2_ratio, {-1, -1});
 }
@@ -20,7 +20,7 @@ int PT::check_page_table(int vpn, int timer, bool is_write) { // return pfn, -1 
   return page_table[vpn].pfn;
 }
 
-pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_write, int page_offset, int page_offset_bits, bool l2_enabled, DC &cache, L2 &l2, int &disk_ref, int &mem_ref, double &l2_ref, int& page_refs){
+pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_write, int page_offset, int page_offset_bits, bool l2_enabled, DC &cache, L2 &l2, int &disk_ref, int &mem_ref, double &l2_ref, int& page_refs, bool dtlb_enabled, DTLB &dtlb){
   int pfn;
   if (ppc == pfn_in_use_count) { // if all pfns are in use then we need to evict
     bool was_dirty = false;
@@ -42,6 +42,7 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
         }
       }
     pfn = oldest_pfn;
+    
     if(was_dirty){
       disk_ref+=1;
     }
@@ -63,6 +64,10 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
       }
       mem_ref = max(mem_ref, temp_mem_refs);
     }
+    if(dtlb_enabled){
+      dtlb.remove_dtlb_entries_bc_pt_eviction(vpn, pfn);
+    }
+    
     page_table[vpns_in_use[oldest_index]].dirty = false;
     page_table[vpns_in_use[oldest_index]].pfn = -1;
     page_table[vpns_in_use[oldest_index]].time_last_used = -1;
@@ -86,6 +91,7 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
     }
     pfn_in_use_count+=1;
   }
+  //cout << "pfn from pt " << pfn << " | ";
   return {false, pfn};
 }
 
