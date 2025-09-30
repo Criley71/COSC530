@@ -1,11 +1,12 @@
 #include "dc.h"
 
-Cache_Block::Cache_Block(int t, int u, bool d, int p, string pa) {
+Cache_Block::Cache_Block(uint64_t t, int u, bool d, int p, uint64_t pa, bool v) {
   tag = t;
   time_last_used = u;
   dirty = d;
   pfn = p;
   physical_address = pa;
+  valid = v;
 }
 
 DC::DC(int sc, int ss, int ls, bool wa, int ibs, int obs) {
@@ -17,15 +18,15 @@ DC::DC(int sc, int ss, int ls, bool wa, int ibs, int obs) {
   offset_bit_size = obs;
   data_cache.resize(set_count);
   for (int i = 0; i < set_count; i++) {
-    data_cache[i].resize(set_size, Cache_Block(-1, -1, false, -1, ""));
+    data_cache[i].resize(set_size, Cache_Block(0, -1, false, -1, 0, false));
   }
 }
 
-pair<bool, string> DC::insert_to_cache(int dc_index, int dc_tag, int time, bool dirty, int pfn, string phys_addr) {
+pair<bool, uint64_t> DC::insert_to_cache(uint64_t dc_index, uint64_t dc_tag, int time, bool dirty, int pfn, uint64_t phys_addr) {
   int oldest_used = INT32_MAX;
   bool old_dirty = false;
   int oldest_index = 0;
-  string old_address = "";
+  uint64_t old_address = 0;
   bool is_full = true;
   for (int i = 0; i < set_size; i++) {
     if (data_cache[dc_index][i].tag == -1) {
@@ -48,6 +49,7 @@ pair<bool, string> DC::insert_to_cache(int dc_index, int dc_tag, int time, bool 
   data_cache[dc_index][oldest_index].dirty = dirty;
   data_cache[dc_index][oldest_index].pfn = pfn;
   data_cache[dc_index][oldest_index].physical_address = phys_addr;
+  data_cache[dc_index][oldest_index].valid = true;
   if (is_full) {
     if (old_dirty) {
       return {true, old_address}; // replaced a block and it was dirty
@@ -55,35 +57,30 @@ pair<bool, string> DC::insert_to_cache(int dc_index, int dc_tag, int time, bool 
       return {false, old_address}; // replaced a clean block
     }
   } else {
-    return {false, ""}; // did not have to replace a block
+    return {false, 0}; // did not have to replace a block
   }
 }
 
-bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn, bool page_fault) {
-  bool page_replace = false;
-  if (page_fault) { // need to invalidate the block with pfn because a page fault occured
-    for (int i = 0; i < set_count; i++) {
-      for (int j = 0; j < set_size; j++) {
-        //if(data_cache[0x2d][j].tag == 0xd3dd){
-          //cout << "FOUND IT the associated pfn is " << data_cache[0x2d][j].pfn;
-        //}
-        if (data_cache[i][j].pfn == pfn) {
-          data_cache[i][j] = Cache_Block(-1, -1, false, -1, "");
-          page_replace = true;
-        }
+bool DC::check_cache(uint64_t dc_index, uint64_t dc_tag, int time, bool is_write, int pfn, bool check_the_l2_stuff) {
+
+  if (check_the_l2_stuff) {
+    for (int i = 0; i < set_size; i++) {
+      if (data_cache[dc_index][i].tag == dc_tag) {
+        return check_cache(dc_index, dc_tag, time, is_write, pfn, false);
       }
     }
-    return page_replace;
+    return false;
   }
   for (int i = 0; i < set_size; i++) {
-    if (data_cache[dc_index][i].tag == dc_tag) {
-      //if(dc_tag == 0xd3dd && dc_index == 0x2d){
-            //cout << "found this " << pfn << " <- ";
-         // }
-      if (pfn != -1 && data_cache[dc_index][i].pfn != pfn) {
-        continue; // treat as miss for this entry
-      }
-        data_cache[dc_index][i].time_last_used = time;
+    for (int i = 0; i < set_size; i++) {
+    }
+    if (data_cache[dc_index][i].tag == dc_tag && data_cache[dc_index][i].valid) {
+     
+      // if(dc_tag == 0xd3dd && dc_index == 0x2d){
+      // cout << "found this " << pfn << " <- ";
+      // }
+      
+      data_cache[dc_index][i].time_last_used = time;
       if (is_write && !no_write_allo) {
         data_cache[dc_index][i].dirty = true;
       }
@@ -92,14 +89,14 @@ bool DC::check_cache(int dc_index, int dc_tag, int time, bool is_write, int pfn,
   }
   return false;
 }
-void DC::invalidate_bc_l2_eviction(int dc_index, int dc_tag, double &l2_refs, int &memory_refs) {
+void DC::invalidate_bc_l2_eviction(uint64_t dc_index, uint64_t dc_tag, double &l2_refs, int &memory_refs) {
   for (int i = 0; i < set_size; i++) {
-    if (data_cache[dc_index][i].tag == dc_tag && data_cache[dc_index][i].pfn != -1) {
-      if (data_cache[dc_index][i].dirty && !no_write_allo) {
-        l2_refs += 1; // possibly a hit also on no write allocate
+    if (data_cache[dc_index][i].tag == dc_tag && data_cache[dc_index][i].valid) {
+      if (data_cache[dc_index][i].dirty) {
+        l2_refs += 1;     // possibly a hit also on no write allocate
         memory_refs += 1; // write dirty block back to main memory (count it)
       }
-      data_cache[dc_index][i] = Cache_Block(-1, -1, false, -1, "");
+      data_cache[dc_index][i] = Cache_Block(0, -1, false, -1, 0, false);
     }
   }
 }
@@ -110,15 +107,15 @@ bool DC::evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs, 
     for (int j = 0; j < set_size; j++) {
       if (data_cache[i][j].pfn == pfn) {
         if (data_cache[i][j].dirty) {
-          if(l2_enabled){
-            l2_hits+=1;
-            //mem_refs += 1; // Need to count memory reference even with L2 since block is dirty
-          }else if (!l2_enabled && !no_write_allo){
-           mem_refs += 1; // this is called when a page fault occurs with no l2 enabled
+          if (l2_enabled) {
+            l2_hits += 1;
+            // mem_refs += 1; // Need to count memory reference even with L2 since block is dirty
+          } else if (!l2_enabled && !no_write_allo) {
+            mem_refs += 1; // this is called when a page fault occurs with no l2 enabled
           }
           // any dirty will write to memory
         }
-        data_cache[i][j] = Cache_Block(-1, -1, false, -1, "");
+        data_cache[i][j] = Cache_Block(0, -1, false, -1, 0, false);
         page_replace = true;
       }
     }
@@ -126,7 +123,7 @@ bool DC::evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs, 
   return page_replace;
 }
 
-bool DC::is_dirty(int index, int tag, int pfn) {
+bool DC::is_dirty(uint64_t index, uint64_t tag, int pfn) {
   for (int i = 0; i < set_size; i++) {
     if (data_cache[index][i].tag == tag) {
       if (pfn != -1 && data_cache[index][i].pfn != pfn) {

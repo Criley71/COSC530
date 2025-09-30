@@ -32,7 +32,7 @@ public:
   int check_page_table(int vpn, int timer, bool is_write);
   pair<bool, int> insert_page(int vpn, int vpc, int ppc, int timer, bool is_write, int page_offset, int page_offset_bits, bool l2_enabled, DC &cache, L2 &l2, int &disk_ref, int &mem_ref, double &l2_ref, int &page_refs,bool dtlb_enabled, DTLB &dtlb);
   int get_current_page_use_count();
-  int translate_to_phys_address(int pfn, int page_offset, int page_offset_bits);
+  uint64_t translate_to_phys_address(uint64_t pfn, int page_offset, int page_offset_bits);
 
 };
 

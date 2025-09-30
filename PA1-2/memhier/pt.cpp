@@ -51,6 +51,7 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
     }else{
       int temp_mem_refs = mem_ref;
       pair<bool, vector<pair<int,int>>> dc_to_evict = l2.evict_given_pfn(pfn, mem_ref, l2_ref, cache);
+      
       if(dc_to_evict.first){
         //cout << "test || Evicting page VPN " << hex << vpns_in_use[oldest_index] << " from PFN " << hex << pfn << " || "; 
         for(int i = 0; i < dc_to_evict.second.size(); i++){
@@ -62,9 +63,9 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
           }
         }
       }
+      cache.evict_given_pfn(pfn, disk_ref, mem_ref, page_refs, l2_enabled, l2_ref);
       mem_ref = max(mem_ref, temp_mem_refs);
       //temp_mem_refs = mem_ref;
-      cache.evict_given_pfn(pfn, disk_ref, mem_ref, page_refs, l2_enabled, l2_ref);
       
     }
     if(dtlb_enabled){
@@ -98,7 +99,7 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
   return {false, pfn};
 }
 
-int PT::translate_to_phys_address(int pfn, int page_offset, int page_offset_bits) {
-  int physical_address = (pfn << page_offset_bits) | page_offset;
+uint64_t PT::translate_to_phys_address(uint64_t pfn, int page_offset, int page_offset_bits) {
+  uint64_t physical_address = (pfn << page_offset_bits) | page_offset;
   return physical_address;
 }

@@ -1,0 +1,6 @@
+
+
+write at c8587640
+writing back DC line with tag 642c4 and index 14 to L2 cache
+invalidating DC line with tag 642c4 and index 14 since L2 line with tag 321622 and index 4 is being replaced <- THIS IS MISSING
+writing back L2 line with tag 321622 and index 4 to memory 
