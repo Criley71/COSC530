@@ -29,7 +29,7 @@ pair<bool, uint64_t> DC::insert_to_cache(uint64_t dc_index, uint64_t dc_tag, int
   uint64_t old_address = 0;
   bool is_full = true;
   for (int i = 0; i < set_size; i++) {
-    if (data_cache[dc_index][i].tag == -1) {
+    if (data_cache[dc_index][i].time_last_used == -1 ) {
       is_full = false;
       break;
     }
@@ -62,17 +62,9 @@ pair<bool, uint64_t> DC::insert_to_cache(uint64_t dc_index, uint64_t dc_tag, int
 }
 
 bool DC::check_cache(uint64_t dc_index, uint64_t dc_tag, int time, bool is_write, int pfn, bool check_the_l2_stuff) {
-
-  
   for (int i = 0; i < set_size; i++) {
-    for (int i = 0; i < set_size; i++) {
-    }
     if (data_cache[dc_index][i].tag == dc_tag && data_cache[dc_index][i].valid) {
-     
-      // if(dc_tag == 0xd3dd && dc_index == 0x2d){
-      // cout << "found this " << pfn << " <- ";
-      // }
-      if(!check_the_l2_stuff){
+      if (!check_the_l2_stuff) {
         data_cache[dc_index][i].time_last_used = time;
       }
       if (is_write && !no_write_allo) {

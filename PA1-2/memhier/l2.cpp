@@ -62,7 +62,7 @@ pair<bool, vector<pair<uint64_t, uint64_t>>> L2::insert_to_l2(uint64_t l2_index,
   return {was_full, old_dc_address};
 }
 
-void L2::insert_address_to_block(uint64_t index, uint64_t tag, uint64_t dc_i, uint64_t dc_t, DC cache, int timer ) {
+void L2::insert_address_to_block(uint64_t index, uint64_t tag, uint64_t dc_i, uint64_t dc_t, DC &cache, int timer) {
   if (dc_t == 0x642c4 && dc_i == 0x13) {
     //cout << " trying here at l2 index " << index << " tag " << tag << "  ";
   }
@@ -181,7 +181,7 @@ pair<bool, vector<pair<int, int>>> L2::evict_given_pfn(int pfn, int &memory_refs
   return {replace, evicted_dc_blocks};
 }
 
-void L2::update_the_dc_ind_tag(uint64_t l2_index, uint64_t l2_tag, uint64_t dc_index, uint64_t dc_tag, DC cache, int pfn, int &timer) {
+void L2::update_the_dc_ind_tag(uint64_t l2_index, uint64_t l2_tag, uint64_t dc_index, uint64_t dc_tag, DC &cache, int pfn, int &timer) {
   for (int i = 0; i < set_size; i++) {
     if (l2_cache[l2_index][i].tag == l2_tag) {
       for (int j = 0; j < dc_ratio; j++) {
