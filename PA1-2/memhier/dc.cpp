@@ -63,14 +63,7 @@ pair<bool, uint64_t> DC::insert_to_cache(uint64_t dc_index, uint64_t dc_tag, int
 
 bool DC::check_cache(uint64_t dc_index, uint64_t dc_tag, int time, bool is_write, int pfn, bool check_the_l2_stuff) {
 
-  if (check_the_l2_stuff) {
-    for (int i = 0; i < set_size; i++) {
-      if (data_cache[dc_index][i].tag == dc_tag) {
-        return check_cache(dc_index, dc_tag, time, is_write, pfn, false);
-      }
-    }
-    return false;
-  }
+  
   for (int i = 0; i < set_size; i++) {
     for (int i = 0; i < set_size; i++) {
     }
@@ -79,8 +72,9 @@ bool DC::check_cache(uint64_t dc_index, uint64_t dc_tag, int time, bool is_write
       // if(dc_tag == 0xd3dd && dc_index == 0x2d){
       // cout << "found this " << pfn << " <- ";
       // }
-      
-      data_cache[dc_index][i].time_last_used = time;
+      if(!check_the_l2_stuff){
+        data_cache[dc_index][i].time_last_used = time;
+      }
       if (is_write && !no_write_allo) {
         data_cache[dc_index][i].dirty = true;
       }

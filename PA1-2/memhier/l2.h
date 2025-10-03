@@ -32,7 +32,7 @@ class L2 {
   vector<vector<L2_block>> l2_cache;
   L2(int sc, int ss, int ls, bool wa, int ibs, int obs, int dcr);
   pair<bool, vector<pair<uint64_t,uint64_t>>> insert_to_l2(uint64_t l2_index, uint64_t l2_tag, int time, bool dirty , int pfn, int &memory_refs, uint64_t dc_i, uint64_t dc_t);
-  void insert_address_to_block(uint64_t index, uint64_t tag, uint64_t dc_i, uint64_t dc_t);
+  void insert_address_to_block(uint64_t index, uint64_t tag, uint64_t dc_i, uint64_t dc_t, DC cache, int timer);
   bool check_l2(uint64_t l2_index, uint64_t l2_tag, int time, bool dirty, int pfn, bool page_fault);
   bool check_if_index_is_full(int index);
   void update_used_time(uint64_t l2_index, uint64_t l2_tag, int timer);
