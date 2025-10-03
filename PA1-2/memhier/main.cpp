@@ -589,13 +589,16 @@ void simulate_with_l2_enabled(Config config) {
           l2_tag = get_tag(original_address, config.l2_offset_bits, config.l2_index_bits);
           l2_index = get_index(original_address, config.l2_offset_bits, config.l2_index_bits);
           if (config.l2_to_dc_ratio != 1) {
-            //l2.check_l2(l2_index, l2_tag, config.counter, is_write, -1, false);
-            //cout << "should i be updating here";
+            // l2.check_l2(l2_index, l2_tag, config.counter, is_write, -1, false);
+            // cout << "should i be updating here";
           }
           continue;
 
           // address was found in dc
         } else {
+          if(dc_index == 0x13 && dc_tag == 0x642c4){
+            cout << " right fucking here ";
+          }
           dc_hit = false;
           // address wasnt found. need to check if a block was evicted to then see if it was dirty and write that to l2
           pair<bool, uint64_t> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
@@ -611,8 +614,8 @@ void simulate_with_l2_enabled(Config config) {
             l2_index = get_index(old_address, config.l2_offset_bits, config.l2_index_bits);
 
             l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update only the dirty bit and access time
-            if (l2_tag == 0x1ebdbc) {
-             // cout << "should be updating here";
+            if (l2_tag == 0x190b11 && l2_index == 0x1) {
+              cout << "updating dirty bit of it here at counter " << dec << config.counter << " ";
             }
 
             config.counter += 1;
@@ -624,23 +627,34 @@ void simulate_with_l2_enabled(Config config) {
         l2_index = get_index(original_address, config.l2_offset_bits, config.l2_index_bits);
         cout << setw(3) << setfill(' ') << hex << l2_index;
         // check if the block was in l2
-
+        if (l2_tag == 0x190b11 && l2_index == 0x1) {
+          cout << "accessing it here at counter " << dec << config.counter << " " << hex;
+        }
+        if(dc_index == 0x13 && dc_tag == 0x642c4){
+          cout << " right fucking here corresponding l2 index " << l2_index << " and tag " << l2_tag << "   ";
+        }
         if (l2.check_l2(l2_index, l2_tag, config.counter, is_write, -1, false)) {
           l2_hits += 1; // was found so l2 hit
-                        // l2.update_the_dc_ind_tag(l2_index, l2_tag, dc_index, dc_tag, dc, -1, config.counter);
+          if (l2_index == 0x1 && (l2_tag == 0x190b11)) {
+            cout << " updating " << l2_index << ", " << l2_tag << " here ";
+          }
+          // l2.update_the_dc_ind_tag(l2_index, l2_tag, dc_index, dc_tag, dc, -1, config.counter);
           config.counter += 1;
           l2.update_used_time(l2_index, l2_tag, config.counter);
           if (is_write) {
             l2.update_dirty_bit(l2_index, l2_tag, config.counter);
           }
           if (config.l2_to_dc_ratio != 1 && !dc_hit) {
-            // cout << " trying to insert dc's " << dc_index << " tag " << dc_tag << " into l2s " << l2_index << " tag " << l2_tag << " | ";
+
             config.counter += 1;
             l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter);
           }
           cout << " hit \n"; // i possibly need to update dc tag and dc index on dc miss but l2 hit
           config.counter += 1;
         } else {
+          if (l2_index == 0x1 && (l2_tag == 0x190b11)) {
+            cout << " inserting " << l2_index << ", " << l2_tag << " here ";
+          }
           // was not found, so l2 miss and need to reference memory to get it.
           cout << " miss";
           memory_refs += 1;
@@ -663,7 +677,9 @@ void simulate_with_l2_enabled(Config config) {
               }
               // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_mem_refs);
-              //cout << " Evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << "  checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " |";
+              if (l2_index == 0x1) {
+                cout << " Evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << "  checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " becuase l2 index " << l2_index << " tag " << l2_tag << " is replacing its l2 |  ";
+              }
 
               config.counter += 1;
               // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
