@@ -331,7 +331,6 @@ void simulate_withOUT_l2_enable(Config config) {
           cout << setfill(' ') << setw(4) << "miss \n";
           config.counter += 1;
           dc_misses += 1;
-          memory_refs;
           if (!is_write) {
             pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
           }
@@ -651,10 +650,8 @@ void simulate_with_l2_enabled(Config config) {
           uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
           for (int i = 0; i < config.l2_to_dc_ratio; i++) {
             uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
-
             uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
             uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
-
             // Insert mapping into the L2 block’s dc_index_and_tags
             l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
           }
@@ -890,28 +887,22 @@ void simulate_with_l2_enabled(Config config) {
           memory_refs += 1;
           l2_misses += 1;
           int temp_memory_refs = memory_refs;
+          bool was_l2_dirty = false;
           // so basically we need this temp counter as the insert and invalidate functions will increment them but
           // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
           // cout << " pfn for l2 " << pfn << "||";
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, memory_refs, dc_index, dc_tag);
+          if (temp_memory_refs != memory_refs) {
+            was_l2_dirty = true;
+          }
+          temp_memory_refs = memory_refs;
           uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
           for (int i = 0; i < config.l2_to_dc_ratio; i++) {
             uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
-
             uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
             uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
-
-            // Insert mapping into the L2 block’s dc_index_and_tags
-            l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
-          }
-          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
-            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
-
-            uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
-            uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
-
             // Insert mapping into the L2 block’s dc_index_and_tags
             l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
           }
@@ -923,7 +914,9 @@ void simulate_with_l2_enabled(Config config) {
               }
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_memory_refs);
             }
-            memory_refs = max(memory_refs, temp_memory_refs);
+            if (temp_memory_refs > memory_refs && !was_l2_dirty) {
+              memory_refs += 1;
+            }
             config.counter += 1;
           }
         }
@@ -998,11 +991,25 @@ void simulate_with_l2_enabled(Config config) {
           memory_refs += 1;
           l2_misses += 1;
           int temp_memory_refs = memory_refs;
+          bool was_l2_dirty = false;
           // so basically we need this temp counter as the insert and invalidate functions will increment them but
           // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, memory_refs, dc_index, dc_tag);
+          if (temp_memory_refs != memory_refs) {
+            was_l2_dirty = true;
+          }
+          uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+
+            uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+
+            // Insert mapping into the L2 block’s dc_index_and_tags
+            l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+          }
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
@@ -1104,6 +1111,14 @@ void simulate_with_l2_enabled(Config config) {
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, memory_refs, dc_index, dc_tag);
+          uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+            uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            // Insert mapping into the L2 block’s dc_index_and_tags
+            l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+          }
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
@@ -1237,6 +1252,14 @@ void simulate_with_l2_enabled(Config config) {
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, memory_refs, dc_index, dc_tag);
+          uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+            uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            // Insert mapping into the L2 block’s dc_index_and_tags
+            l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+          }
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
 
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
@@ -1318,11 +1341,22 @@ void simulate_with_l2_enabled(Config config) {
           }
           // config.counter+=1;
         } else {
-          cout << " miss";
+          cout << " miss\n";
           memory_refs += 1;
           l2_misses += 1;
+
+          bool was_dc_dirty = false;
           int place_holder = 0; // l2 cant be dirty, pass this in place of the memory_ref parameter to insert, which would look if the evicted was dirty
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
+          uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+            uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            // Insert mapping into the L2 block’s dc_index_and_tags
+            l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+          }
+          int temp_memory_refs = memory_refs;
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             // cout << "DO WE GET HERE?";
@@ -1332,16 +1366,21 @@ void simulate_with_l2_enabled(Config config) {
               }
               // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
+              if (memory_refs != temp_memory_refs) {
+                was_dc_dirty = true;
+              }
               // cout << " EVicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << " | checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " ";
-
               // config.counter+=1;
               // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
+            }
+            if (was_dc_dirty) {
+              memory_refs = temp_memory_refs + 1;
             }
 
             // memory_refs+=1; //dont know if this is needed
           }
         }
-        cout << "\n";
+        // cout << "\n";
         config.counter += 1;
       } else if (config.virt_addr && !config.dtlb_enabled) {
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
@@ -1426,11 +1465,21 @@ void simulate_with_l2_enabled(Config config) {
           }
           // config.counter+=1;
         } else {
-          cout << " miss";
+          cout << " miss\n";
           memory_refs += 1;
           l2_misses += 1;
+          bool was_dc_dirty = false;
           int place_holder = 0; // l2 cant be dirty, pass this in place of the memory_ref parameter to insert, which would look if the evicted was dirty
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
+          uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+            uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            // Insert mapping into the L2 block’s dc_index_and_tags
+            l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+          }
+          int temp_memory_refs = memory_refs;
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             // cout << "DO WE GET HERE?";
@@ -1441,15 +1490,19 @@ void simulate_with_l2_enabled(Config config) {
               // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
               // cout << " EVicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << " | checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " ";
-
+              if (memory_refs != temp_memory_refs) {
+                was_dc_dirty = true;
+              }
               // config.counter+=1;
               // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
+            }
+            if (was_dc_dirty) {
+              memory_refs = temp_memory_refs + 1;
             }
 
             // memory_refs+=1; //dont know if this is needed
           }
         }
-        cout << "\n";
 
       } else if (config.virt_addr && config.dtlb_enabled) {
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
@@ -1555,11 +1608,22 @@ void simulate_with_l2_enabled(Config config) {
           }
           // config.counter+=1;
         } else {
-          cout << " miss";
+          cout << " miss\n";
           memory_refs += 1;
           l2_misses += 1;
+          bool was_dc_dirty = false;
           int place_holder = 0; // l2 cant be dirty, pass this in place of the memory_ref parameter to insert, which would look if the evicted was dirty
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
+          uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+            uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+            // Insert mapping into the L2 block’s dc_index_and_tags
+            l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+          }
+          int temp_memory_refs = memory_refs;
+
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             // cout << "DO WE GET HERE?";
@@ -1570,15 +1634,19 @@ void simulate_with_l2_enabled(Config config) {
               // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
               // cout << " EVicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << " | checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " ";
-
+              if (memory_refs != temp_memory_refs) {
+                was_dc_dirty = true;
+              }
               // config.counter+=1;
               // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
+            }
+            if (was_dc_dirty) {
+              memory_refs = temp_memory_refs + 1;
             }
 
             // memory_refs+=1; //dont know if this is needed
           }
         }
-        cout << "\n";
       }
     } else if (config.dc_write_thru_no_allo && config.l2_write_thru_no_allo) {
 
@@ -1626,7 +1694,7 @@ void simulate_with_l2_enabled(Config config) {
           config.counter += 1;
           dc_misses += 1;
           if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, translated_address);
+            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
           }
         }
         l2_tag = get_tag(original_address, config.l2_offset_bits, config.l2_index_bits);
@@ -1643,23 +1711,39 @@ void simulate_with_l2_enabled(Config config) {
         } else {
           l2_misses += 1;
           memory_refs += 1;
-          cout << " miss\n";
           int place_holder = 0;
+          uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
+          cout << " miss\n";
           if (!is_write) {
-
+            // cout << "WHY THE FUCK IS IT A NEW LINE";
             pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
+            for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+              uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+              uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+              uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+              // Insert mapping into the L2 block’s dc_index_and_tags
+              l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+            }
+            int temp_memory_refs = memory_refs;
             if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
               vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
               for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
+                // cout << "????";
                 if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
                   continue;
                 }
                 dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, place_holder);
+                // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
+
+                // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
               }
               config.counter += 1;
             }
           }
+          config.counter += 1;
         }
+        config.counter += 1;
+
       } else if (config.virt_addr && !config.dtlb_enabled) {
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
@@ -1736,8 +1820,15 @@ void simulate_with_l2_enabled(Config config) {
           cout << " miss\n";
           int place_holder = 0;
           if (!is_write) {
-
             pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
+            uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
+            for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+              uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+              uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+              uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+              // Insert mapping into the L2 block’s dc_index_and_tags
+              l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+            }
             if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
               vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
               for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
@@ -1851,6 +1942,14 @@ void simulate_with_l2_enabled(Config config) {
           if (!is_write) {
 
             pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
+            uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
+            for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+              uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+              uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
+              uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
+              // Insert mapping into the L2 block’s dc_index_and_tags
+              l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
+            }
             if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
               vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
               for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {

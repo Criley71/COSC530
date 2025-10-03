@@ -39,18 +39,18 @@ pair<bool, vector<pair<uint64_t, uint64_t>>> L2::insert_to_l2(uint64_t l2_index,
       old_dirty = l2_cache[l2_index][i].dirty;
     }
   }
-  if (l2_index == 0x1 && was_full) {
+  //if (l2_index == 0x1 && was_full) {
     //cout << " evicting it here! ";
-    for (int i = 0; i < set_size; i++) {
+    //for (int i = 0; i < set_size; i++) {
      // cout << "l2 index " << l2_index << " with tag " << l2_cache[l2_index][i].tag << " has a time of " << dec << l2_cache[l2_index][i].time_last_used << " | " << hex;
-    }
-  }
+   // }
+ // }
   if (old_dirty == 1) {
     memory_refs += 1; // if the old block was dirty then write to memory
   }
-  if (oldest_used != -1 && l2_index == 0x1) {
-    // cout << hex << " evicting here l2 index " << l2_cache[l2_index][oldest_entry].index << " with tag " << l2_cache[l2_index][oldest_entry].tag << " | ";
-  }
+  //if (oldest_used != -1) {
+     //cout << hex << " evicting here l2 index " << l2_cache[l2_index][oldest_entry].index << " with tag " << l2_cache[l2_index][oldest_entry].tag << " | ";
+  //}
   vector<pair<uint64_t, uint64_t>> old_dc_address = l2_cache[l2_index][oldest_entry].dc_index_and_tags;
   l2_cache[l2_index][oldest_entry].index = l2_index;
   l2_cache[l2_index][oldest_entry].tag = l2_tag;
@@ -66,7 +66,6 @@ pair<bool, vector<pair<uint64_t, uint64_t>>> L2::insert_to_l2(uint64_t l2_index,
 void L2::insert_address_to_block(uint64_t index, uint64_t tag, uint64_t dc_i, uint64_t dc_t, DC &cache, int timer, int map_i) {
   
 
-  for (int j = 0; j < set_size; j++) {
 
     for (int j = 0; j < set_size; j++) {
       if (l2_cache[index][j].tag == tag && l2_cache[index][j].valid) {
@@ -74,7 +73,7 @@ void L2::insert_address_to_block(uint64_t index, uint64_t tag, uint64_t dc_i, ui
         return;
       }
     }
-  }
+  
 }
 
   bool L2::check_l2(uint64_t l2_index, uint64_t l2_tag, int time, bool dirty, int pfn, bool page_fault) {
