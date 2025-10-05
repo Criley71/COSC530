@@ -43,8 +43,19 @@ wt_nwa_dc=$([ $((RANDOM % 2)) -eq 0 ] && echo "y" || echo "n")
 # L2 Cache
 l2_sets=$(pow2 1 8192)
 l2_assoc=$(( (RANDOM % 8) + 1 ))
-l2_line=$dc_line  # must equal DC line size
+
+# Ensure L2 line size >= DC line size, both powers of 2
+# Get all possible power-of-two values within range [dc_line, 1024]
+possible_l2_lines=()
+val=$dc_line
+while [ $val -le 1024 ]; do
+    possible_l2_lines+=($val)
+    val=$((val * 2))
+done
+l2_line=${possible_l2_lines[$RANDOM % ${#possible_l2_lines[@]}]}
+
 wt_nwa_l2=$([ $((RANDOM % 2)) -eq 0 ] && echo "y" || echo "n")
+
 
 # Features
 virt_addr=$([ $((RANDOM % 2)) -eq 0 ] && echo "y" || echo "n")
@@ -70,17 +81,17 @@ Data Cache configuration
 Number of sets: $dc_sets
 Set size: $dc_assoc
 Line size: $dc_line
-Write through/no write allocate: n
+Write through/no write allocate: $wt_nwa_dc
 
 L2 Cache configuration
 Number of sets: $l2_sets
 Set size: $l2_assoc
 Line size: $l2_line
-Write through/no write allocate: n
+Write through/no write allocate: $wt_nwa_l2
 
 Virtual addresses: $virt_addr
 TLB: $tlb
-L2 cache: n
+L2 cache: $l2
 EOF
 
 echo "Generated trace.config"
@@ -89,29 +100,31 @@ echo "Generated trace.config"
 > trace.dat
 
 
+# Compute the maximum addressable space based on virtual or physical addresses
 virt_space=$((virt_pages * page_size))
-if [ $virt_space -gt 4294967296 ]; then
-    virt_space=4294967296
+phys_space=$((phys_pages * page_size))
+
+# Cap to 4GB max since addresses are 32-bit
+max_space=1073741824
+if [ $virt_space -gt $max_space ]; then virt_space=$max_space; fi
+if [ $phys_space -gt $max_space ]; then phys_space=$max_space; fi
+
+# Decide which space to use for address generation
+if [ "$virt_addr" = "y" ]; then
+    addr_limit=$virt_space
+else
+    addr_limit=$phys_space
 fi
 
-
-addr_bits=$(awk -v v=$virt_space 'BEGIN {
+# Compute the number of bits needed
+addr_bits=$(awk -v v=$addr_limit 'BEGIN {
     b=0;
     while (2^b < v) b++;
     print b
 }')
 
-
-for j in $(seq 1 5000); do
-    op=$([ $((RANDOM % 2)) -eq 0 ] && echo "R" || echo "W")
-    raw=$(od -An -N4 -tu4 /dev/urandom | tr -d ' ')
-    raw=$(( raw % virt_space ))
-    addr=$(printf "%08x" $raw)
-    echo "$op:$addr" >> trace.dat
-done
-
-echo "Generated trace.dat"
-
+./truncate $addr_bits < long_trace.dat > trace.dat
+echo "Truncated trace.dat"
 ./main < trace.dat > out.txt
 ./memhier_ref < trace.dat > ref_out.txt
 diff -u out.txt ref_out.txt > diff.txt

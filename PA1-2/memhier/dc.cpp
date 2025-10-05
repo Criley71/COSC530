@@ -91,7 +91,8 @@ bool DC::evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs, 
   bool page_replace = false;
   for (int i = 0; i < set_count; i++) {
     for (int j = 0; j < set_size; j++) {
-      if (data_cache[i][j].pfn == pfn) {
+      if (data_cache[i][j].pfn == pfn && data_cache[i][j].valid) {
+        //cout << " | evicting dc index " <<  i << " tag " << data_cache[i][j].tag << " | ";
         if (data_cache[i][j].dirty) {
           if (l2_enabled) {
             l2_hits += 1;

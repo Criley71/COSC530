@@ -59,7 +59,7 @@ Config::Config() {
           } else if (line.find("Page size") == 0) {
             colon_index = line.find(':') + 2;
             val = line.substr(colon_index, line.size());
-            page_size = stoi(val);
+            page_size = stol(val);
 
             val = "";
             if (!check_pwr_2(page_size)) {

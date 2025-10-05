@@ -18,7 +18,7 @@ public:
   bool dtlb_enabled;
   int dtlb_associativity;
 
-  int page_size;
+  long page_size;
   int pt_offset_bit;
   int pt_index_bits;
 

@@ -46,6 +46,7 @@ void DTLB::remove_dtlb_entries_bc_pt_eviction(int vpn, int pfn) {
   for(int i = 0; i < set_count; i++){
     for(int j = 0; j < set_size; j++){
       if(dtlb[i][j].pfn == pfn && dtlb[i][j].valid){
+       // cout << "| DTLB entry "<< i << " tag " << dtlb[i][j].pfn << " is now invalidated | ";
         dtlb[i][j].pfn = -1;
         dtlb[i][j].tag = -1;
         dtlb[i][j].time_last_used = -1;

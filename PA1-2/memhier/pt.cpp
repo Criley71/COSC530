@@ -49,22 +49,29 @@ pair<bool, int> PT::insert_page(int vpn, int vpc, int ppc, int timer, bool is_wr
     if(!l2_enabled){
       cache.evict_given_pfn(pfn, disk_ref, mem_ref, page_refs, l2_enabled, l2_ref);
     }else{
-      int temp_mem_refs = mem_ref;
-      pair<bool, vector<pair<int,int>>> dc_to_evict = l2.evict_given_pfn(pfn, mem_ref, l2_ref, cache);
+      int temp_mem_ref = mem_ref;
+     // cout << " physical page " << pfn << " is being replaced";
+      pair<bool, vector<pair<uint64_t,uint64_t>>> dc_to_evict = l2.evict_given_pfn(pfn, temp_mem_ref, l2_ref, cache);
       
       if(dc_to_evict.first){
         //cout << "test || Evicting page VPN " << hex << vpns_in_use[oldest_index] << " from PFN " << hex << pfn << " || "; 
         for(int i = 0; i < dc_to_evict.second.size(); i++){
-          if(dc_to_evict.second[i].first == -1){
-            continue;
-          }else{
-            //cout << " || Evicting DC block due to L2 eviction: DC Index " << hex << dc_to_evict.second[i].first << " DC Tag " << hex << dc_to_evict.second[i].second << " || ";
-            cache.invalidate_bc_l2_eviction(dc_to_evict.second[i].first, dc_to_evict.second[i].second, l2_ref, temp_mem_refs);
-          }
+          
+            if(cache.check_cache(dc_to_evict.second[i].first, dc_to_evict.second[i].second, timer, false, pfn, true)){
+              //cout << " || Evicting DC block due to L2 eviction: DC Index " << hex << dc_to_evict.second[i].first << " DC Tag " << hex << dc_to_evict.second[i].second << " || ";
+            }
+            cache.invalidate_bc_l2_eviction(dc_to_evict.second[i].first, dc_to_evict.second[i].second, l2_ref, mem_ref);
+          
         }
       }
-      cache.evict_given_pfn(pfn, disk_ref, mem_ref, page_refs, l2_enabled, l2_ref);
-      mem_ref = max(mem_ref, temp_mem_refs);
+      cache.evict_given_pfn(pfn, disk_ref, temp_mem_ref, page_refs, l2_enabled, l2_ref);
+      if(!l2.no_write_allo && !cache.no_write_allo){
+        mem_ref = max(mem_ref, temp_mem_ref);
+      }else if(l2.no_write_allo && !cache.no_write_allo){
+        mem_ref = mem_ref;
+      }else if(!l2.no_write_allo && cache.no_write_allo){
+        mem_ref = temp_mem_ref;
+      }
       //temp_mem_refs = mem_ref;
       
     }

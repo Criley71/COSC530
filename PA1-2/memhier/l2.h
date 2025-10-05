@@ -26,7 +26,7 @@ class L2 {
   int set_count;
   int set_size;
   int line_size;
-  bool write_allo_write_back;
+  bool no_write_allo;
   int index_bit_size;
   int offset_bit_size;
   int dc_ratio;
@@ -38,7 +38,7 @@ class L2 {
   bool check_if_index_is_full(int index);
   void update_used_time(uint64_t l2_index, uint64_t l2_tag, int timer);
   void update_dirty_bit(uint64_t l2_index, uint64_t l2_tag, int timer);
-  pair<bool, vector<pair<int,int>>> evict_given_pfn(int pfn, int &memory_refs, double &l2_hits, DC &dc);
+  pair<bool, vector<pair<uint64_t,uint64_t>>> evict_given_pfn(int pfn, int &memory_refs, double &l2_hits, DC &dc);
   void update_the_dc_ind_tag(uint64_t l2_index, uint64_t l2_tag, uint64_t dc_index, uint64_t dc_tag, DC &cache, int pfn, int &timer);
 };
 
