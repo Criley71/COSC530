@@ -16,7 +16,7 @@ DTLB::DTLB(int sc, int ss) {
     dtlb[i].resize(set_size, DTLB_entry(-1, -1));
   }
 }
-
+//insert to dtlb and replace if needed
 void DTLB::insert_to_dtlb(int index, int tag, int time, int pfn) {
   int oldest_used = INT32_MAX;
   int oldest_index = 0;
@@ -31,7 +31,7 @@ void DTLB::insert_to_dtlb(int index, int tag, int time, int pfn) {
   dtlb[index][oldest_index].pfn = pfn;
   dtlb[index][oldest_index].valid = true;
 }
-
+//check if in dtlb and return pfn, return -1 if not found 
 pair<bool, int> DTLB::check_dtlb(int index, int tag, int time) {
   for (int i = 0; i < set_size; i++) {
     if (dtlb[index][i].tag == tag && dtlb[index][i].valid == true) {
@@ -41,7 +41,7 @@ pair<bool, int> DTLB::check_dtlb(int index, int tag, int time) {
   }
   return {false, -1};
 }
-
+//pt eviction needs to evict dtlb entry
 void DTLB::remove_dtlb_entries_bc_pt_eviction(int vpn, int pfn) {
   for(int i = 0; i < set_count; i++){
     for(int j = 0; j < set_size; j++){

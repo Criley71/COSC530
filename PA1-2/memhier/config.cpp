@@ -7,7 +7,7 @@ Config::Config() {
   string line;
   string val;
   int colon_index;
-
+  //reads through the trace.config file and pulls the settings and stores them as a variables
   while (getline(fin, line)) {
     if (!line.empty()) {
       if (line.find("Data TLB configuration") == 0) { // looks for dtlb header

@@ -39,7 +39,6 @@ class L2 {
   void update_used_time(uint64_t l2_index, uint64_t l2_tag, int timer);
   void update_dirty_bit(uint64_t l2_index, uint64_t l2_tag, int timer);
   pair<bool, vector<pair<uint64_t,uint64_t>>> evict_given_pfn(int pfn, int &memory_refs, double &l2_hits, DC &dc);
-  void update_the_dc_ind_tag(uint64_t l2_index, uint64_t l2_tag, uint64_t dc_index, uint64_t dc_tag, DC &cache, int pfn, int &timer);
 };
 
 #endif

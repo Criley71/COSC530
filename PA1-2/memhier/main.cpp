@@ -1,3 +1,12 @@
+/*
+Connor Riley
+COSC530 Fall 2025
+PA-1 Memory Hierarchy
+This simulates a 1 or 2 level cache with with an optional
+Page Table and DTLB. Settings are set in trace.config
+ans memory addresses are input via stdin
+*/
+
 #include "config.h"
 #include "dc.h"
 #include "dtlb.h"
@@ -17,29 +26,25 @@
 
 using namespace std;
 
-// safe substring for bitstrings: checks bounds and clamps length to avoid std::out_of_range
+void simulate_withOUT_l2_enable(Config config); // simulation without l2
+void simulate_with_l2_enabled(Config config);   // simulation with l2
+// these are seperate as counting memory references differs if enabled
 
-void read_data_no_virtual(Config config); // reads in the line and will call the appropraite set of functions based on the config
-void read_data_virtual(Config config);
-
-void simulate_withOUT_l2_enable(Config config);
-void simulate_with_l2_enabled(Config config);
-
-void physical_write_back_dc_no_l2(Config config, string address);
-void physical_write_back_dc_with_l2(Config config, string address);
+// prints the final stats of simulation
 void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs);
-string substr_safe(const string &s, int pos, int len);
 
+// generic helper functions for finding an offset, index, tag and page num, regardless of what level of the hierarchy is calling it
 uint64_t get_offset(uint64_t address, int offset_bit_count);
 uint64_t get_index(uint64_t address, int offset_bit_count, int index_bit_count);
 uint64_t get_tag(uint64_t address, int offset_bit_count, int index_bit_count);
 uint64_t get_page_num(uint64_t address, int offset_bit);
 
+// non-generic helper function to getthe dtlbs index and tag based on the vpn
 pair<int, int> dtlb_index_tag_getter(int vpn, int tlb_set_count);
-int main() {
-  Config config = Config();
-  config.print_config_after_read();
 
+int main() {
+  Config config = Config();         // config.h and config.cpp, reads in trace.config and makes a Config object that has all settings as fields
+  config.print_config_after_read(); // prints out the header part of the output
   if (!config.l2_enabled) {
     simulate_withOUT_l2_enable(config);
   } else {
@@ -48,7 +53,7 @@ int main() {
 }
 
 void simulate_withOUT_l2_enable(Config config) {
-  bool is_write;
+  // variables for statistics
   double dtlb_hits = 0;
   double dtlb_misses = 0;
   double pt_hits = 0;
@@ -62,41 +67,39 @@ void simulate_withOUT_l2_enable(Config config) {
   int memory_refs = 0;
   int pt_refs = 0;
   int disk_refs = 0;
+  // variables for reading in address and setting write flags
+  bool is_write;
   string line;
   string hex_val;
   stringstream ss;
   bitset<64> b;
   bitset<64> p;
-
+  // variables for parts the address, uint64_t because i was originally getting overflow errors
   string bin_string;
-  string phys_page_num_bin;
   uint64_t phys_page_num;
-  string page_off_bin;
   uint64_t page_off;
-  string dc_tag_bin;
   uint64_t dc_tag;
-  string dc_index_bin;
   uint64_t dc_index;
-
-  string virt_page_num_bin;
   uint64_t virt_page_num;
   uint64_t pfn;
   string pt_res;
   string p_bin_string;
-
+  // original just means the virtual or physical read in
   uint64_t original_address;
-  uint64_t translated_address;
-  int temp_pfn;
+  uint64_t translated_address; // this is for dc and l2 when VA is enabled
+  int temp_pfn;                // while this is temporary it is used often for the pfn as the objects have pfns as ints
   int dtlb_index;
   int dtlb_tag;
   pair<int, int> dtlb_index_and_tag;
   pair<bool, int> dtlb_search_result;
+  // The different levels of the memory hierarchy initialized
   DC dc = DC(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
   PT pt = PT(config.virtual_page_count, config.pt_to_l2_ratio, config.physical_page_count);
-  // only have l2 since it is a pt check parameter
-  L2 l2 = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits, config.l2_to_dc_ratio);
   DTLB dtlb = DTLB(config.dtlb_set_count, config.dtlb_set_size);
+  L2 l2 = L2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits, config.l2_to_dc_ratio);
+  // only have l2 since it is a pt check parameter
 
+  // start reading in address in a loop from stdin, set if its a read or write
   while (getline(cin, line)) {
     config.counter += 1;
     if (line[0] == 'R') {
@@ -115,9 +118,12 @@ void simulate_withOUT_l2_enable(Config config) {
     b = bitset<64>(temp);
     bin_string = b.to_string();
     config.counter += 1;
+    // data cache write back write allocate policy
     if (!config.dc_write_thru_no_allo) {
-      if (!config.virt_addr) {                                                // no virtual address
-        phys_page_num = get_page_num(original_address, config.pt_offset_bit); // physical page number calculations
+      if (!config.virt_addr) { // no virtual address
+
+        // physical page number calculations
+        phys_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (phys_page_num >= config.physical_page_count) {
           cout << "hierarchy: physical address " << hex << temp << " is too large.\n";
           exit(-1);
@@ -158,36 +164,39 @@ void simulate_withOUT_l2_enable(Config config) {
           cout << setfill(' ') << setw(4) << "miss \n";
           config.counter += 1;
         }
-      } else if (config.virt_addr && !config.dtlb_enabled) {
+      } else if (config.virt_addr && !config.dtlb_enabled) { // address are virtual but no dtlb
+        // vpn calculation and bounds checking
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
           exit(-1);
         }
+        // print basic info
         cout << hex << setw(8) << setfill('0') << temp;
         cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
+        // this check_page_table function returns the pfn, if not there it returns -1
         temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-        if (temp_pfn == -1) {
+        if (temp_pfn == -1) { // wasnt in pt, need to insert it
           temp_pfn = pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second;
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_faults += 1;
           pt_refs += 1;
           disk_refs += 1;
           pt_res = "miss";
-        } else {
+        } else { // was found in pt, cast temp_pfn to uint64_t
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_refs += 1;
           pt_hits += 1;
           pt_res = "hit ";
         }
+        // prints page table result
         cout << setw(21) << setfill(' ') << pt_res;
 
         // PHYSICAL ADDRESS TRANSFORMATION
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
-        // cout << " ->" << config.pt_offset_bit << "<- ";
         phys_page_num = get_page_num(translated_address, config.pt_offset_bit);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
         // DC TAG FOR VIRTUAL ADDRESSES
@@ -197,11 +206,13 @@ void simulate_withOUT_l2_enable(Config config) {
         dc_index = get_index(translated_address, config.dc_offset_bits, config.dc_index_bits);
         cout << " " << setw(3) << setfill(' ') << hex << dc_index;
         if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, false)) {
+          // was found in dc
           cout << setfill(' ') << setw(4) << " hit  \n";
           dc_hits += 1;
           config.counter += 1;
           continue;
         } else {
+          // wasnt found in dc, check if eviction happened and if so if it was a dirty block
           pair<bool, uint64_t> was_dc_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           dc_misses += 1;
           memory_refs += 1;
@@ -211,7 +222,8 @@ void simulate_withOUT_l2_enable(Config config) {
           cout << setfill(' ') << setw(4) << " miss \n";
           config.counter += 1;
         }
-      } else if (config.virt_addr && config.dtlb_enabled) {
+      } else if (config.virt_addr && config.dtlb_enabled) { // VA and dtlb enabled
+        // get vpn and bound checking
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
@@ -225,33 +237,34 @@ void simulate_withOUT_l2_enable(Config config) {
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
 
+        // DTLB information getter and printing
         dtlb_index_and_tag = dtlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
         dtlb_index = dtlb_index_and_tag.first;
         dtlb_tag = dtlb_index_and_tag.second;
         cout << setw(7) << setfill(' ') << hex << dtlb_tag;
         cout << setw(4) << setfill(' ') << hex << dtlb_index;
-
+        // searcgs dtlb using index and tag
         dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
-        if (dtlb_search_result.first) {
+        if (dtlb_search_result.first) { // was in dtlb meaning it was in pt
           cout << setw(4) << setfill(' ') << " hit ";
           cout << setw(5) << setfill(' ') << " ";
           dtlb_hits += 1;
           temp_pfn = dtlb_search_result.second;
           pfn = static_cast<uint64_t>(temp_pfn);
           config.counter += 1;
-          pt.check_page_table(virt_page_num, config.counter, is_write);
-        } else {
+          pt.check_page_table(virt_page_num, config.counter, is_write); // updates last use time, for lru
+        } else {                                                        // wasnt in dtlb need to check pt
           cout << setw(4) << setfill(' ') << " miss";
           dtlb_misses += 1;
           temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-          if (temp_pfn == -1) {
+          if (temp_pfn == -1) { // wasnt in page table, need to insert it and return pfn
             temp_pfn = (pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_faults += 1;
             pt_refs += 1;
             disk_refs += 1;
             pt_res = "miss";
-          } else {
+          } else { // was found so returns the pfn
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_refs += 1;
             pt_hits += 1;
@@ -264,8 +277,6 @@ void simulate_withOUT_l2_enable(Config config) {
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
 
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
-        // cout << " ->" << config.pt_offset_bit << "<- ";
-        // cout << "||||| " << p_bin_string << " ||||  ";
         phys_page_num = get_page_num(translated_address, config.pt_offset_bit);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
 
@@ -278,11 +289,13 @@ void simulate_withOUT_l2_enable(Config config) {
         cout << " " << setw(3) << setfill(' ') << hex << dc_index;
 
         if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, false)) {
+          // is there in dc
           cout << setfill(' ') << setw(4) << " hit  \n";
           dc_hits += 1;
           config.counter += 1;
           continue;
         } else {
+          // isnt found, need to insert and check if possible eviction was dirty
           pair<bool, uint64_t> was_dc_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           dc_misses += 1;
           memory_refs += 1;
@@ -294,7 +307,7 @@ void simulate_withOUT_l2_enable(Config config) {
         }
       }
       config.counter += 1;
-    } else if (config.dc_write_thru_no_allo) {
+    } else if (config.dc_write_thru_no_allo) { // DC write through no write allocate
       if (!config.virt_addr) {
         phys_page_num = get_page_num(original_address, config.pt_offset_bit); // physical page number calculations
         if (phys_page_num >= config.physical_page_count) {
@@ -325,38 +338,40 @@ void simulate_withOUT_l2_enable(Config config) {
           cout << setfill(' ') << setw(4) << "hit  \n";
           dc_hits += 1;
           config.counter += 1; // if so then its a dc hit
-          if (is_write) {
+          if (is_write) {      // writes through to main memory
             memory_refs += 1;
           }
         } else {
           cout << setfill(' ') << setw(4) << "miss \n";
           config.counter += 1;
           dc_misses += 1;
-          if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
+          if (!is_write) { // only add it to dc if its a read
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
           }
           memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
           // dont have to write back a dirty block
         }
-      } else if (config.virt_addr && !config.dtlb_enabled) {
+      } else if (config.virt_addr && !config.dtlb_enabled) { // VA no dtlb
+        // vpn and bound checking
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
           exit(-1);
         }
+        // page table printing
         cout << hex << setw(8) << setfill('0') << temp;
         cout << setfill(' ') << setw(7) << hex << virt_page_num << " ";
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
         temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-        if (temp_pfn == -1) {
+        if (temp_pfn == -1) { // wasnt in pt, need to insert it and return pfn
           temp_pfn = (pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_faults += 1;
           pt_refs += 1;
           disk_refs += 1;
           pt_res = "miss";
-        } else {
+        } else { // was in pt return pfn
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_refs += 1;
           pt_hits += 1;
@@ -367,7 +382,6 @@ void simulate_withOUT_l2_enable(Config config) {
         // PHYSICAL ADDRESS TRANSFORMATION
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
-        // cout << " ->" << config.pt_offset_bit << "<- ";
         phys_page_num = get_page_num(translated_address, config.pt_offset_bit);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
         // DC TAG FOR VIRTUAL ADDRESSES
@@ -380,21 +394,21 @@ void simulate_withOUT_l2_enable(Config config) {
           cout << setfill(' ') << setw(4) << " hit  \n";
           dc_hits += 1;
           config.counter += 1; // if so then its a dc hit
-          if (is_write) {
+          if (is_write) {      // writes through to main memory
             memory_refs += 1;
           }
         } else {
           cout << setfill(' ') << setw(4) << " miss \n";
           config.counter += 1;
           dc_misses += 1;
-          memory_refs;
-          if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
+          if (!is_write) { // only add it to dc on reads
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           }
           memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
           // dont have to write back a dirty block
         }
-      } else if (config.virt_addr && config.dtlb_enabled) {
+      } else if (config.virt_addr && config.dtlb_enabled) { // VA and dtlb enabled
+        // vpn calculations and bound checking
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
@@ -407,7 +421,7 @@ void simulate_withOUT_l2_enable(Config config) {
         // PAGE OFFSET CALCULATION AND PRINTING
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
-
+        // dtlb calculations and printing
         dtlb_index_and_tag = dtlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
         dtlb_index = dtlb_index_and_tag.first;
         dtlb_tag = dtlb_index_and_tag.second;
@@ -415,26 +429,26 @@ void simulate_withOUT_l2_enable(Config config) {
         cout << setw(4) << setfill(' ') << hex << dtlb_index;
 
         dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
-        if (dtlb_search_result.first) {
+        if (dtlb_search_result.first) { // was in dtlb so we have the pfn
           cout << setw(4) << setfill(' ') << " hit ";
           cout << setw(5) << setfill(' ') << " ";
           dtlb_hits += 1;
           temp_pfn = dtlb_search_result.second;
           pfn = static_cast<uint64_t>(temp_pfn);
           config.counter += 1;
-          pt.check_page_table(virt_page_num, config.counter, is_write);
-        } else {
+          pt.check_page_table(virt_page_num, config.counter, is_write); // updates page table use time
+        } else {                                                        // wasnt in dtlb, now check pt
           cout << setw(4) << setfill(' ') << " miss";
           dtlb_misses += 1;
           temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-          if (temp_pfn == -1) {
+          if (temp_pfn == -1) { // wasnt in pt, insert and get pfn
             temp_pfn = (pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_faults += 1;
             pt_refs += 1;
             disk_refs += 1;
             pt_res = "miss";
-          } else {
+          } else { // was in pt, gets pfn
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_refs += 1;
             pt_hits += 1;
@@ -447,8 +461,6 @@ void simulate_withOUT_l2_enable(Config config) {
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
 
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
-        // cout << " ->" << config.pt_offset_bit << "<- ";
-        // cout << "||||| " << p_bin_string << " ||||  ";
         phys_page_num = get_page_num(translated_address, config.pt_offset_bit);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
 
@@ -463,16 +475,15 @@ void simulate_withOUT_l2_enable(Config config) {
           cout << setfill(' ') << setw(4) << " hit  \n";
           dc_hits += 1;
           config.counter += 1; // if so then its a dc hit
-          if (is_write) {
+          if (is_write) {      // write through to memory
             memory_refs += 1;
           }
         } else {
           cout << setfill(' ') << setw(4) << " miss \n";
           config.counter += 1;
           dc_misses += 1;
-          memory_refs;
-          if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
+          if (!is_write) { // only add to dc on read
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           }
           memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
           // dont have to write back a dirty block
@@ -480,12 +491,12 @@ void simulate_withOUT_l2_enable(Config config) {
       }
     }
   }
+  // print calculated stats
   print_stats(dtlb_hits, dtlb_misses, pt_hits, pt_faults, dc_hits, dc_misses, l2_hits, l2_misses, total_reads, total_writes, memory_refs, pt_refs, disk_refs);
 }
 
 void simulate_with_l2_enabled(Config config) {
-
-  bool is_write;
+  // stat variables
   double dtlb_hits = 0;
   double dtlb_misses = 0;
   double pt_hits = 0;
@@ -499,49 +510,44 @@ void simulate_with_l2_enabled(Config config) {
   int memory_refs = 0;
   int pt_refs = 0;
   int disk_refs = 0;
+  // address access info
+  bool is_write;
   string line;
   string hex_val;
   stringstream ss;
   bitset<64> b;
   bitset<64> p;
-
+  // values to be calculated
   string bin_string;
-  string phys_page_num_bin;
   uint64_t phys_page_num;
-  string page_off_bin;
   uint64_t page_off;
-  string dc_tag_bin;
   uint64_t dc_tag;
-  string dc_index_bin;
   uint64_t dc_index;
   uint64_t l2_tag;
-  string l2_tag_bin;
   uint64_t l2_index;
-  string l2_index_bin;
-
-  string virt_page_num_bin;
   uint64_t virt_page_num;
   uint64_t pfn;
   string pt_res;
   string p_bin_string;
 
-  uint64_t original_address;
-  uint64_t translated_address;
+  uint64_t original_address;   // first address read in, virtual or physical
+  uint64_t translated_address; // translated from virtual to physical
   int temp_pfn;
   int dtlb_index;
   int dtlb_tag;
   bool dirty_replaced;
   pair<int, int> dtlb_index_and_tag;
   pair<bool, int> dtlb_search_result;
-  bool dc_hit = true;
-  int place_holder = 0;
+
+  int place_holder = 0; // this is for some stat parameters to not be incremented on under certain conditions
   DC dc(config.dc_set_count, config.dc_set_size, config.dc_line_size, config.dc_write_thru_no_allo, config.dc_index_bits, config.dc_offset_bits);
   L2 l2(config.l2_set_count, config.l2_set_size, config.l2_line_size, config.l2_write_thru_no_allo, config.l2_index_bits, config.l2_offset_bits, config.l2_to_dc_ratio);
   PT pt = PT(config.virtual_page_count, config.pt_to_l2_ratio, config.physical_page_count);
   DTLB dtlb = DTLB(config.dtlb_set_count, config.dtlb_set_size);
-  int t = 0;
+  // int t = 0;
   while (getline(cin, line)) {
-    config.counter += 1; // i dont remember why i made this part of the config class but its too late to change
+    // read in address and set read and write flags
+    config.counter += 1;
     if (line[0] == 'R') {
       is_write = false;
       total_reads += 1;
@@ -557,7 +563,7 @@ void simulate_with_l2_enabled(Config config) {
     ss.clear();
     b = bitset<64>(temp);
     bin_string = b.to_string();
-
+    // both levels are write back write allocate
     if (!config.dc_write_thru_no_allo && !config.l2_write_thru_no_allo) {
       if (!config.virt_addr) { // No virtual address enabled
         // begin calculating basic information and make sure address is valid
@@ -586,36 +592,28 @@ void simulate_with_l2_enabled(Config config) {
         dc_index = get_index(original_address, config.dc_offset_bits, config.dc_index_bits);
         cout << " " << setw(3) << setfill(' ') << hex << dc_index << " ";
         // check if the block is in the data cache
-        dc_hit = true;
+        // dc_hit = true;
         if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, -1, false)) {
+          // address was found in dc
           cout << setfill(' ') << setw(4) << "hit  \n";
           dc_hits += 1;
           config.counter += 1;
           l2_tag = get_tag(original_address, config.l2_offset_bits, config.l2_index_bits);
           l2_index = get_index(original_address, config.l2_offset_bits, config.l2_index_bits);
-
           continue;
 
-          // address was found in dc
         } else {
-
-          dc_hit = false;
-          // address wasnt found. need to check if a block was evicted to then see if it was dirty and write that to l2
+          //  address wasnt found. need to check if a block was evicted to then see if it was dirty and write that to l2
           pair<bool, uint64_t> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
           dc_misses += 1;
           // config.counter+=1;
           cout << setfill(' ') << setw(4) << "miss";
           bool dirty_replaced = was_dc_replaced_and_was_dirty.first;
-          //cout << " OLD ADDRESS? " << was_dc_replaced_and_was_dirty.second << " ?>?>>>>??? ";
           if (dirty_replaced) {
-            //cout << "TEST?";
-            l2_hits += 1; // if it was dirty then we hit the l2 block and update it
+            l2_hits += 1; // if it was dirty then we hit the l2 block and update its dirty bit
             uint64_t old_address = was_dc_replaced_and_was_dirty.second;
-
             l2_tag = get_tag(old_address, config.l2_offset_bits, config.l2_index_bits);
             l2_index = get_index(old_address, config.l2_offset_bits, config.l2_index_bits);
-
-            
             l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update only the dirty bit and access time
             l2.update_used_time(l2_index, l2_tag, config.counter);
             config.counter += 1;
@@ -656,9 +654,12 @@ void simulate_with_l2_enabled(Config config) {
             was_l2_dirty = true;
           }
           temp_memory_refs = memory_refs;
+          // this will fill the l2's vector of its corresponding dc blocks automatically, even if not in the dc at the time of making this l2 block
+          // on eviction we will check if the dc block even exists before trying to evict
+          // remove the offset via a mask to get the start of the l2 block
           uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
           for (int i = 0; i < config.l2_to_dc_ratio; i++) {
-            uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
+            uint64_t dc_address = l2_block_start + (i * config.dc_line_size); // finds the dc block based on l2 offset
             uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
             uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
             // Insert mapping into the L2 block’s dc_index_and_tags
@@ -666,22 +667,16 @@ void simulate_with_l2_enabled(Config config) {
           }
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
-            // cout << "DO WE GET HERE?";
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
-              // cout << "check?";
-              // cout << " " << i << "<- ";
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
-                // cout << "was empty";
-                continue;
+                continue; // not in the dc
               }
-
-              // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
-
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_memory_refs);
-
+              // invalidate the dc block
               config.counter += 1;
-              // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
             }
+            // if l2 wasnt dirty and we did increment in the dc.invalidate... function we only increment memory refs once as it writes back to the
+            // same l2 block that will then do 1 write back to main memory
             if (temp_memory_refs > memory_refs && !was_l2_dirty) {
               memory_refs += 1;
             }
@@ -691,7 +686,8 @@ void simulate_with_l2_enabled(Config config) {
 
         config.counter += 1;
 
-      } else if (config.virt_addr && !config.dtlb_enabled) {
+      } else if (config.virt_addr && !config.dtlb_enabled) { // VA without dtlb
+        // get vpn and bound checking
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
@@ -702,14 +698,14 @@ void simulate_with_l2_enabled(Config config) {
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
         temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-        if (temp_pfn == -1) {
+        if (temp_pfn == -1) { // wasnt in pt, need to insert and return pfn
           temp_pfn = (pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_faults += 1;
           pt_refs += 1;
           disk_refs += 1;
           pt_res = "miss";
-        } else {
+        } else { // was in ptn, return pfn
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_refs += 1;
           pt_hits += 1;
@@ -720,7 +716,6 @@ void simulate_with_l2_enabled(Config config) {
         // PHYSICAL ADDRESS TRANSFORMATION
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
-        // cout << " ->" << config.pt_offset_bit << "<- ";
         phys_page_num = get_page_num(translated_address, config.pt_offset_bit);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
         // DC TAG FOR VIRTUAL ADDRESSES
@@ -730,25 +725,26 @@ void simulate_with_l2_enabled(Config config) {
         dc_index = get_index(translated_address, config.dc_offset_bits, config.dc_index_bits);
         cout << " " << setw(3) << setfill(' ') << hex << dc_index;
         if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, false)) {
+          // was in dc
           cout << setfill(' ') << setw(4) << " hit  \n";
           dc_hits += 1;
           config.counter += 1;
           continue;
-        } else {
+        } else { // was not in dc, need to insert, check if evicted block was dirty
           pair<bool, uint64_t> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           dc_misses += 1;
           if (was_dc_replaced_and_was_dirty.first) {
-            l2_hits += 1; // replaced block was dirty maybe dont need
+            l2_hits += 1; // replaced block was dirty
             uint64_t old_address = was_dc_replaced_and_was_dirty.second;
             l2_tag = get_tag(old_address, config.l2_offset_bits, config.l2_index_bits);
             l2_index = get_index(old_address, config.l2_offset_bits, config.l2_index_bits);
-            l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update only the dirty bit and access time
+            l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update the dirty bit and access time
             config.counter += 1;
           }
           cout << setfill(' ') << setw(4) << " miss";
           config.counter += 1;
         }
-
+        // l2 block identification
         l2_tag = get_tag(translated_address, config.l2_offset_bits, config.l2_index_bits);
         cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
         l2_index = get_index(translated_address, config.l2_offset_bits, config.l2_index_bits);
@@ -768,20 +764,17 @@ void simulate_with_l2_enabled(Config config) {
           // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
-          // cout << " pfn for l2 " << pfn << "||";
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, memory_refs, dc_index, dc_tag);
-          if (memory_refs != temp_memory_refs) {
-           // t+=1;
+          if (memory_refs != temp_memory_refs) { // eviction caused an increment meaning l2 was dirty
             was_l2_dirty = true;
           }
           temp_memory_refs = memory_refs;
+          // same scenario as before, just put all dc mappings into l2
           uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
           for (int i = 0; i < config.l2_to_dc_ratio; i++) {
             uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
-
             uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
             uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
-
             // Insert mapping into the L2 block’s dc_index_and_tags
             l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
           }
@@ -789,18 +782,19 @@ void simulate_with_l2_enabled(Config config) {
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
-                continue;
+                continue; // wasnt in dc
               }
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_memory_refs);
             }
-            if (temp_memory_refs > memory_refs && !was_l2_dirty) {
+            if (temp_memory_refs > memory_refs && !was_l2_dirty) { // dc was dirty but l2 wasnt, ensures that those getting wrote back to same block dont double count
               memory_refs += 1;
             }
           }
         }
         config.counter += 1;
-      } else if (config.virt_addr && config.dtlb_enabled) {
+      } else if (config.virt_addr && config.dtlb_enabled) { // VA and dtlb enabled
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
+        // get vpn and bound checking
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
           exit(-1);
@@ -812,7 +806,7 @@ void simulate_with_l2_enabled(Config config) {
         // PAGE OFFSET CALCULATION AND PRINTING
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
-
+        // get dtlb page identifaction
         dtlb_index_and_tag = dtlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
         dtlb_index = dtlb_index_and_tag.first;
         dtlb_tag = dtlb_index_and_tag.second;
@@ -820,31 +814,32 @@ void simulate_with_l2_enabled(Config config) {
         cout << setw(4) << setfill(' ') << hex << dtlb_index;
 
         dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
-        if (dtlb_search_result.first) {
+        if (dtlb_search_result.first) { // was in the dtlb, return the pfn
           cout << setw(4) << setfill(' ') << " hit ";
           cout << setw(5) << setfill(' ') << " ";
           dtlb_hits += 1;
           temp_pfn = (dtlb_search_result.second);
           pfn = static_cast<uint64_t>(temp_pfn);
           config.counter += 1;
-          pt.check_page_table(virt_page_num, config.counter, is_write);
-        } else {
+          pt.check_page_table(virt_page_num, config.counter, is_write); // update use timer
+        } else {                                                        // wasnt in dtlb, need to check page table
           cout << setw(4) << setfill(' ') << " miss";
           dtlb_misses += 1;
           temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-          if (temp_pfn == -1) {
+          if (temp_pfn == -1) { // wasnt in there, evict and return pfn
             temp_pfn = (pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_faults += 1;
             pt_refs += 1;
             disk_refs += 1;
             pt_res = "miss";
-          } else {
+          } else { // was in there, return pfn
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_refs += 1;
             pt_hits += 1;
             pt_res = "hit ";
           }
+          // insert to dtlb now that we have the pfn
           dtlb.insert_to_dtlb(dtlb_index, dtlb_tag, config.counter, temp_pfn);
           cout << setw(5) << setfill(' ') << pt_res;
         }
@@ -852,8 +847,6 @@ void simulate_with_l2_enabled(Config config) {
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
 
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
-        // cout << " ->" << config.pt_offset_bit << "<- ";
-        // cout << "||||| " << p_bin_string << " ||||  ";
         phys_page_num = get_page_num(translated_address, config.pt_offset_bit);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
 
@@ -865,11 +858,12 @@ void simulate_with_l2_enabled(Config config) {
         dc_index = get_index(translated_address, config.dc_offset_bits, config.dc_index_bits);
         cout << " " << setw(3) << setfill(' ') << hex << dc_index;
         if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, false)) {
+          // was in dc
           cout << setfill(' ') << setw(4) << " hit  \n";
           dc_hits += 1;
           config.counter += 1;
           continue;
-        } else {
+        } else { // was not in dc, check if possible eviction was dirty
           pair<bool, uint64_t> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           dc_misses += 1;
           if (was_dc_replaced_and_was_dirty.first) {
@@ -904,12 +898,12 @@ void simulate_with_l2_enabled(Config config) {
           // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
-          // cout << " pfn for l2 " << pfn << "||";
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, memory_refs, dc_index, dc_tag);
           if (temp_memory_refs != memory_refs) {
             was_l2_dirty = true;
           }
           temp_memory_refs = memory_refs;
+          // map dc to l2
           uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
           for (int i = 0; i < config.l2_to_dc_ratio; i++) {
             uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
@@ -922,19 +916,19 @@ void simulate_with_l2_enabled(Config config) {
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
-                continue;
+                continue; // not in dc
               }
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_memory_refs);
             }
             if (temp_memory_refs > memory_refs && !was_l2_dirty) {
-              memory_refs += 1;
+              memory_refs += 1; // prevent double counting evicts
             }
             config.counter += 1;
           }
         }
       }
-    } else if (config.dc_write_thru_no_allo && !config.l2_write_thru_no_allo) {
-      if (!config.virt_addr) { // No virtual address enabled
+    } else if (config.dc_write_thru_no_allo && !config.l2_write_thru_no_allo) { // dc write through no write allocate, l2 write back write allocate
+      if (!config.virt_addr) {                                                  // No virtual address enabled
         // begin calculating basic information and make sure address is valid
         phys_page_num = get_page_num(original_address, config.pt_offset_bit); // physical page number calculations
         if (phys_page_num >= config.physical_page_count) {
@@ -979,12 +973,10 @@ void simulate_with_l2_enabled(Config config) {
           cout << setfill(' ') << setw(4) << "miss";
           config.counter += 1;
           dc_misses += 1;
-          // memory_refs;
           if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           }
-
-          // memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
+          // cant be dirty so a miss means that we only grab the block from memory
           //  dont have to write back a dirty block
         }
         // start l2 calculations
@@ -1003,22 +995,20 @@ void simulate_with_l2_enabled(Config config) {
           memory_refs += 1;
           l2_misses += 1;
           int temp_memory_refs = memory_refs;
-          bool was_l2_dirty = false;
-          // so basically we need this temp counter as the insert and invalidate functions will increment them but
-          // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
-          // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
-          // we then take the larger of the 2
+          // bool was_l2_dirty = false;
+          //  so basically we need this temp counter as the insert and invalidate functions will increment them but
+          //  we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
+          //  memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
+          //  we then take the larger of the 2
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, memory_refs, dc_index, dc_tag);
           if (temp_memory_refs != memory_refs) {
-            was_l2_dirty = true;
+            // was_l2_dirty = true;
           }
           uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
-          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) { // mapping dc and l2
             uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
-
             uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
             uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
-
             // Insert mapping into the L2 block’s dc_index_and_tags
             l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
           }
@@ -1026,14 +1016,15 @@ void simulate_with_l2_enabled(Config config) {
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
-                continue;
+                continue; // wasnt in dc
               }
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
             }
             config.counter += 1;
           }
         }
-      } else if (config.virt_addr && !config.dtlb_enabled) {
+      } else if (config.virt_addr && !config.dtlb_enabled) { // VA no dtlb
+        // get vpn and bound checking
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
@@ -1044,23 +1035,25 @@ void simulate_with_l2_enabled(Config config) {
 
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
-
+        config.counter += 1;
         temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-        if (temp_pfn == -1) {
+        if (temp_pfn == -1) { // not in pt, insert and get pfn
           temp_pfn = static_cast<uint64_t>(pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_faults += 1;
           pt_refs += 1;
           disk_refs += 1;
           pt_res = "miss";
-        } else {
+          config.counter += 1;
+        } else { // was in pt, get pfn
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_refs += 1;
           pt_hits += 1;
           pt_res = "hit ";
+          config.counter += 1;
         }
         cout << setw(21) << setfill(' ') << pt_res;
-
+        config.counter += 1;
         // PHYSICAL ADDRESS TRANSFORMATION
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
 
@@ -1080,13 +1073,16 @@ void simulate_with_l2_enabled(Config config) {
           dc_hits += 1;
           config.counter += 1; // if so then its a dc hit
           if (is_write) {
-            l2_tag = get_tag(original_address, config.l2_offset_bits, config.l2_index_bits);
-            l2_index = get_index(original_address, config.l2_offset_bits, config.l2_index_bits);
+            config.counter += 1;
+            l2_tag = get_tag(translated_address, config.l2_offset_bits, config.l2_index_bits);
+            l2_index = get_index(translated_address, config.l2_offset_bits, config.l2_index_bits);
             l2.update_dirty_bit(l2_index, l2_tag, config.counter);
+            // l2.update_used_time(l2_index, l2_tag, config.counter);
           }
           if (!is_write) {
             cout << " \n";
             // memory_refs += 1;
+            config.counter += 1;
             continue;
           }
 
@@ -1094,13 +1090,13 @@ void simulate_with_l2_enabled(Config config) {
           cout << setfill(' ') << setw(4) << "miss";
           config.counter += 1;
           dc_misses += 1;
-          // memory_refs;
           if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           }
-          // memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
+          // cant be dirty so a miss means that we only grab the block from memory
           //  dont have to write back a dirty block
         }
+        config.counter += 1;
         // start l2 calculations
         l2_tag = get_tag(translated_address, config.l2_offset_bits, config.l2_index_bits);
         cout << " " << setw(6) << setfill(' ') << hex << l2_tag << " ";
@@ -1114,17 +1110,17 @@ void simulate_with_l2_enabled(Config config) {
           config.counter += 1;
         } else {
           // was not found, so l2 miss and need to reference memory to get it.
-          cout << " miss\n";
           memory_refs += 1;
           l2_misses += 1;
           int temp_memory_refs = memory_refs;
+          config.counter += 1;
           // so basically we need this temp counter as the insert and invalidate functions will increment them but
           // we dont want to double count ie a dirty dc is invalidated but the l2 was already dirty so it should just be 1
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, memory_refs, dc_index, dc_tag);
           uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
-          for (int i = 0; i < config.l2_to_dc_ratio; i++) {
+          for (int i = 0; i < config.l2_to_dc_ratio; i++) { // dc l2 memory mapping
             uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
             uint64_t dc_index = get_index(dc_address, config.dc_offset_bits, config.dc_index_bits);
             uint64_t dc_tag = get_tag(dc_address, config.dc_offset_bits, config.dc_index_bits);
@@ -1135,15 +1131,17 @@ void simulate_with_l2_enabled(Config config) {
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
-                continue;
+                continue; // wasnt in dc
               }
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_memory_refs);
             }
-            // memory_refs = max(memory_refs, temp_memory_refs);
+
             config.counter += 1;
           }
+          cout << " miss\n";
         }
-      } else if (config.virt_addr && config.dtlb_enabled) {
+      } else if (config.virt_addr && config.dtlb_enabled) { // va with dtlb
+        // get vpn and check bounds
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
@@ -1154,7 +1152,7 @@ void simulate_with_l2_enabled(Config config) {
 
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
-
+        // dtlb block calculations
         dtlb_index_and_tag = dtlb_index_tag_getter(virt_page_num, config.dtlb_set_count);
         dtlb_index = dtlb_index_and_tag.first;
         dtlb_tag = dtlb_index_and_tag.second;
@@ -1162,7 +1160,7 @@ void simulate_with_l2_enabled(Config config) {
         cout << setw(4) << setfill(' ') << hex << dtlb_index;
 
         dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
-        if (dtlb_search_result.first) {
+        if (dtlb_search_result.first) { // was in dtlb, returns pfn and updates use time
           cout << setw(4) << setfill(' ') << " hit ";
           cout << setw(5) << setfill(' ') << " ";
           dtlb_hits += 1;
@@ -1170,18 +1168,18 @@ void simulate_with_l2_enabled(Config config) {
           pfn = static_cast<uint64_t>(temp_pfn);
           config.counter += 1;
           pt.check_page_table(virt_page_num, config.counter, is_write);
-        } else {
+        } else { // wasnt in dtlb, check pt
           cout << setw(4) << setfill(' ') << " miss";
           dtlb_misses += 1;
           temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-          if (temp_pfn == -1) {
+          if (temp_pfn == -1) { // wasnt in pt, insert and return pfn
             temp_pfn = (pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_faults += 1;
             pt_refs += 1;
             disk_refs += 1;
             pt_res = "miss";
-          } else {
+          } else { // is in pt, get pfn
             pfn = static_cast<uint64_t>(temp_pfn);
             pt_refs += 1;
             pt_hits += 1;
@@ -1226,20 +1224,9 @@ void simulate_with_l2_enabled(Config config) {
           dc_misses += 1;
           // memory_refs;
           if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           }
           if (is_write) {
-            /*
-            l2_tag_bin = p_bin_string.substr(0, (64 - (config.l2_index_bits + config.l2_offset_bits)));
-            l2_tag = stoi(l2_tag_bin, 0, 2);
-            l2_index_bin = p_bin_string.substr((64 - (config.l2_index_bits + config.l2_offset_bits)), config.l2_index_bits);
-            if (config.l2_index_bits == 0) {
-              l2_index = 0;
-            } else {
-              l2_index = stoi(l2_index_bin, 0, 2);
-            }
-            l2.update_dirty_bit(l2_index, l2_tag, config.counter);
-            */
           }
           // memory_refs += 1; // cant be dirty so a miss means that we only grab the block from memory
           //  dont have to write back a dirty block
@@ -1266,7 +1253,7 @@ void simulate_with_l2_enabled(Config config) {
           // memory access we can incremement the temp in the dc eviction function and the normal in the l2 insert
           // we then take the larger of the 2
 
-          pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, place_holder, dc_index, dc_tag);
+          pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, temp_pfn, memory_refs, dc_index, dc_tag);
           uint64_t l2_block_start = translated_address & ~((1ULL << config.l2_offset_bits) - 1);
           for (int i = 0; i < config.l2_to_dc_ratio; i++) {
             uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
@@ -1282,13 +1269,13 @@ void simulate_with_l2_enabled(Config config) {
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
                 continue;
               }
-              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
+              dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, temp_memory_refs);
             }
             config.counter += 1;
           }
         }
       }
-    } else if (!config.dc_write_thru_no_allo && config.l2_write_thru_no_allo) {
+    } else if (!config.dc_write_thru_no_allo && config.l2_write_thru_no_allo) { // dc wbwa, l2 wtnwa
       if (!config.virt_addr) {
         phys_page_num = get_page_num(original_address, config.pt_offset_bit); // physical page number calculations
         if (phys_page_num >= config.physical_page_count) {
@@ -1319,7 +1306,6 @@ void simulate_with_l2_enabled(Config config) {
           dc_hits += 1;
           config.counter += 1;
           continue;
-
           // address was found in dc
         } else {
           pair<bool, uint64_t> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
@@ -1328,18 +1314,14 @@ void simulate_with_l2_enabled(Config config) {
           cout << setfill(' ') << setw(4) << "miss";
           dirty_replaced = was_dc_replaced_and_was_dirty.first;
           if (dirty_replaced) {
-            // cout << "  | writing back DC line with tag " << get_tag(was_dc_replaced_and_was_dirty.second, config.dc_offset_bits, config.dc_index_bits) << " and index " << get_index(was_dc_replaced_and_was_dirty.second, config.dc_offset_bits, config.dc_index_bits) << " to L2 cache | ";
             l2_hits += 1; // if it was dirty then we hit the l2 block and update it
             uint64_t old_address = was_dc_replaced_and_was_dirty.second;
             l2_tag = get_tag(old_address, config.l2_offset_bits, config.l2_index_bits);
             l2_index = get_index(old_address, config.l2_offset_bits, config.l2_index_bits);
             l2.update_used_time(l2_index, l2_tag, config.counter);
             l2.update_dirty_bit(l2_index, l2_tag, config.counter); // update only the dirty bit and access time
-            //if (l2_index == 0x0) {
-             // cout << " writing back from dc here to l2 index 0 tag " << l2_tag << " new time should be " << dec << config.counter << hex << "  ||| ";
-            //}
             config.counter += 1;
-            memory_refs += 1; // write through to memory, dont know if time still needs to be updated
+            memory_refs += 1; // write through to memory
           }
         }
         l2_tag = get_tag(original_address, config.l2_offset_bits, config.l2_index_bits);
@@ -1348,13 +1330,13 @@ void simulate_with_l2_enabled(Config config) {
         cout << setw(3) << setfill(' ') << hex << l2_index;
         if (l2.check_l2(l2_index, l2_tag, config.counter, is_write, -1, false)) {
           l2_hits += 1;      // was found so l2 hit
-          cout << " hit \n"; // i possibly need to update dc tag and dc index on dc miss but l2 hit
-                             // l2.update_the_dc_ind_tag(l2_index, l2_tag, dc_index, dc_tag, dc, -1, config.counter);
+          cout << " hit \n"; 
           config.counter += 1;
           l2.update_used_time(l2_index, l2_tag, config.counter);
           l2.update_dirty_bit(l2_index, l2_tag, config.counter);
           if (is_write) {
-            //memory_refs += 1;
+            // memory_refs += 1; ig it doesnt write through on a hit
+
           }
           config.counter += 1;
         } else {
@@ -1363,7 +1345,7 @@ void simulate_with_l2_enabled(Config config) {
           l2_misses += 1;
 
           bool was_dc_dirty = false;
- // l2 cant be dirty, pass this in place of the memory_ref parameter to insert, which would look if the evicted was dirty
+          // l2 cant be dirty, pass this in place of the memory_ref parameter to insert, which would look if the evicted was dirty
           pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
           uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
           for (int i = 0; i < config.l2_to_dc_ratio; i++) {
@@ -1381,26 +1363,24 @@ void simulate_with_l2_enabled(Config config) {
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
                 continue;
               }
-              // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
               if (memory_refs != temp_memory_refs) {
                 was_dc_dirty = true;
               }
-              // cout << " EVicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << " | checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " ";
               config.counter += 1;
-              // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
+             //each dc eviction will immediatly write through l2 to memory if it was dirty so we count all of them 
             }
             if (was_dc_dirty) {
-             // memory_refs = temp_memory_refs + 1;
+              // memory_refs = temp_memory_refs + 1;
             }
 
-            // memory_refs+=1; //dont know if this is needed
+            
           }
           cout << " miss\n";
         }
-        // cout << "\n";
         config.counter += 1;
-      } else if (config.virt_addr && !config.dtlb_enabled) {
+      } else if (config.virt_addr && !config.dtlb_enabled) { //va no dtlb
+        //get vpn and check bounds
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
@@ -1411,16 +1391,16 @@ void simulate_with_l2_enabled(Config config) {
 
         page_off = get_offset(original_address, config.pt_offset_bit);
         cout << setw(4) << hex << setfill(' ') << page_off;
-        int place_holder= 0;
+
         temp_pfn = pt.check_page_table(virt_page_num, config.counter, is_write);
-        if (temp_pfn == -1) {
+        if (temp_pfn == -1) {//wasnt in pt, insert and return pfn
           temp_pfn = (pt.insert_page(virt_page_num, config.virtual_page_count, config.physical_page_count, config.counter, is_write, page_off, config.pt_offset_bit, config.l2_enabled, dc, l2, disk_refs, memory_refs, l2_hits, pt_refs, config.dtlb_enabled, dtlb).second);
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_faults += 1;
           pt_refs += 1;
           disk_refs += 1;
           pt_res = "miss";
-        } else {
+        } else { //was in pt return pfn
           pfn = static_cast<uint64_t>(temp_pfn);
           pt_refs += 1;
           pt_hits += 1;
@@ -1431,7 +1411,7 @@ void simulate_with_l2_enabled(Config config) {
         // PHYSICAL ADDRESS TRANSFORMATION
         translated_address = pt.translate_to_phys_address(pfn, page_off, config.pt_offset_bit);
         // PHYSICAL PAGE NUMBER FOR VIRTUAL ADDRESSES
-        // cout << " ->" << config.pt_offset_bit << "<- ";
+
         phys_page_num = get_page_num(translated_address, config.pt_offset_bit);
         cout << setw(5) << setfill(' ') << hex << phys_page_num;
         // DC TAG FOR VIRTUAL ADDRESSES
@@ -1446,7 +1426,6 @@ void simulate_with_l2_enabled(Config config) {
           dc_hits += 1;
           config.counter += 1;
           continue;
-
           // address was found in dc
         } else {
           pair<bool, uint64_t> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
@@ -1474,15 +1453,14 @@ void simulate_with_l2_enabled(Config config) {
         cout << setw(3) << setfill(' ') << hex << l2_index;
         if (l2.check_l2(l2_index, l2_tag, config.counter, is_write, -1, false)) {
           l2_hits += 1;      // was found so l2 hit
-          cout << " hit \n"; // i possibly need to update dc tag and dc index on dc miss but l2 hit
-          // l2.update_the_dc_ind_tag(l2_index, l2_tag, dc_index, dc_tag, dc, -1, config.counter);
-           config.counter += 1;
+          cout << " hit \n";
+          config.counter += 1;
           l2.update_used_time(l2_index, l2_tag, config.counter);
           l2.update_dirty_bit(l2_index, l2_tag, config.counter);
           if (is_write) {
-            //memory_refs += 1;
+            // memory_refs += 1;
           }
-           config.counter+=1;
+          config.counter += 1;
         } else {
           cout << " miss\n";
           memory_refs += 1;
@@ -1501,22 +1479,19 @@ void simulate_with_l2_enabled(Config config) {
           int temp_memory_refs = memory_refs;
           if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
             vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
-            // cout << "DO WE GET HERE?";
             for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
               if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
                 continue;
               }
-              // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
-              // cout << " EVicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << " | checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " ";
               if (memory_refs != temp_memory_refs) {
                 was_dc_dirty = true;
               }
-               config.counter+=1;
-              // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
+              config.counter += 1;
+              
             }
             if (was_dc_dirty) {
-              //memory_refs = temp_memory_refs + 1;
+              // memory_refs = temp_memory_refs + 1;
             }
 
             // memory_refs+=1; //dont know if this is needed
@@ -1524,6 +1499,7 @@ void simulate_with_l2_enabled(Config config) {
         }
 
       } else if (config.virt_addr && config.dtlb_enabled) {
+        //its all the same as before, im tired of commenting all of this
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
@@ -1596,7 +1572,7 @@ void simulate_with_l2_enabled(Config config) {
         } else {
           pair<bool, uint64_t> was_dc_replaced_and_was_dirty = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           dc_misses += 1;
-           config.counter+=1;
+          config.counter += 1;
           cout << setfill(' ') << setw(4) << " miss";
           bool dirty_replaced = was_dc_replaced_and_was_dirty.first;
           if (dirty_replaced) {
@@ -1624,11 +1600,11 @@ void simulate_with_l2_enabled(Config config) {
           l2.update_used_time(l2_index, l2_tag, config.counter);
           if (is_write) {
             l2.update_dirty_bit(l2_index, l2_tag, config.counter);
-            //memory_refs += 1;
+            // memory_refs += 1;
           }
-           config.counter+=1;
+          config.counter += 1;
         } else {
-          config.counter+=1;
+          config.counter += 1;
           cout << " miss\n";
           memory_refs += 1;
           l2_misses += 1;
@@ -1655,14 +1631,15 @@ void simulate_with_l2_enabled(Config config) {
               // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
               dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, memory_refs);
               // cout << " EVicting dc index " << dc_index_and_tags_to_invalidate[i].first << " with tag " << dc_index_and_tags_to_invalidate[i].second << " | checking if still in there  " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false) << " ";
+
               if (memory_refs != temp_memory_refs) {
                 was_dc_dirty = true;
               }
-               config.counter+=1;
+              config.counter += 1;
               // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
             }
             if (was_dc_dirty) {
-              memory_refs = temp_memory_refs + 1;
+              // memory_refs = temp_memory_refs + 1;
             }
 
             // memory_refs+=1; //dont know if this is needed
@@ -1670,7 +1647,7 @@ void simulate_with_l2_enabled(Config config) {
         }
       }
     } else if (config.dc_write_thru_no_allo && config.l2_write_thru_no_allo) {
-
+      //both are wtnwa
       if (!config.virt_addr) {
         phys_page_num = get_page_num(original_address, config.pt_offset_bit); // physical page number calculations
         if (phys_page_num >= config.physical_page_count) {
@@ -1715,7 +1692,7 @@ void simulate_with_l2_enabled(Config config) {
           config.counter += 1;
           dc_misses += 1;
           if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, -1, original_address);
           }
         }
         l2_tag = get_tag(original_address, config.l2_offset_bits, config.l2_index_bits);
@@ -1726,17 +1703,17 @@ void simulate_with_l2_enabled(Config config) {
           l2_hits += 1;
           cout << " hit \n";
           config.counter += 1;
-          if (is_write) {
+          if (is_write) { //write through to memory
             memory_refs += 1;
           }
         } else {
           l2_misses += 1;
-          memory_refs += 1;
+          memory_refs += 1; //get from memory
           int place_holder = 0;
           uint64_t l2_block_start = original_address & ~((1ULL << config.l2_offset_bits) - 1);
           cout << " miss\n";
           if (!is_write) {
-          
+
             pair<bool, vector<pair<uint64_t, uint64_t>>> check_for_l2_evict = l2.insert_to_l2(l2_index, l2_tag, config.counter, is_write, -1, place_holder, dc_index, dc_tag);
             for (int i = 0; i < config.l2_to_dc_ratio; i++) {
               uint64_t dc_address = l2_block_start + (i * config.dc_line_size);
@@ -1745,18 +1722,14 @@ void simulate_with_l2_enabled(Config config) {
               // Insert mapping into the L2 block’s dc_index_and_tags
               l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
             }
-            int temp_memory_refs = memory_refs;
+            // int temp_memory_refs = memory_refs;
             if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
               vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
               for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
-                // cout << "????";
                 if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
                   continue;
                 }
                 dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, place_holder);
-                // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
-
-                // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
               }
               config.counter += 1;
             }
@@ -1821,7 +1794,7 @@ void simulate_with_l2_enabled(Config config) {
           config.counter += 1;
           dc_misses += 1;
           if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           }
         }
         l2_tag = get_tag(translated_address, config.l2_offset_bits, config.l2_index_bits);
@@ -1865,7 +1838,7 @@ void simulate_with_l2_enabled(Config config) {
       } else if (config.virt_addr && config.dtlb_enabled) {
         virt_page_num = get_page_num(original_address, config.pt_offset_bit);
         if (virt_page_num >= config.virtual_page_count) {
-          //cout << "test";
+          // cout << "test";
           cout << "hierarchy: virtual address " << hex << temp << " is too large.\n";
           exit(-1);
         }
@@ -1882,7 +1855,7 @@ void simulate_with_l2_enabled(Config config) {
         dtlb_tag = dtlb_index_and_tag.second;
         cout << setw(7) << setfill(' ') << hex << dtlb_tag;
         cout << setw(4) << setfill(' ') << hex << dtlb_index;
-          int place_holder = 0;
+        int place_holder = 0;
 
         dtlb_search_result = dtlb.check_dtlb(dtlb_index, dtlb_tag, config.counter);
         if (dtlb_search_result.first) {
@@ -1930,7 +1903,7 @@ void simulate_with_l2_enabled(Config config) {
         if (dc.check_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, false)) {
           cout << setfill(' ') << setw(4) << " hit ";
           dc_hits += 1;
-          config.counter+=1;
+          config.counter += 1;
           if (is_write) {
             l2_tag = get_tag(translated_address, config.l2_offset_bits, config.l2_index_bits);
             l2_index = get_index(translated_address, config.l2_offset_bits, config.l2_index_bits);
@@ -1945,7 +1918,7 @@ void simulate_with_l2_enabled(Config config) {
           config.counter += 1;
           dc_misses += 1;
           if (!is_write) {
-            pair<bool, uint64_t> was_replace = dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
+            dc.insert_to_cache(dc_index, dc_tag, config.counter, is_write, temp_pfn, translated_address);
           }
         }
         l2_tag = get_tag(translated_address, config.l2_offset_bits, config.l2_index_bits);
@@ -1974,17 +1947,17 @@ void simulate_with_l2_enabled(Config config) {
               l2.insert_address_to_block(l2_index, l2_tag, dc_index, dc_tag, dc, config.counter, i);
             }
             if (check_for_l2_evict.first) { // go through the invalidated dc blocks due to l2 eviction and invalidate them
-              //cout << "TESTING";
+              // cout << "TESTING";
               vector<pair<uint64_t, uint64_t>> dc_index_and_tags_to_invalidate = check_for_l2_evict.second;
               for (int i = 0; i < dc_index_and_tags_to_invalidate.size(); i++) {
                 if (!dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, false, -1, false)) {
                   continue;
                 }
-                
+
                 dc.invalidate_bc_l2_eviction(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, l2_hits, place_holder);
-                //cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
-                
-                //cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
+                // cout << hex << " evicting dc index " << dc_index_and_tags_to_invalidate[i].first << " tag " << dc_index_and_tags_to_invalidate[i].second << " curr address " << temp << " ";
+
+                // cout << "checking if its still in there " << dc.check_cache(dc_index_and_tags_to_invalidate[i].first, dc_index_and_tags_to_invalidate[i].second, config.counter, is_write, -1, false);
               }
               config.counter += 1;
             }
@@ -1996,10 +1969,11 @@ void simulate_with_l2_enabled(Config config) {
     }
   }
   print_stats(dtlb_hits, dtlb_misses, pt_hits, pt_faults, dc_hits, dc_misses, l2_hits, l2_misses, total_reads, total_writes, memory_refs, pt_refs, disk_refs);
-  //cout << dec << t << "\n";
+  // cout << dec << t << "\n";
 }
 
 void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt_faults, double dc_hits, double dc_misses, double l2_hits, double l2_misses, double total_reads, double total_writes, double mem_refs, double pt_refs, double disk_refs) {
+  //prints all the stats, sometimes floating point bs makes it  100000ths (6 decimal places) off 
   cout << "\nSimulation statistics\n\n";
   cout << "dtlb hits        : " << dtlb_hits << "\n";
   cout << "dtlb misses      : " << dtlb_misses << "\n";
@@ -2055,28 +2029,7 @@ void print_stats(double dtlb_hits, double dtlb_misses, double pt_hits, double pt
   cout << "disk refs        : " << disk_refs << "\n";
 }
 
-// with small page amount of physical pages stoi would break and this was the solution
-//  and error checking
-string substr_safe(const string &s, int pos, int len) {
-  int string_length = s.length();
-  if (pos < 0 || pos > string_length) {
-    cerr << "substr_safe: requested pos " << pos << " is out of range for string of size " << string_length << "\n";
-    exit(-1);
-  }
-  if (len < 0) {
-    cerr << "substr_safe: requested len " << len << " is negative\n";
-    exit(-1);
-  }
-  if (pos + len > string_length) {
-    // clamp length to available characters
-    len = string_length - pos;
-  }
-  return s.substr(pos, len);
-}
-
 pair<int, int> dtlb_index_tag_getter(int vpn, int tlb_set_count) {
-  // i orignally calculated this like i did the other indexs and tags
-  // but i kept getting errors on it so bit shift time.
   int tlb_index_bits = 0;
   int sets = tlb_set_count;
   while (sets > 1) {
@@ -2116,5 +2069,5 @@ uint64_t get_tag(uint64_t address, int offset_bit_count, int index_bit_count) {
   // of the offset and index so right shift the address that many bits.
 }
 uint64_t get_page_num(uint64_t address, int offset_bit) {
-  return address >> offset_bit;
+  return address >> offset_bit; // page num is just the address with the offset bits chopped off
 }

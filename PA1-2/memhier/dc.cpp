@@ -17,7 +17,7 @@ DC::DC(int sc, int ss, int ls, bool wa, int ibs, int obs) {
   index_bit_size = ibs;
   offset_bit_size = obs;
   data_cache.resize(set_count);
-  for (int i = 0; i < set_count; i++) {
+  for (int i = 0; i < set_count; i++) { // 2d vector of cache block objects
     data_cache[i].resize(set_size, Cache_Block(0, -1, false, -1, 0, false));
   }
 }
@@ -28,13 +28,14 @@ pair<bool, uint64_t> DC::insert_to_cache(uint64_t dc_index, uint64_t dc_tag, int
   int oldest_index = 0;
   uint64_t old_address = 0;
   bool is_full = true;
+  // did this before i made the valid flag and i dont want to change for fear of breaking it all
   for (int i = 0; i < set_size; i++) {
-    if (data_cache[dc_index][i].time_last_used == -1 ) {
+    if (data_cache[dc_index][i].time_last_used == -1) {
       is_full = false;
       break;
     }
   }
-
+  // finds least recently used
   for (int i = 0; i < set_size; i++) {
     if (data_cache[dc_index][i].time_last_used < oldest_used) {
       oldest_index = i;
@@ -43,7 +44,7 @@ pair<bool, uint64_t> DC::insert_to_cache(uint64_t dc_index, uint64_t dc_tag, int
       old_address = data_cache[dc_index][i].physical_address;
     }
   }
-
+  // overwrite the block with new info
   data_cache[dc_index][oldest_index].tag = dc_tag;
   data_cache[dc_index][oldest_index].time_last_used = time;
   data_cache[dc_index][oldest_index].dirty = dirty;
@@ -64,35 +65,36 @@ pair<bool, uint64_t> DC::insert_to_cache(uint64_t dc_index, uint64_t dc_tag, int
 bool DC::check_cache(uint64_t dc_index, uint64_t dc_tag, int time, bool is_write, int pfn, bool check_the_l2_stuff) {
   for (int i = 0; i < set_size; i++) {
     if (data_cache[dc_index][i].tag == dc_tag && data_cache[dc_index][i].valid) {
-      if (!check_the_l2_stuff) {
+      if (!check_the_l2_stuff) { // to not update the block use time when checking sometimes
         data_cache[dc_index][i].time_last_used = time;
       }
       if (is_write && !no_write_allo) {
         data_cache[dc_index][i].dirty = true;
       }
-      return true;
+      return true; // was found
     }
   }
-  return false;
+  return false; // wasnt found
 }
+//special function for evicitng dc when l2 is evicted
 void DC::invalidate_bc_l2_eviction(uint64_t dc_index, uint64_t dc_tag, double &l2_refs, int &memory_refs) {
   for (int i = 0; i < set_size; i++) {
     if (data_cache[dc_index][i].tag == dc_tag && data_cache[dc_index][i].valid) {
       if (data_cache[dc_index][i].dirty) {
-        l2_refs += 1;     // possibly a hit also on no write allocate
+        l2_refs += 1;     
         memory_refs += 1; // write dirty block back to main memory (count it)
       }
       data_cache[dc_index][i] = Cache_Block(0, -1, false, -1, 0, false);
     }
   }
 }
-
+//for when no l2 is enabled so we just need to invalidate based on pfn
 bool DC::evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs, bool l2_enabled, double &l2_hits) {
   bool page_replace = false;
   for (int i = 0; i < set_count; i++) {
     for (int j = 0; j < set_size; j++) {
       if (data_cache[i][j].pfn == pfn && data_cache[i][j].valid) {
-        //cout << " | evicting dc index " <<  i << " tag " << data_cache[i][j].tag << " | ";
+        // cout << " | evicting dc index " <<  i << " tag " << data_cache[i][j].tag << " | ";
         if (data_cache[i][j].dirty) {
           if (l2_enabled) {
             l2_hits += 1;
@@ -109,7 +111,7 @@ bool DC::evict_given_pfn(int pfn, int &disk_ref, int &mem_refs, int &page_refs, 
   }
   return page_replace;
 }
-
+//returns if the block was dirty
 bool DC::is_dirty(uint64_t index, uint64_t tag, int pfn) {
   for (int i = 0; i < set_size; i++) {
     if (data_cache[index][i].tag == tag) {

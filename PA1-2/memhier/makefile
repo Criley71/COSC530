@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -g 
+CXXFLAGS = -Wall -std=c++17 -g -Wno-sign-compare
 
 SRC = main.cpp dc.cpp l2.cpp pt.cpp dtlb.cpp config.cpp
 OBJ = $(SRC:.cpp=.o)

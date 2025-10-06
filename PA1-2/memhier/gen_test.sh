@@ -24,7 +24,7 @@ dtlb_assoc=$(( (RANDOM % 8) + 1 ))
 # Page Table (flexible model)
 while true; do
     virt_pages=$(pow2 1 8192)
-    page_size=$(pow2 1024 4294967296)  # max 4GB
+    page_size=$(pow2 1024 1048576)  # 1 KB – 1 MB
     total_virtual=$((virt_pages * page_size))
     if [ "$total_virtual" -le 4294967296 ]; then
         break
@@ -89,9 +89,9 @@ Set size: $l2_assoc
 Line size: $l2_line
 Write through/no write allocate: $wt_nwa_l2
 
-Virtual addresses: $virt_addr
+Virtual addresses: y
 TLB: $tlb
-L2 cache: $l2
+L2 cache: y
 EOF
 
 echo "Generated trace.config"
