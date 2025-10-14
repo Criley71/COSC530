@@ -3,6 +3,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <cstdint>
 #include <bitset>
 #include "dc.h"
 #include "l2.h"

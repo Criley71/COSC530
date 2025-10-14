@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <math.h>
+#include <cstdint>
 #ifndef DTLB_H
 #define DTLB_H
 using namespace std;

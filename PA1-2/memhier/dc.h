@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cstdint>
 #ifndef DC_H
 #define DC_H
 using namespace std;

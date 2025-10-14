@@ -23,7 +23,7 @@ ans memory addresses are input via stdin
 #include <string>
 #include <typeinfo>
 #include <unordered_map>
-
+#include <cstdint>
 using namespace std;
 
 void simulate_withOUT_l2_enable(Config config); // simulation without l2

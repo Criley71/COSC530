@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <math.h>
+#include <cstdint>
 #ifndef CONFIG_H
 #define CONFIG_H
 using namespace std;

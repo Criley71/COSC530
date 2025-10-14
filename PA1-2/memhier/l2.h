@@ -2,6 +2,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cstdint>
 #include "dc.h"
 #ifndef L2_H
 #define L2_H
