@@ -5,7 +5,8 @@
 #include <fstream>
 using namespace std;
 class Config{
-  int eff_add_buffer;
+  public:
+  int eff_addr_buffer;
   int fp_adds_buffer;
   int fp_muls_buffer;
   int ints_buffer;
@@ -17,6 +18,7 @@ class Config{
   int fp_div_latency;
 
   Config();
+  void print_config();
 };
 
 #endif
