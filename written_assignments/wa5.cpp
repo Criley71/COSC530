@@ -6,7 +6,7 @@ using namespace std;
 
 CANVAS ONLY ALLOWS 1 FILE SO I CANT SUPPLY A MAKE FILE, HERE IS COMPILE AND RUN COMMANDS
 compile:  
-g++ -o wa4 wa4.cpp 
+g++ -o wa5 wa5.cpp 
 run:
 ./wa4
 
