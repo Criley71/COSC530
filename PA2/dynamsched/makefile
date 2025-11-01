@@ -9,7 +9,7 @@ build: main.cpp $(OBJ)
 	$(CXX) $(CXXFLAGS) -o $(EXE) $(OBJ)
 
 run: $(EXE)
-	./$(EXE) < test.dat
+	./$(EXE) < trace.dat
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@

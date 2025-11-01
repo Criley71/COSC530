@@ -13,3 +13,59 @@ latencies:
    fp mul: 5
    fp div: 10
 
+
+flw    f6,32(x2):0
+flw    f2,48(x3):4
+fmul.s f0,f2,f4
+fsub.s f8,f6,f2
+fdiv.s f10,f0,f6
+fadd.s f6,f8,f2
+
+
+OP:    1
+rd:    f6
+rs1:   
+rs2:   
+addr:  0
+btar:  
+
+OP:    1
+rd:    f2
+rs1:   
+rs2:   
+addr:  4
+btar:  
+
+OP:    10
+rd:    f0
+rs1:   f2
+rs2:   f4
+addr:  -1
+btar:  
+
+OP:    9
+rd:    f8
+rs1:   f6
+rs2:   f2
+addr:  -1
+btar:  
+
+OP:    11
+rd:    f10
+rs1:   f0
+rs2:   f6
+addr:  -1
+btar:  
+
+OP:    8
+rd:    f6
+rs1:   f8
+rs2:   f2
+addr:  -1
+btar:  
+
+                    Pipeline Simulation
+-----------------------------------------------------------
+                                      Memory Writes
+     Instruction      Issues Executes  Read  Result Commits
+--------------------- ------ -------- ------ ------ -------
