@@ -43,7 +43,7 @@ public:
 };
 
 void dynam_schedule(Config config);
-vector<Instruction> get_instructions(Config config);
+vector<Instruction> get_instructions(Config config); //DONT NEED TO PASS CONFIG
 void issue(Config config);
 void execute(Config config);
 void write_result(Config config);
