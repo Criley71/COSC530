@@ -221,4 +221,5 @@ TODO:
 figure out speculative differences from non-speculative
 issue will check if a reservation station is available, if so, it will allocate it and update the RAT
 read jantz notes on speculation
+
 */
