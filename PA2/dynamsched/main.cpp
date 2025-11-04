@@ -24,16 +24,19 @@ enum Ops {
 };
 
 class Instruction {
-public:
-  Ops op;
-  int rd;
-  int rs1;
-  int rs2;
-  int address;
+public:    // the registers will just be ints of the register number (rd=6 means rd=f6 or rd=x6 (depends on op))
+  Ops op;  // op type
+  int rd;  // destination register
+  int rs1; // source register 1
+  int rs2; // source register 2
+  int address; //
   bool is_branch = false;
   int latency;
-
-  Instruction(Ops op_, int rd_, int rs1_, int rs2_, int addr, bool is_branch_, int lat) {
+  bool waiting_on_rs1;
+  bool waiting_on_rs2;
+  Instruction() {
+  }
+  Instruction(Ops op_, int rd_, int rs1_, int rs2_, int addr, bool is_branch_, int lat, bool wrs1, bool wrs2) {
     op = op_;
     rd = rd_;
     rs1 = rs1_;
@@ -41,38 +44,71 @@ public:
     address = addr;
     latency = lat;
     is_branch = is_branch_;
+    waiting_on_rs1 = wrs1;
+    waiting_on_rs2 = wrs2;
   }
 };
 
-
-class RegisterAliasTable{
-  public:
-  int rat_id = -1;
-  int val = -1;
-  
+class RegisterAliasTableEntry {
+public:
+  bool rob_point; // is it currently point to a rob
+  int rob_index;  // if so where (-1 means no)
+  int value;      // other wise what is the value (i dont this actually matters for this sim but whatever)
+  RegisterAliasTableEntry(bool rp, int ri, int v) {
+    rob_point = rp;
+    rob_index = ri;
+    value = v;
+  }
 };
 
-class RATs{
-  RegisterAliasTable int_rats[32];
-  RegisterAliasTable fp_rats[32];
+/*
+What the RAT does:
+when an instruction is getting source operands it goes to the rat
+if the value is in the rat that means its being calculated and it
+points to what rob will
+*/
+
+class RATs {
+public:
+  vector<RegisterAliasTableEntry> f_rat;
+  vector<RegisterAliasTableEntry> i_rat;
+  RATs() {
+    for (int i = 0; i < 32; i++) {
+      f_rat.push_back(RegisterAliasTableEntry(false, -1, -1));
+      i_rat.push_back(RegisterAliasTableEntry(false, -1, -1));
+    }
+  }
 };
 
-class ReservationStations {
-  int eff_addr_size;
-  int fp_add_size;
-  int fp_mul_size;
-  int int_size;
-  int reorder_size;
-
-  int eff_addr_in_use;
-  int fp_add_in_use;
-  int fp_mul_in_use;
-  int int_in_use;
-  int reorder_in_use;
+class ReservationStationUsage {
+  int eff_addr_in_use = 0;
+  int fp_add_in_use = 0;
+  int fp_mul_in_use = 0;
+  int int_in_use = 0;
+  int rob_in_use = 0;
 };
 
-
-
+class ROB_Entry {
+  Instruction inst; // instruction
+  Ops op;           // the enum op type
+  int rob_id;       // rob id for tracking where the rat is pointing
+  int time_left;    // latency tracker
+  bool wb_done;     // write back stage done
+  bool committed;   // committed stage done
+  bool need_mem;    // if the op needs the memory read stage
+  bool need_cdb;    // if it needs to write to the common data bus
+  bool all_done;    // this rob entry is all done
+  ROB_Entry(Instruction i, Ops o, int tl) {
+    inst = i;
+    op = o;
+    time_left = tl;
+    wb_done = false;
+    committed = false;
+    need_mem = false;
+    need_cdb = true; // more need this than not so default to true
+    all_done = false;
+  }
+};
 
 void dynam_schedule(Config config);
 queue<Instruction> get_instructions(Config config);
@@ -86,16 +122,16 @@ int main() {
   config.print_config();
   queue<Instruction> instructions = get_instructions(config);
   cout << "\n\n";
-  while (!instructions.empty()) {
+  // while (!instructions.empty()) {
 
-    cout << "OP:    " << instructions.front().op << "\n";
-    cout << "rd:    " << instructions.front().rd << "\n";
-    cout << "rs1:   " << instructions.front().rs1 << "\n";
-    cout << "rs2:   " << instructions.front().rs2 << "\n";
-    cout << "addr:  " << instructions.front().address << "\n";
-    cout << "btar:  " << instructions.front().is_branch << "\n\n";
-    instructions.pop();
-  }
+  //   cout << "OP:    " << instructions.front().op << "\n";
+  //   cout << "rd:    " << instructions.front().rd << "\n";
+  //   cout << "rs1:   " << instructions.front().rs1 << "\n";
+  //   cout << "rs2:   " << instructions.front().rs2 << "\n";
+  //   cout << "addr:  " << instructions.front().address << "\n";
+  //   cout << "btar:  " << instructions.front().is_branch << "\n\n";
+  //   instructions.pop();
+  // }
 
   dynam_schedule(config);
 }
@@ -196,7 +232,7 @@ queue<Instruction> get_instructions(Config config) {
     default:
       break;
     }
-    instruction_list.push(Instruction(op, rd, rs1, rs2, address, is_branch, latency));
+    instruction_list.push(Instruction(op, rd, rs1, rs2, address, is_branch, latency, false, false));
   }
   return instruction_list;
 }
@@ -215,11 +251,34 @@ int register_parser(string reg) {
   return stoi(reg.substr(1));
 }
 
-
 /*
 TODO:
 figure out speculative differences from non-speculative
 issue will check if a reservation station is available, if so, it will allocate it and update the RAT
 read jantz notes on speculation
 
+issue:
+check for space in rob and res station, if either full stall
+set RATs.x_rat[rd].rob_id = first_open_rob_index (maybe want to have an instruction counter that can be used to find first instruction)
+check if RATs.x_rat[ins.rs1 or ins.rs2] is pointing to rob
+if so set waiting_on_rsx_to_true and set rs1 = rob_index
+execute:
+start at beginning of ROB
+check if instruction is ALL_DONE to skip
+check if RATs.x_rat[ROB.ins.waiting_on_rs1] if so check if that rob wb has been done
+if still waiting for either rs then continue else time_left -= 1
+check if ROB.time_left <= 0
+deal with counters here and freeing reservation stations of stores that execution completed
+write back:
+loop through rob
+if done && !wb_done && !need_mem && need_cdb
+  set wb = true
+  set value in rat (maybe not needed)
+  give back reservation stations of arithmetic instructions
+mem read:
+if mem_need
+  check if write port is being used by a sw commit, free load reservation stations once done here
+commit:
+if all_done and wb is done
+  evict from rob
 */
