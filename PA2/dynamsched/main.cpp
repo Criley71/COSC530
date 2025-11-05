@@ -24,11 +24,11 @@ enum Ops {
 };
 
 class Instruction {
-public:    // the registers will just be ints of the register number (rd=6 means rd=f6 or rd=x6 (depends on op))
-  Ops op;  // op type
-  int rd;  // destination register
-  int rs1; // source register 1
-  int rs2; // source register 2
+public:        // the registers will just be ints of the register number (rd=6 means rd=f6 or rd=x6 (depends on op))
+  Ops op;      // op type
+  int rd;      // destination register
+  int rs1;     // source register 1
+  int rs2;     // source register 2
   int address; //
   bool is_branch = false;
   int latency;
@@ -81,6 +81,7 @@ public:
 };
 
 class ReservationStationUsage {
+public:
   int eff_addr_in_use = 0;
   int fp_add_in_use = 0;
   int fp_mul_in_use = 0;
@@ -89,20 +90,26 @@ class ReservationStationUsage {
 };
 
 class ROB_Entry {
-  Instruction inst; // instruction
-  Ops op;           // the enum op type
-  int rob_id;       // rob id for tracking where the rat is pointing
-  int time_left;    // latency tracker
-  bool wb_done;     // write back stage done
-  bool committed;   // committed stage done
-  bool need_mem;    // if the op needs the memory read stage
-  bool need_cdb;    // if it needs to write to the common data bus
-  bool all_done;    // this rob entry is all done
-  ROB_Entry(Instruction i, Ops o, int tl) {
+public:
+  Instruction inst;  // instruction
+  Ops op;            // the enum op type
+  int rob_id;        // rob id for tracking where the rat is pointing
+  int time_left;     // latency tracker
+  int cycle_entered; // when it entered the rob, used for finding head
+  bool wb_done;      // write back stage done
+  bool committed;    // committed stage done
+  bool executed;     // finished the ex stage
+  bool need_mem;     // if the op needs the memory read stage
+  bool need_cdb;     // if it needs to write to the common data bus
+  bool all_done;     // this rob entry is all done
+  ROB_Entry(Instruction i, Ops o, int rid) {
     inst = i;
     op = o;
-    time_left = tl;
+    time_left = i.latency;
+    rob_id = rid;
+    cycle_entered = -1; // will be -1 when empty slot for now
     wb_done = false;
+    executed = false;
     committed = false;
     need_mem = false;
     need_cdb = true; // more need this than not so default to true
@@ -110,28 +117,37 @@ class ROB_Entry {
   }
 };
 
+// FUNCTIONS
 void dynam_schedule(Config config);
 queue<Instruction> get_instructions(Config config);
 int register_parser(string reg);
-void issue(Config config);
+void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use);
 void execute(Config config);
 void write_result(Config config);
+
+// GLOBAL VARIABLES
+int cycle = 1;
+stack<int> ROB_INDEX_STACK;
+vector<ROB_Entry> ROB;
 
 int main() {
   Config config = Config();
   config.print_config();
+  for (int i = config.reorder_buffer; i > 0; i--) {
+    ROB_INDEX_STACK.push(i);
+  }
   queue<Instruction> instructions = get_instructions(config);
   cout << "\n\n";
-  // while (!instructions.empty()) {
+  while (!instructions.empty()) {
 
-  //   cout << "OP:    " << instructions.front().op << "\n";
-  //   cout << "rd:    " << instructions.front().rd << "\n";
-  //   cout << "rs1:   " << instructions.front().rs1 << "\n";
-  //   cout << "rs2:   " << instructions.front().rs2 << "\n";
-  //   cout << "addr:  " << instructions.front().address << "\n";
-  //   cout << "btar:  " << instructions.front().is_branch << "\n\n";
-  //   instructions.pop();
-  // }
+    cout << "OP:    " << instructions.front().op << "\n";
+    //   cout << "rd:    " << instructions.front().rd << "\n";
+    //   cout << "rs1:   " << instructions.front().rs1 << "\n";
+    //   cout << "rs2:   " << instructions.front().rs2 << "\n";
+    cout << "addr:  " << instructions.front().address << "\n";
+    // cout << "btar:  " << instructions.front().is_branch << "\n\n";
+    instructions.pop();
+  }
 
   dynam_schedule(config);
 }
@@ -147,7 +163,7 @@ queue<Instruction> get_instructions(Config config) {
     if (instruction.empty()) {
       continue;
     }
-    cout << instruction << "\n";
+    // cout << instruction << "\n";
 
     regex delimiters("[ ,():\\t]+");
     vector<string> pi = {}; // pi = parsed instructions, but also not all the way parsed
@@ -162,7 +178,7 @@ queue<Instruction> get_instructions(Config config) {
     // ARITHMETIC INSTRUCTION PARSED VECTOR FORMAT: [op, rd, rs1, rs2]
     // LOAD INSTRUCTION PARSED VECTOR FORMAT:       [op, rd, 34, x1, address] (34 and x1 dont matter, they are just memory addresses so no hazards)
     // STORE INSTRUCTION PARSED VECTOR FORMAT:      [op, rs2, 37, x1, address] (37 and x1 dont matter, they are just memory addresses so no hazards)
-    // BRANCH INSTRUCTION PARSED VECTOR FORMAT:     [op, rs1, rs2, branch_target]
+    // BRANCH INSTRUCTION PARSED VECTOR FORMAT:     [op, rs1, rs2, address]
     map<string, Ops> op_map_translator = {
         {"lw", LW},
         {"flw", FLW},
@@ -251,6 +267,49 @@ int register_parser(string reg) {
   return stoi(reg.substr(1));
 }
 
+void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use) {
+  if (res_station_use.rob_in_use == config.reorder_buffer) {
+    return;
+  }
+  Instruction inst = instructions.front();
+  int ROB_index;
+  switch (inst.op) {
+  case ADD:
+  case SUB:
+    if (config.ints_buffer > res_station_use.int_in_use) {
+      if (RATs.i_rat[inst.rs1].rob_point) { // source register 1 is pointing to ROB entry
+        inst.waiting_on_rs1 = true;
+        inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
+      } else {
+        inst.waiting_on_rs1 = false;
+        inst.rs1 = RATs.i_rat[inst.rs1].value;
+      }
+      if (RATs.i_rat[inst.rs2].rob_point) { // source register 1 is pointing to ROB entry
+        inst.waiting_on_rs2 = true;
+        inst.rs2 = RATs.i_rat[inst.rs2].rob_index;
+      } else {
+        inst.waiting_on_rs2 = false;
+        inst.rs2 = RATs.i_rat[inst.rs2].value;
+      }
+      ROB_index = ROB_INDEX_STACK.top();
+      ROB_INDEX_STACK.pop();
+      RATs.i_rat[inst.rd].rob_index = ROB_index;
+      ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
+      res_station_use.rob_in_use += 1;
+      res_station_use.int_in_use += 1;
+      instructions.pop();
+    }
+    break;
+  case FADD:
+  case FSUB:
+    
+    break;
+
+  default:
+    break;
+  }
+}
+
 /*
 TODO:
 figure out speculative differences from non-speculative
@@ -281,4 +340,15 @@ if mem_need
 commit:
 if all_done and wb is done
   evict from rob
+
+loads leave res station after the mem stage
+airthmetic leave res station after write to cdb stage
+stores leave res station after execution
+
+stores committing use the same write port as other instructions cdb write and
+take priority over them
+
+load store address dependencies:
+if a load happens after a store, that store must be waiting to commit (ie done with executing)
+load will stall between execute and memory stage
 */
