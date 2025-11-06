@@ -129,6 +129,8 @@ void write_result(Config config);
 int cycle = 1;
 stack<int> ROB_INDEX_STACK;
 vector<ROB_Entry> ROB;
+vector<int> load_addresses;
+vector<int> store_addresses;
 
 int main() {
   Config config = Config();
@@ -284,7 +286,7 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
         inst.waiting_on_rs1 = false;
         inst.rs1 = RATs.i_rat[inst.rs1].value;
       }
-      if (RATs.i_rat[inst.rs2].rob_point) { // source register 1 is pointing to ROB entry
+      if (RATs.i_rat[inst.rs2].rob_point) { // source register 2 is pointing to ROB entry
         inst.waiting_on_rs2 = true;
         inst.rs2 = RATs.i_rat[inst.rs2].rob_index;
       } else {
@@ -302,9 +304,34 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
     break;
   case FADD:
   case FSUB:
-    
+    if (config.fp_adds_buffer > res_station_use.fp_add_in_use) {
+      if (RATs.f_rat[inst.rs1].rob_point) { // source register 1 is pointing to ROB entry
+        inst.waiting_on_rs1 = true;
+        inst.rs1 = RATs.f_rat[inst.rs1].rob_index;
+      } else {
+        inst.waiting_on_rs1 = false;
+        inst.rs1 = RATs.f_rat[inst.rs1].value;
+      }
+      if (RATs.f_rat[inst.rs2].rob_point) { // source register 2 is pointing to ROB entry
+        inst.waiting_on_rs2 = true;
+        inst.rs2 = RATs.f_rat[inst.rs2].rob_index;
+      } else {
+        inst.waiting_on_rs2 = false;
+        inst.rs2 = RATs.f_rat[inst.rs2].value;
+      }
+      ROB_index = ROB_INDEX_STACK.top();
+      ROB_INDEX_STACK.pop();
+      RATs.f_rat[inst.rd].rob_index = ROB_index;
+      ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
+      res_station_use.rob_in_use += 1;
+      res_station_use.fp_add_in_use += 1;
+      instructions.pop();
+    }
     break;
+  case FMUL:
+  case FDIV:
 
+    break;
   default:
     break;
   }
@@ -341,9 +368,10 @@ commit:
 if all_done and wb is done
   evict from rob
 
-loads leave res station after the mem stage
-airthmetic leave res station after write to cdb stage
-stores leave res station after execution
+loads leave res station after the mem stage (same stage as writeback)
+airthmetic leave res station after write to cdb stage (same cycle as write)
+stores leave res station after execution (1 cycle after execution finishes (execution cycle starts/ends 3-3
+then it will still be at cycle 3 but gone by cycle 4 (something can replace it on cycle 4) ))
 
 stores committing use the same write port as other instructions cdb write and
 take priority over them
@@ -351,4 +379,7 @@ take priority over them
 load store address dependencies:
 if a load happens after a store, that store must be waiting to commit (ie done with executing)
 load will stall between execute and memory stage
+
+
+//add the stage cycles to the instruction and update them through the stages, once committed then print
 */

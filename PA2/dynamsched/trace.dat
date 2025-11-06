@@ -1,6 +1,6 @@
 flw    f6,32(x2):0
-flw    f2,48(x3):4
-fmul.s f0,f2,f4
+fsw    f2,48(x3):4
+beq    x3,x4,Lstr
 fsub.s f8,f6,f2
 fdiv.s f10,f0,f6
 fadd.s f9,f8,f2
