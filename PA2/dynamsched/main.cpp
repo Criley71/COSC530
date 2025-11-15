@@ -34,6 +34,12 @@ public:        // the registers will just be ints of the register number (rd=6 m
   int latency;
   bool waiting_on_rs1;
   bool waiting_on_rs2;
+  int issue_cycle = -1;
+  int execute_start = -1;
+  int execute_end = -1;
+  int memory_read = -1;
+  int write_results = -1;
+  int commits = -1;
   Instruction() {
   }
   Instruction(Ops op_, int rd_, int rs1_, int rs2_, int addr, bool is_branch_, int lat, bool wrs1, bool wrs2) {
@@ -53,11 +59,10 @@ class RegisterAliasTableEntry {
 public:
   bool rob_point; // is it currently point to a rob
   int rob_index;  // if so where (-1 means no)
-  int value;      // other wise what is the value (i dont this actually matters for this sim but whatever)
-  RegisterAliasTableEntry(bool rp, int ri, int v) {
+
+  RegisterAliasTableEntry(bool rp, int ri) {
     rob_point = rp;
     rob_index = ri;
-    value = v;
   }
 };
 
@@ -74,8 +79,8 @@ public:
   vector<RegisterAliasTableEntry> i_rat;
   RATs() {
     for (int i = 0; i < 32; i++) {
-      f_rat.push_back(RegisterAliasTableEntry(false, -1, -1));
-      i_rat.push_back(RegisterAliasTableEntry(false, -1, -1));
+      f_rat.push_back(RegisterAliasTableEntry(false, -1));
+      i_rat.push_back(RegisterAliasTableEntry(false, -1));
     }
   }
 };
@@ -87,21 +92,24 @@ public:
   int fp_mul_in_use = 0;
   int int_in_use = 0;
   int rob_in_use = 0;
+  ReservationStationUsage() {
+  }
 };
 
 class ROB_Entry {
 public:
-  Instruction inst;  // instruction
-  Ops op;            // the enum op type
-  int rob_id;        // rob id for tracking where the rat is pointing
-  int time_left;     // latency tracker
-  int cycle_entered; // when it entered the rob, used for finding head
-  bool wb_done;      // write back stage done
-  bool committed;    // committed stage done
-  bool executed;     // finished the ex stage
-  bool need_mem;     // if the op needs the memory read stage
-  bool need_cdb;     // if it needs to write to the common data bus
-  bool all_done;     // this rob entry is all done
+  Instruction inst;     // instruction
+  Ops op;               // the enum op type
+  int rob_id;           // rob id for tracking where the rat is pointing
+  int time_left;        // latency tracker
+  int cycle_entered;    // when it entered the rob, used for finding head
+  bool wb_done;         // write back stage done
+  bool committed;       // committed stage done
+  bool execute_started; // ex stage started
+  bool executed;        // finished the ex stage
+  bool need_mem;        // if the op needs the memory read stage
+  bool need_cdb;        // if it needs to write to the common data bus
+  bool all_done;        // this rob entry is all done
   ROB_Entry(Instruction i, Ops o, int rid) {
     inst = i;
     op = o;
@@ -109,6 +117,7 @@ public:
     rob_id = rid;
     cycle_entered = -1; // will be -1 when empty slot for now
     wb_done = false;
+    execute_started = false;
     executed = false;
     committed = false;
     need_mem = false;
@@ -121,16 +130,21 @@ public:
 void dynam_schedule(Config config);
 queue<Instruction> get_instructions(Config config);
 int register_parser(string reg);
+void set_reqs_in_ROB(Ops op, int rob_index);
 void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use);
-void execute(Config config);
+void execute(Config config, RATs &RATs);
+void mem(Config config, RATs &RATs);
 void write_result(Config config);
-
+void commit(Config config);
+bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1);
 // GLOBAL VARIABLES
 int cycle = 1;
 stack<int> ROB_INDEX_STACK;
 vector<ROB_Entry> ROB;
 vector<int> load_addresses;
 vector<int> store_addresses;
+RATs rats = RATs();
+ReservationStationUsage res_stations = ReservationStationUsage();
 
 int main() {
   Config config = Config();
@@ -138,18 +152,18 @@ int main() {
   for (int i = config.reorder_buffer; i > 0; i--) {
     ROB_INDEX_STACK.push(i);
   }
-  queue<Instruction> instructions = get_instructions(config);
+  // queue<Instruction> instructions = get_instructions(config);
   cout << "\n\n";
-  while (!instructions.empty()) {
+  // while (!instructions.empty()) {
 
-    cout << "OP:    " << instructions.front().op << "\n";
-    //   cout << "rd:    " << instructions.front().rd << "\n";
-    //   cout << "rs1:   " << instructions.front().rs1 << "\n";
-    //   cout << "rs2:   " << instructions.front().rs2 << "\n";
-    cout << "addr:  " << instructions.front().address << "\n";
-    // cout << "btar:  " << instructions.front().is_branch << "\n\n";
-    instructions.pop();
-  }
+  // cout << "OP:    " << instructions.front().op << "\n";
+  //    cout << "rd:    " << instructions.front().rd << "\n";
+  //    cout << "rs1:   " << instructions.front().rs1 << "\n";
+  //    cout << "rs2:   " << instructions.front().rs2 << "\n";
+  // cout << "addr:  " << instructions.front().address << "\n";
+  //  cout << "btar:  " << instructions.front().is_branch << "\n\n";
+  // instructions.pop();
+  // }
 
   dynam_schedule(config);
 }
@@ -201,16 +215,18 @@ queue<Instruction> get_instructions(Config config) {
     int address = -1;
     bool is_branch = false;
     int latency = 1;
-
+    cout << endl;
     switch (op) {
     case LW:
     case FLW:
       rd = register_parser(pi[1]);
+      rs1 = register_parser(pi[3]);
       address = stoi(pi[4]);
       break;
     case SW:
     case FSW:
-      rs2 = register_parser(pi[1]);
+      rs1 = register_parser(pi[1]);
+      rs2 = register_parser(pi[3]);
       address = stoi(pi[4]);
       break;
     case ADD:
@@ -245,12 +261,15 @@ queue<Instruction> get_instructions(Config config) {
       is_branch = true;
       rs1 = register_parser(pi[1]);
       rs2 = register_parser(pi[2]);
-      rd = register_parser(pi[3]);
+      // rd = register_parser(pi[3]);
       break;
     default:
       break;
     }
+
     instruction_list.push(Instruction(op, rd, rs1, rs2, address, is_branch, latency, false, false));
+  }
+  if (instruction_list.empty()) {
   }
   return instruction_list;
 }
@@ -262,6 +281,20 @@ void dynam_schedule(Config config) {
   cout << "     Instruction      Issues Executes  Read  Result Commits\n";
   cout << "--------------------- ------ -------- ------ ------ -------\n";
   queue<Instruction> instructions = get_instructions(config);
+
+  while (!instructions.empty()) {
+    issue(config, instructions, rats, res_stations);
+  }
+  execute(config, rats);
+
+  for (auto r : ROB) {
+    cout << "rob id: " << r.rob_id;
+    cout << "\n";
+    cout << "Issued: " << r.inst.issue_cycle;
+    cout << "\n";
+    cout << "Executed: " << r.inst.execute_start << " - " << r.inst.execute_end;
+    cout << "\n\n";
+  }
 }
 
 int register_parser(string reg) {
@@ -270,7 +303,7 @@ int register_parser(string reg) {
 }
 
 void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use) {
-  if (res_station_use.rob_in_use == config.reorder_buffer) {
+  if (res_station_use.rob_in_use == config.reorder_buffer || instructions.empty()) {
     return;
   }
   Instruction inst = instructions.front();
@@ -284,21 +317,22 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
         inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
       } else {
         inst.waiting_on_rs1 = false;
-        inst.rs1 = RATs.i_rat[inst.rs1].value;
       }
       if (RATs.i_rat[inst.rs2].rob_point) { // source register 2 is pointing to ROB entry
         inst.waiting_on_rs2 = true;
         inst.rs2 = RATs.i_rat[inst.rs2].rob_index;
       } else {
         inst.waiting_on_rs2 = false;
-        inst.rs2 = RATs.i_rat[inst.rs2].value;
       }
       ROB_index = ROB_INDEX_STACK.top();
       ROB_INDEX_STACK.pop();
       RATs.i_rat[inst.rd].rob_index = ROB_index;
+      RATs.i_rat[inst.rd].rob_point = true;
+      inst.issue_cycle = cycle;
       ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
       res_station_use.rob_in_use += 1;
       res_station_use.int_in_use += 1;
+
       instructions.pop();
     }
     break;
@@ -310,18 +344,18 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
         inst.rs1 = RATs.f_rat[inst.rs1].rob_index;
       } else {
         inst.waiting_on_rs1 = false;
-        inst.rs1 = RATs.f_rat[inst.rs1].value;
       }
       if (RATs.f_rat[inst.rs2].rob_point) { // source register 2 is pointing to ROB entry
         inst.waiting_on_rs2 = true;
         inst.rs2 = RATs.f_rat[inst.rs2].rob_index;
       } else {
         inst.waiting_on_rs2 = false;
-        inst.rs2 = RATs.f_rat[inst.rs2].value;
       }
       ROB_index = ROB_INDEX_STACK.top();
       ROB_INDEX_STACK.pop();
       RATs.f_rat[inst.rd].rob_index = ROB_index;
+      RATs.f_rat[inst.rd].rob_point = true;
+      inst.issue_cycle = cycle;
       ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
       res_station_use.rob_in_use += 1;
       res_station_use.fp_add_in_use += 1;
@@ -330,13 +364,240 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
     break;
   case FMUL:
   case FDIV:
+    if (config.fp_muls_buffer > res_station_use.fp_mul_in_use) {
+      if (RATs.f_rat[inst.rs1].rob_point) { // source register 1 is pointing to ROB entry
+        inst.waiting_on_rs1 = true;
+        inst.rs1 = RATs.f_rat[inst.rs1].rob_index;
+      } else {
+        inst.waiting_on_rs1 = false;
+      }
+      if (RATs.f_rat[inst.rs2].rob_point) { // source register 2 is pointing to ROB entry
+        inst.waiting_on_rs2 = true;
+        inst.rs2 = RATs.f_rat[inst.rs2].rob_index;
+      } else {
+        inst.waiting_on_rs2 = false;
+      }
+      ROB_index = ROB_INDEX_STACK.top();
+      ROB_INDEX_STACK.pop();
+      RATs.f_rat[inst.rd].rob_index = ROB_index;
+      RATs.f_rat[inst.rd].rob_point = true;
+      inst.issue_cycle = cycle;
+      ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
+      res_station_use.rob_in_use += 1;
+      res_station_use.fp_mul_in_use += 1;
+      instructions.pop();
+    }
+    break;
+  case LW:
+  case FLW:
+    if (config.eff_addr_buffer > res_station_use.eff_addr_in_use) {
+      if (RATs.i_rat[inst.rs1].rob_point) {
+        inst.waiting_on_rs1 = true;
+        inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
+      } else {
+        inst.waiting_on_rs1 = false;
+      }
+      ROB_index = ROB_INDEX_STACK.top();
+      ROB_INDEX_STACK.pop();
+      switch (inst.op) {
+      case LW:
+        RATs.i_rat[inst.rd].rob_index = ROB_index;
+        RATs.i_rat[inst.rd].rob_point = true;
+        break;
+      case FLW:
+        RATs.f_rat[inst.rd].rob_index = ROB_index;
+        RATs.f_rat[inst.rd].rob_point = true;
+        break;
+      default:
+        break;
+      }
+      inst.issue_cycle = cycle;
+      ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
+      set_reqs_in_ROB(inst.op, ROB_index);
+      res_station_use.rob_in_use += 1;
+      res_station_use.eff_addr_in_use += 1;
+      instructions.pop();
+    }
+    break;
+  case SW:
+  case FSW:
+    if (config.eff_addr_buffer > res_station_use.eff_addr_in_use) {
+      switch (inst.op) {
+      case SW:
+        if (RATs.i_rat[inst.rs1].rob_point) {
+          inst.waiting_on_rs1 = true;
+          inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
+        } else {
+          inst.waiting_on_rs1 = false;
+        }
+        break;
+      case FSW:
+        if (RATs.f_rat[inst.rs1].rob_point) {
+          inst.waiting_on_rs1 = true;
+          inst.rs1 = RATs.f_rat[inst.rs1].rob_index;
+        } else {
+          inst.waiting_on_rs1 = false;
+        }
+        break;
+      default:
+        break;
+      }
+      if (RATs.i_rat[inst.rs2].rob_point) {
+        inst.waiting_on_rs2 = true;
+        inst.rs2 = RATs.i_rat[inst.rs1].rob_index;
+      } else {
+        inst.waiting_on_rs2 = false;
+      }
+      ROB_index = ROB_INDEX_STACK.top();
+      ROB_INDEX_STACK.pop();
+      inst.issue_cycle = cycle;
+      ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
+      set_reqs_in_ROB(inst.op, ROB_index);
+      res_station_use.rob_in_use += 1;
+      res_station_use.eff_addr_in_use += 1;
+      instructions.pop();
+    }
+    break;
+  case BEQ:
+  case BNE:
+    if (config.ints_buffer > res_station_use.int_in_use) {
 
+      if (RATs.i_rat[inst.rs1].rob_point) {
+        inst.waiting_on_rs1 = true;
+        inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
+      } else {
+        inst.waiting_on_rs1 = false;
+      }
+      if (RATs.i_rat[inst.rs2].rob_point) {
+        inst.waiting_on_rs2 = true;
+        inst.rs2 = RATs.i_rat[inst.rs2].rob_index;
+      } else {
+        inst.waiting_on_rs2 = false;
+      }
+      ROB_index = ROB_INDEX_STACK.top();
+      ROB_INDEX_STACK.pop();
+      inst.issue_cycle = cycle;
+      ROB.push_back(ROB_Entry(inst, inst.op, ROB_index));
+      res_station_use.rob_in_use += 1;
+      res_station_use.int_in_use += 1;
+      instructions.pop();
+    }
     break;
   default:
+    cout << "INVALID INSTRUCTION\n";
+    exit(1);
     break;
   }
 }
 
+void execute(Config config, RATs &RATs) {
+  for (auto &rob_entry : ROB) {
+    cycle+=1;
+    if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2 && !rob_entry.execute_started) {
+      // all source registers are ready and it hasnt been
+      cout << "test " << rob_entry.rob_id << " " << cycle << "\n";
+      rob_entry.inst.execute_start = cycle;
+      cout <<  rob_entry.inst.execute_start << "\n";
+      rob_entry.time_left -= 1;
+      rob_entry.execute_started = true;
+    } else if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2) {
+      rob_entry.time_left -= 1;
+    } else {
+      if (rob_entry.inst.waiting_on_rs1) {
+        if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs1, RATs, true)) {
+          cout << rob_entry.inst.op << " BRUH\n";
+          rob_entry.inst.waiting_on_rs1 = false;
+        }
+      }
+      if (rob_entry.inst.waiting_on_rs2) {
+        if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs2, RATs, false)) {
+          rob_entry.inst.waiting_on_rs2 = false;
+        }
+      }
+      if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2) {
+        rob_entry.inst.execute_start = cycle;
+        rob_entry.time_left -= 1;
+        rob_entry.execute_started = true;
+      }
+    }
+
+    if (rob_entry.time_left == 0) {
+      rob_entry.executed = true;
+      rob_entry.inst.execute_end = cycle;
+      if (rob_entry.op == BEQ || rob_entry.op == BNE) {
+        res_stations.int_in_use -= 1;
+      } else if (rob_entry.op == SW || rob_entry.op == FSW) {
+        res_stations.eff_addr_in_use -= 1;
+      }
+    }
+  }
+}
+
+void mem(Config config, RATs &RATs){
+  for (auto &rob_entry : ROB) {
+    if (rob_entry.need_mem && rob_entry.executed) {
+
+    }
+  }
+}
+
+void set_reqs_in_ROB(Ops op, int rob_index) {
+  for (auto &rob_entry : ROB) {
+    if (rob_entry.rob_id == rob_index) {
+      switch (op) {
+      case FLW:
+      case LW:
+        rob_entry.need_mem = true;
+        break;
+      case FSW:
+      case SW:
+        rob_entry.need_cdb = false;
+        break;
+      default:
+        break;
+      }
+      break;
+    }
+  }
+}
+
+bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1) {
+  for (const auto &rob_entry : ROB) {
+    if (rob_entry.rob_id == rob_id) {
+      // If the producing ROB entry has finished its write-back, clear RAT mapping
+      if (rob_entry.wb_done) {
+        int dest = rob_entry.inst.rd;
+        // Only clear RAT entries for instructions that actually write a destination
+        if (dest >= 0) {
+          switch (rob_entry.op) {
+          case FADD:
+          case FSUB:
+          case FMUL:
+          case FDIV:
+          case FLW:
+            if (RATs.f_rat[dest].rob_index == rob_id) {
+              RATs.f_rat[dest].rob_point = false;
+            }
+            break;
+          case ADD:
+          case SUB:
+          case LW:
+            if (RATs.i_rat[dest].rob_index == rob_id) {
+              RATs.i_rat[dest].rob_point = false;
+            }
+            break;
+          default:
+            break;
+          }
+        }
+        return true;
+      }
+      return false;
+    }
+  }
+  // If we didn't find a matching ROB entry, treat as not-yet-ready
+  return false;
+}
 /*
 TODO:
 figure out speculative differences from non-speculative
