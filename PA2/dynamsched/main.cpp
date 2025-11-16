@@ -145,6 +145,8 @@ Ops commit(Config config, RATs &RATs);
 bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1);
 void print_instruction_cycles(ROB_Entry rob_entry);
 bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp);
+bool check_store_addresses(int address, int issue_cycle);
+void erase_store_address(int address);
 
 // GLOBAL VARIABLES
 int cycle = 1;
@@ -316,7 +318,7 @@ void dynam_schedule(Config config) {
       }
     }
     cycle += 1;
-    if (cycle == 1000000) {
+    if (cycle == 10000) {
       cout << "bruh\n";
       exit(1);
     }
@@ -490,6 +492,8 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       set_reqs_in_ROB(inst.op, ROB_index);
       res_station_use.rob_in_use += 1;
       res_station_use.eff_addr_in_use += 1;
+      store_addresses.push_back(inst.address);
+      //cout << "push address " << inst.address << "\n";
       instructions.pop();
     }
     break;
@@ -590,11 +594,20 @@ bool mem(Config config, RATs &RATs) {
   if (oldest_rob_id != -1) {
     for (auto &rob_entry : ROB) {
       if (rob_entry.rob_id == oldest_rob_id) {
-        rob_entry.inst.memory_read = cycle;
-        rob_entry.need_mem = false;
+        //cout << "Stored addresses: ";
+       // for (auto a : store_addresses)
+        //  cout << a << " ";
+        //cout << "\n";
+
+        if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
+          //cout << "HMMM " << cycle << "\n";
+          rob_entry.inst.memory_read = cycle;
+          rob_entry.need_mem = false;
+          return true; // we did a mem read for a load, free res station at end of cycle so
+        }
         // res_stations.eff_addr_in_use -= 1;
-        return true; // we did a mem read for a load, free res station at end of cycle so
         // so issue doesnt happen same cycle
+        break;
       }
     }
   }
@@ -684,6 +697,7 @@ Ops commit(Config config, RATs &RATs) {
         print_instruction_cycles(*it);
         return_op = it->inst.op;
         ROB_INDEX_STACK.push(it->rob_id);
+        
         ROB.erase(it);
         res_stations.rob_in_use -= 1;
         return return_op;
@@ -790,6 +804,16 @@ bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp) {
     }
   }
 }
+bool check_store_addresses(int address, int issue_cycle) {
+
+  for(auto rob_entry : ROB){
+    if(rob_entry.inst.address == address && (rob_entry.op == FSW || rob_entry.op == SW) && issue_cycle > rob_entry.inst.issue_cycle){
+      return true;
+    }
+  }
+  return false;
+}
+
 /*
 TODO:
 figure out speculative differences from non-speculative
