@@ -147,7 +147,7 @@ void print_instruction_cycles(ROB_Entry rob_entry);
 bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp);
 bool check_store_addresses(int address, int issue_cycle);
 void erase_store_address(int address);
-
+bool is_older_store(int issue_cycle, Ops op);
 // GLOBAL VARIABLES
 int cycle = 1;
 stack<int> ROB_INDEX_STACK;
@@ -155,6 +155,10 @@ vector<ROB_Entry> ROB;
 vector<int> load_addresses;
 vector<int> store_addresses;
 RATs rats = RATs();
+int ROB_delays = 0;
+int res_station_delays = 0;
+int data_mem_conflict_delays = 0;
+int true_data_dependence_delays = 0;
 ReservationStationUsage res_stations = ReservationStationUsage();
 
 int main() {
@@ -306,7 +310,7 @@ void dynam_schedule(Config config) {
     op_execute_done = execute(config, rats);
     issue(config, instructions, rats, res_stations);
     if (load_mem_access) {
-      res_stations.eff_addr_in_use -= 1;
+      // res_stations.eff_addr_in_use -= 1;
     }
     if (op_execute_done.second) {
       for (auto i : op_execute_done.first) {
@@ -323,6 +327,13 @@ void dynam_schedule(Config config) {
       exit(1);
     }
   }
+  cout << "\n\n";
+  cout << "Delays\n";
+  cout << "------\n";
+  cout << "reorder buffer delays: " << ROB_delays << "\n";
+  cout << "reservation station delays: " << res_station_delays << "\n";
+  cout << "data memory conflict delays: " << data_mem_conflict_delays << "\n";
+  cout << "true dependence delays: " << true_data_dependence_delays << "\n";
 }
 
 int register_parser(string reg) {
@@ -332,6 +343,9 @@ int register_parser(string reg) {
 
 void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use) {
   if (res_station_use.rob_in_use == config.reorder_buffer || instructions.empty()) {
+    if(!instructions.empty()){
+      ROB_delays += 1;
+    }
     return;
   }
   Instruction inst = instructions.front();
@@ -367,6 +381,8 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.int_in_use += 1;
 
       instructions.pop();
+    }else{
+      res_station_delays += 1;
     }
     break;
   case FADD:
@@ -393,6 +409,8 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.fp_add_in_use += 1;
       instructions.pop();
+    }else{
+      res_station_delays += 1;
     }
     break;
   case FMUL:
@@ -419,6 +437,8 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.fp_mul_in_use += 1;
       instructions.pop();
+    }else{
+      res_station_delays += 1;
     }
     break;
   case LW:
@@ -453,6 +473,8 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.eff_addr_in_use += 1;
       instructions.pop();
+    }else{
+      res_station_delays += 1;
     }
     break;
   case SW:
@@ -493,8 +515,10 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.eff_addr_in_use += 1;
       store_addresses.push_back(inst.address);
-      //cout << "push address " << inst.address << "\n";
+      // cout << "push address " << inst.address << "\n";
       instructions.pop();
+    }else{
+      res_station_delays += 1;
     }
     break;
   case BEQ:
@@ -521,6 +545,8 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.int_in_use += 1;
       instructions.pop();
+    }else{
+      res_station_delays += 1;
     }
     break;
   default:
@@ -528,6 +554,12 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
     exit(1);
     break;
   }
+  if(inst.waiting_on_rs1 || inst.waiting_on_rs2){
+   // true_data_dependence_delays += 1;
+  }
+  // if(inst.waiting_on_rs2){
+  //   true_data_dependence_delays += 1;
+  // }
 }
 
 pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
@@ -561,6 +593,8 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
         rob_entry.inst.execute_start = cycle;
         rob_entry.time_left -= 1;
         rob_entry.execute_started = true;
+      }else {
+        true_data_dependence_delays += 1;
       }
     }
 
@@ -586,21 +620,30 @@ bool mem(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
   int issued = INT32_MAX;
   for (auto rob_entry : ROB) {
-    if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued) {
-      oldest_rob_id = rob_entry.rob_id;
-      issued = rob_entry.inst.issue_cycle;
+    if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued /*&& !is_older_store(rob_entry.inst.issue_cycle, rob_entry.op)*/) {
+      if(!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)){
+        oldest_rob_id = rob_entry.rob_id;
+        issued = rob_entry.inst.issue_cycle;
+      }else{
+        true_data_dependence_delays += 1;
+      }
     }
   }
+
+  if(oldest_rob_id != -1){
+
+  }
+
   if (oldest_rob_id != -1) {
     for (auto &rob_entry : ROB) {
       if (rob_entry.rob_id == oldest_rob_id) {
-        //cout << "Stored addresses: ";
-       // for (auto a : store_addresses)
+        // cout << "Stored addresses: ";
+        // for (auto a : store_addresses)
         //  cout << a << " ";
-        //cout << "\n";
+        // cout << "\n";
 
         if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
-          //cout << "HMMM " << cycle << "\n";
+          // cout << "HMMM " << cycle << "\n";
           rob_entry.inst.memory_read = cycle;
           rob_entry.need_mem = false;
           return true; // we did a mem read for a load, free res station at end of cycle so
@@ -659,6 +702,7 @@ void write_result(Config config, RATs &RATs) {
           }
           break;
         case FLW:
+          res_stations.eff_addr_in_use -= 1;
           if (RATs.f_rat[rob_entry.inst.rd].rob_index == oldest_rob_id) {
             RATs.f_rat[rob_entry.inst.rd].rob_point = false;
             RATs.f_rat[rob_entry.inst.rd].rob_index = -1;
@@ -666,6 +710,7 @@ void write_result(Config config, RATs &RATs) {
           }
           break;
         case LW:
+          res_stations.eff_addr_in_use -= 1;
           if (RATs.i_rat[rob_entry.inst.rd].rob_index == oldest_rob_id) {
             RATs.i_rat[rob_entry.inst.rd].rob_point = false;
             RATs.i_rat[rob_entry.inst.rd].value_ready_cycle = cycle;
@@ -697,7 +742,7 @@ Ops commit(Config config, RATs &RATs) {
         print_instruction_cycles(*it);
         return_op = it->inst.op;
         ROB_INDEX_STACK.push(it->rob_id);
-        
+
         ROB.erase(it);
         res_stations.rob_in_use -= 1;
         return return_op;
@@ -787,6 +832,7 @@ void print_instruction_cycles(ROB_Entry rob_entry) {
     cout << "       ";
   }
   cout << setfill(' ') << setw(7) << cycle << "\n";
+  //true_data_dependence_delays += ((rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1);
 }
 
 bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp) {
@@ -806,14 +852,30 @@ bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp) {
 }
 bool check_store_addresses(int address, int issue_cycle) {
 
-  for(auto rob_entry : ROB){
-    if(rob_entry.inst.address == address && (rob_entry.op == FSW || rob_entry.op == SW) && issue_cycle > rob_entry.inst.issue_cycle){
+  for (auto rob_entry : ROB) {
+    if (rob_entry.inst.address == address && (rob_entry.op == FSW || rob_entry.op == SW) && issue_cycle > rob_entry.inst.issue_cycle) {
       return true;
     }
   }
   return false;
 }
-
+bool is_older_store(int issue_cycle, Ops op){
+  for(auto rob_e : ROB){
+    if(rob_e.op == SW && op == LW){
+      if(rob_e.inst.issue_cycle < issue_cycle){
+        data_mem_conflict_delays+=1;
+        return true;
+      }
+    }
+    if(rob_e.op == FSW && op == FLW){
+      if(rob_e.inst.issue_cycle < issue_cycle){
+        data_mem_conflict_delays+=1;
+        return true;
+      }
+    }
+  }
+  return false;
+}
 /*
 TODO:
 figure out speculative differences from non-speculative

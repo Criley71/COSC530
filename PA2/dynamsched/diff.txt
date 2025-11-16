@@ -1,0 +1,23 @@
+--- out.txt	2025-11-16 00:04:46.168690304 -0500
++++ ref_out.txt	2025-11-16 00:04:46.168690304 -0500
+@@ -78,14 +78,14 @@
+ lw     x2,35(x1):2        90  93 - 93     94     95      99
+ add    x1,x2,x4           92  96 - 96            98     100
+ fsw    f6,41(x1):5        95  99 - 99                   101
+-flw    f2,32(x2):0        96  97 - 97     98     99     102
+-sw     x2,39(x1):1        99 100 -100                   103
+-fmul.s f0,f4,f6          100 101 -105           106     107
++flw    f2,32(x2):0        96  97 - 97    100    101     102
++sw     x2,39(x1):1       100 101 -101                   103
++fmul.s f0,f4,f6          101 102 -106           107     108
+ 
+ 
+ Delays
+ ------
+ reorder buffer delays: 32
+-reservation station delays: 6
+-data memory conflict delays: 0
+-true dependence delays: 76
++reservation station delays: 7
++data memory conflict delays: 5
++true dependence delays: 78
