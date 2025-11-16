@@ -5,7 +5,7 @@ buffers:
     fp adds: 3
     fp muls: 3
        ints: 2
-    reorder: 6
+    reorder: 5
 
 latencies:
    fp add: 2

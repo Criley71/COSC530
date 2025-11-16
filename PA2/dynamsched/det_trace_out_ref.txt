@@ -5,7 +5,7 @@ buffers:
     fp adds: 3
     fp muls: 3
        ints: 2
-    reorder: 6
+    reorder: 5
 
 latencies:
    fp add: 2
@@ -41,7 +41,6 @@ Entry Busy      Instruction         State    Destination
     3 no   
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -74,7 +73,6 @@ Entry Busy      Instruction         State    Destination
     3 no   
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -107,7 +105,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  beq    x3,x4,Lstr     issued      
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -140,7 +137,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  beq    x3,x4,Lstr     executed    
     4 yes  fsub.s f8,f6,f2       issued      f8
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -173,7 +169,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  beq    x3,x4,Lstr     executed    
     4 yes  fsub.s f8,f6,f2       executing   f8
     5 yes  fdiv.s f10,f0,f6      issued      f10
-    6 no   
 
 register status
 ---------------
@@ -189,7 +184,7 @@ Cycle: 6
 effaddr1 no
 effaddr2 no
 fpadd  1 yes  fsub.s         #4  
-fpadd  2 yes  fadd.s #4      #6  
+fpadd  2 yes  fadd.s #4      #1  
 fpadd  3 no
 fpmul  1 yes  fdiv.s         #5  
 fpmul  2 no
@@ -201,16 +196,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       issued      f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 yes  beq    x3,x4,Lstr     executed    
     4 yes  fsub.s f8,f6,f2       executed    f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       issued      f9
 
 register status
 ---------------
-f8=#4 f9=#6 f10=#5 
+f8=#4 f9=#1 f10=#5 
 
 
 Cycle: 7
@@ -222,7 +216,7 @@ Cycle: 7
 effaddr1 no
 effaddr2 no
 fpadd  1 no
-fpadd  2 yes  fadd.s #4      #6  
+fpadd  2 yes  fadd.s #4      #1  
 fpadd  3 no
 fpmul  1 yes  fdiv.s         #5  
 fpmul  2 no
@@ -234,16 +228,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       issued      f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 yes  fsub.s f8,f6,f2       wroteresult f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       issued      f9
 
 register status
 ---------------
-f8=#4 f9=#6 f10=#5 
+f8=#4 f9=#1 f10=#5 
 
 
 Cycle: 8
@@ -255,7 +248,7 @@ Cycle: 8
 effaddr1 no
 effaddr2 no
 fpadd  1 no
-fpadd  2 yes  fadd.s         #6  
+fpadd  2 yes  fadd.s         #1  
 fpadd  3 no
 fpmul  1 yes  fdiv.s         #5  
 fpmul  2 no
@@ -267,16 +260,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       executing   f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       executing   f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 9
@@ -288,7 +280,7 @@ Cycle: 9
 effaddr1 no
 effaddr2 no
 fpadd  1 no
-fpadd  2 yes  fadd.s         #6  
+fpadd  2 yes  fadd.s         #1  
 fpadd  3 no
 fpmul  1 yes  fdiv.s         #5  
 fpmul  2 no
@@ -300,16 +292,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       executed    f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       executed    f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 10
@@ -333,16 +324,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 11
@@ -366,16 +356,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 12
@@ -399,16 +388,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 13
@@ -432,16 +420,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 14
@@ -465,16 +452,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 15
@@ -498,16 +484,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      executed    f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 16
@@ -531,16 +516,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fdiv.s f10,f0,f6      wroteresult f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 f10=#5 
+f9=#1 f10=#5 
 
 
 Cycle: 17
@@ -564,16 +548,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 yes  fadd.s f9,f8,f2       wroteresult f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 no   fdiv.s f10,f0,f6      committed   f10
-    6 yes  fadd.s f9,f8,f2       wroteresult f9
 
 register status
 ---------------
-f9=#6 
+f9=#1 
 
 
 Cycle: 18
@@ -597,12 +580,11 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f6,32(x2):0    committed   f6
+    1 no   fadd.s f9,f8,f2       committed   f9
     2 no   fsw    f2,48(x3):4    committed   48(x3)
     3 no   beq    x3,x4,Lstr     committed   
     4 no   fsub.s f8,f6,f2       committed   f8
     5 no   fdiv.s f10,f0,f6      committed   f10
-    6 no   fadd.s f9,f8,f2       committed   f9
 
 register status
 ---------------

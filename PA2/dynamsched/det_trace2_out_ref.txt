@@ -5,7 +5,7 @@ buffers:
     fp adds: 3
     fp muls: 3
        ints: 2
-    reorder: 6
+    reorder: 5
 
 latencies:
    fp add: 2
@@ -41,7 +41,6 @@ Entry Busy      Instruction         State    Destination
     3 no   
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -74,7 +73,6 @@ Entry Busy      Instruction         State    Destination
     3 no   
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -107,7 +105,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  lw     x2,35(x1):2    issued      x2
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -140,7 +137,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  lw     x2,35(x1):2    executed    x2
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -173,7 +169,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  lw     x2,35(x1):2    executed    x2
     4 no   
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -206,7 +201,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  lw     x2,35(x1):2    memread     x2
     4 yes  sw     x2,36(x1):1    issued      36(x1)
     5 no   
-    6 no   
 
 register status
 ---------------
@@ -239,7 +233,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  lw     x2,35(x1):2    wroteresult x2
     4 yes  sw     x2,36(x1):1    executed    36(x1)
     5 yes  sw     x2,37(x1):1    issued      37(x1)
-    6 no   
 
 register status
 ---------------
@@ -252,7 +245,7 @@ Cycle: 8
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  lw            #6  
+effaddr1 yes  lw            #1  
 effaddr2 yes  sw            #5  
 fpadd  1 no
 fpadd  2 no
@@ -267,16 +260,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   add    x1,x1,x2       committed   x1
+    1 yes  lw     x2,38(x1):1    issued      x2
     2 no   lw     x2,34(x1):1    committed   x2
     3 no   lw     x2,35(x1):2    committed   x2
     4 yes  sw     x2,36(x1):1    executed    36(x1)
     5 yes  sw     x2,37(x1):1    executed    37(x1)
-    6 yes  lw     x2,38(x1):1    issued      x2
 
 register status
 ---------------
-x2=#6 
+x2=#1 
 
 
 Cycle: 9
@@ -285,371 +277,8 @@ Cycle: 9
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  lw            #6  
-effaddr2 yes  sw        #6  #1  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  sw     x2,39(x1):1    issued      39(x1)
-    2 no   lw     x2,34(x1):1    committed   x2
-    3 no   lw     x2,35(x1):2    committed   x2
-    4 no   sw     x2,36(x1):1    committed   36(x1)
-    5 yes  sw     x2,37(x1):1    executed    37(x1)
-    6 yes  lw     x2,38(x1):1    executed    x2
-
-register status
----------------
-x2=#6 
-
-
-Cycle: 10
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw            #6  
-effaddr2 yes  sw        #6  #1  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 yes  add       #6  #2  
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  sw     x2,39(x1):1    executed    39(x1)
-    2 yes  add    x1,x1,x2       issued      x1
-    3 no   lw     x2,35(x1):2    committed   x2
-    4 no   sw     x2,36(x1):1    committed   36(x1)
-    5 no   sw     x2,37(x1):1    committed   37(x1)
-    6 yes  lw     x2,38(x1):1    executed    x2
-
-register status
----------------
-x1=#2 x2=#6 
-
-
-Cycle: 11
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw            #6  
-effaddr2 yes  lw    #2      #3  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 yes  add       #6  #2  
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  sw     x2,39(x1):1    executed    39(x1)
-    2 yes  add    x1,x1,x2       issued      x1
-    3 yes  lw     x2,34(x1):1    issued      x2
-    4 no   sw     x2,36(x1):1    committed   36(x1)
-    5 no   sw     x2,37(x1):1    committed   37(x1)
-    6 yes  lw     x2,38(x1):1    memread     x2
-
-register status
----------------
-x1=#2 x2=#3 
-
-
-Cycle: 12
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw    #2      #4  
-effaddr2 yes  lw    #2      #3  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 yes  add       #6  #2  
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  sw     x2,39(x1):1    executed    39(x1)
-    2 yes  add    x1,x1,x2       issued      x1
-    3 yes  lw     x2,34(x1):1    issued      x2
-    4 yes  lw     x2,35(x1):2    issued      x2
-    5 no   sw     x2,37(x1):1    committed   37(x1)
-    6 yes  lw     x2,38(x1):1    wroteresult x2
-
-register status
----------------
-x1=#2 x2=#4 
-
-
-Cycle: 13
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw    #2      #4  
-effaddr2 yes  lw    #2      #3  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 yes  add           #2  
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  sw     x2,39(x1):1    executed    39(x1)
-    2 yes  add    x1,x1,x2       executed    x1
-    3 yes  lw     x2,34(x1):1    issued      x2
-    4 yes  lw     x2,35(x1):2    issued      x2
-    5 no   sw     x2,37(x1):1    committed   37(x1)
-    6 no   lw     x2,38(x1):1    committed   x2
-
-register status
----------------
-x1=#2 x2=#4 
-
-
-Cycle: 14
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw    #2      #4  
-effaddr2 yes  lw    #2      #3  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 no   sw     x2,39(x1):1    committed   39(x1)
-    2 yes  add    x1,x1,x2       wroteresult x1
-    3 yes  lw     x2,34(x1):1    issued      x2
-    4 yes  lw     x2,35(x1):2    issued      x2
-    5 no   sw     x2,37(x1):1    committed   37(x1)
-    6 no   lw     x2,38(x1):1    committed   x2
-
-register status
----------------
-x1=#2 x2=#4 
-
-
-Cycle: 15
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw            #4  
-effaddr2 yes  lw            #3  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 no   sw     x2,39(x1):1    committed   39(x1)
-    2 no   add    x1,x1,x2       committed   x1
-    3 yes  lw     x2,34(x1):1    executed    x2
-    4 yes  lw     x2,35(x1):2    executed    x2
-    5 no   sw     x2,37(x1):1    committed   37(x1)
-    6 no   lw     x2,38(x1):1    committed   x2
-
-register status
----------------
-x2=#4 
-
-
-Cycle: 16
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw            #4  
-effaddr2 yes  lw            #3  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 no   sw     x2,39(x1):1    committed   39(x1)
-    2 no   add    x1,x1,x2       committed   x1
-    3 yes  lw     x2,34(x1):1    memread     x2
-    4 yes  lw     x2,35(x1):2    executed    x2
-    5 no   sw     x2,37(x1):1    committed   37(x1)
-    6 no   lw     x2,38(x1):1    committed   x2
-
-register status
----------------
-x2=#4 
-
-
-Cycle: 17
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  lw            #4  
-effaddr2 yes  sw        #4  #5  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 no   sw     x2,39(x1):1    committed   39(x1)
-    2 no   add    x1,x1,x2       committed   x1
-    3 yes  lw     x2,34(x1):1    wroteresult x2
-    4 yes  lw     x2,35(x1):2    memread     x2
-    5 yes  sw     x2,36(x1):1    issued      36(x1)
-    6 no   lw     x2,38(x1):1    committed   x2
-
-register status
----------------
-x2=#4 
-
-
-Cycle: 18
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  sw        #4  #6  
-effaddr2 yes  sw        #4  #5  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 no   sw     x2,39(x1):1    committed   39(x1)
-    2 no   add    x1,x1,x2       committed   x1
-    3 no   lw     x2,34(x1):1    committed   x2
-    4 yes  lw     x2,35(x1):2    wroteresult x2
-    5 yes  sw     x2,36(x1):1    executed    36(x1)
-    6 yes  sw     x2,37(x1):1    issued      37(x1)
-
-register status
----------------
-x2=#4 
-
-
-Cycle: 19
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  sw            #6  
-effaddr2 yes  lw            #1  
-fpadd  1 no
-fpadd  2 no
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  lw     x2,38(x1):1    issued      x2
-    2 no   add    x1,x1,x2       committed   x1
-    3 no   lw     x2,34(x1):1    committed   x2
-    4 no   lw     x2,35(x1):2    committed   x2
-    5 yes  sw     x2,36(x1):1    executed    36(x1)
-    6 yes  sw     x2,37(x1):1    executed    37(x1)
-
-register status
----------------
-x2=#1 
-
-
-Cycle: 20
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  sw        #1  #2  
-effaddr2 yes  lw            #1  
+effaddr1 yes  lw            #1  
+effaddr2 yes  sw        #1  #2  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
@@ -665,31 +294,30 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  lw     x2,38(x1):1    executed    x2
     2 yes  sw     x2,39(x1):1    issued      39(x1)
-    3 no   lw     x2,34(x1):1    committed   x2
-    4 no   lw     x2,35(x1):2    committed   x2
-    5 no   sw     x2,36(x1):1    committed   36(x1)
-    6 yes  sw     x2,37(x1):1    executed    37(x1)
+    3 no   lw     x2,35(x1):2    committed   x2
+    4 no   sw     x2,36(x1):1    committed   36(x1)
+    5 yes  sw     x2,37(x1):1    executed    37(x1)
 
 register status
 ---------------
 x2=#1 
 
 
-Cycle: 21
+Cycle: 10
 
       Reservation stations
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  sw        #1  #2  
-effaddr2 yes  lw            #1  
+effaddr1 yes  lw            #1  
+effaddr2 yes  sw        #1  #2  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 no
+int    1 yes  add       #1  #3  
 int    2 no
 
                      Reorder buffer
@@ -698,31 +326,30 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  lw     x2,38(x1):1    executed    x2
     2 yes  sw     x2,39(x1):1    executed    39(x1)
-    3 no   lw     x2,34(x1):1    committed   x2
-    4 no   lw     x2,35(x1):2    committed   x2
-    5 no   sw     x2,36(x1):1    committed   36(x1)
-    6 no   sw     x2,37(x1):1    committed   37(x1)
+    3 yes  add    x1,x1,x2       issued      x1
+    4 no   sw     x2,36(x1):1    committed   36(x1)
+    5 no   sw     x2,37(x1):1    committed   37(x1)
 
 register status
 ---------------
-x2=#1 
+x1=#3 x2=#1 
 
 
-Cycle: 22
+Cycle: 11
 
       Reservation stations
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  lw            #3  
-effaddr2 yes  lw            #1  
+effaddr1 yes  lw            #1  
+effaddr2 yes  lw    #3      #4  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 no
+int    1 yes  add       #1  #3  
 int    2 no
 
                      Reorder buffer
@@ -731,23 +358,86 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  lw     x2,38(x1):1    memread     x2
     2 yes  sw     x2,39(x1):1    executed    39(x1)
-    3 yes  lw     x1,33(x1):0    issued      x1
-    4 no   lw     x2,35(x1):2    committed   x2
-    5 no   sw     x2,36(x1):1    committed   36(x1)
-    6 no   sw     x2,37(x1):1    committed   37(x1)
+    3 yes  add    x1,x1,x2       issued      x1
+    4 yes  lw     x2,34(x1):1    issued      x2
+    5 no   sw     x2,37(x1):1    committed   37(x1)
 
 register status
 ---------------
-x1=#3 x2=#1 
+x1=#3 x2=#4 
 
 
-Cycle: 23
+Cycle: 12
 
       Reservation stations
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  lw            #3  
+effaddr1 yes  lw    #3      #5  
+effaddr2 yes  lw    #3      #4  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 yes  add       #1  #3  
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  lw     x2,38(x1):1    wroteresult x2
+    2 yes  sw     x2,39(x1):1    executed    39(x1)
+    3 yes  add    x1,x1,x2       issued      x1
+    4 yes  lw     x2,34(x1):1    issued      x2
+    5 yes  lw     x2,35(x1):2    issued      x2
+
+register status
+---------------
+x1=#3 x2=#5 
+
+
+Cycle: 13
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  lw    #3      #5  
+effaddr2 yes  lw    #3      #4  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 yes  add           #3  
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 no   lw     x2,38(x1):1    committed   x2
+    2 yes  sw     x2,39(x1):1    executed    39(x1)
+    3 yes  add    x1,x1,x2       executed    x1
+    4 yes  lw     x2,34(x1):1    issued      x2
+    5 yes  lw     x2,35(x1):2    issued      x2
+
+register status
+---------------
+x1=#3 x2=#5 
+
+
+Cycle: 14
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  lw    #3      #5  
 effaddr2 yes  lw    #3      #4  
 fpadd  1 no
 fpadd  2 no
@@ -762,16 +452,303 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  lw     x2,38(x1):1    wroteresult x2
-    2 yes  sw     x2,39(x1):1    executed    39(x1)
-    3 yes  lw     x1,33(x1):0    executed    x1
+    1 no   lw     x2,38(x1):1    committed   x2
+    2 no   sw     x2,39(x1):1    committed   39(x1)
+    3 yes  add    x1,x1,x2       wroteresult x1
     4 yes  lw     x2,34(x1):1    issued      x2
-    5 no   sw     x2,36(x1):1    committed   36(x1)
-    6 no   sw     x2,37(x1):1    committed   37(x1)
+    5 yes  lw     x2,35(x1):2    issued      x2
 
 register status
 ---------------
-x1=#3 x2=#4 
+x1=#3 x2=#5 
+
+
+Cycle: 15
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  lw            #5  
+effaddr2 yes  lw            #4  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 no   lw     x2,38(x1):1    committed   x2
+    2 no   sw     x2,39(x1):1    committed   39(x1)
+    3 no   add    x1,x1,x2       committed   x1
+    4 yes  lw     x2,34(x1):1    executed    x2
+    5 yes  lw     x2,35(x1):2    executed    x2
+
+register status
+---------------
+x2=#5 
+
+
+Cycle: 16
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  lw            #5  
+effaddr2 yes  lw            #4  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 no   lw     x2,38(x1):1    committed   x2
+    2 no   sw     x2,39(x1):1    committed   39(x1)
+    3 no   add    x1,x1,x2       committed   x1
+    4 yes  lw     x2,34(x1):1    memread     x2
+    5 yes  lw     x2,35(x1):2    executed    x2
+
+register status
+---------------
+x2=#5 
+
+
+Cycle: 17
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  lw            #5  
+effaddr2 yes  sw        #5  #1  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  sw     x2,36(x1):1    issued      36(x1)
+    2 no   sw     x2,39(x1):1    committed   39(x1)
+    3 no   add    x1,x1,x2       committed   x1
+    4 yes  lw     x2,34(x1):1    wroteresult x2
+    5 yes  lw     x2,35(x1):2    memread     x2
+
+register status
+---------------
+x2=#5 
+
+
+Cycle: 18
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  sw        #5  #2  
+effaddr2 yes  sw        #5  #1  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  sw     x2,36(x1):1    executed    36(x1)
+    2 yes  sw     x2,37(x1):1    issued      37(x1)
+    3 no   add    x1,x1,x2       committed   x1
+    4 no   lw     x2,34(x1):1    committed   x2
+    5 yes  lw     x2,35(x1):2    wroteresult x2
+
+register status
+---------------
+x2=#5 
+
+
+Cycle: 19
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  sw            #2  
+effaddr2 yes  lw            #3  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  sw     x2,36(x1):1    executed    36(x1)
+    2 yes  sw     x2,37(x1):1    executed    37(x1)
+    3 yes  lw     x2,38(x1):1    issued      x2
+    4 no   lw     x2,34(x1):1    committed   x2
+    5 no   lw     x2,35(x1):2    committed   x2
+
+register status
+---------------
+x2=#3 
+
+
+Cycle: 20
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  sw        #3  #4  
+effaddr2 yes  lw            #3  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 no   sw     x2,36(x1):1    committed   36(x1)
+    2 yes  sw     x2,37(x1):1    executed    37(x1)
+    3 yes  lw     x2,38(x1):1    executed    x2
+    4 yes  sw     x2,39(x1):1    issued      39(x1)
+    5 no   lw     x2,35(x1):2    committed   x2
+
+register status
+---------------
+x2=#3 
+
+
+Cycle: 21
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  sw        #3  #4  
+effaddr2 yes  lw            #3  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 no   sw     x2,36(x1):1    committed   36(x1)
+    2 no   sw     x2,37(x1):1    committed   37(x1)
+    3 yes  lw     x2,38(x1):1    executed    x2
+    4 yes  sw     x2,39(x1):1    executed    39(x1)
+    5 no   lw     x2,35(x1):2    committed   x2
+
+register status
+---------------
+x2=#3 
+
+
+Cycle: 22
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  lw            #5  
+effaddr2 yes  lw            #3  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 no   sw     x2,36(x1):1    committed   36(x1)
+    2 no   sw     x2,37(x1):1    committed   37(x1)
+    3 yes  lw     x2,38(x1):1    memread     x2
+    4 yes  sw     x2,39(x1):1    executed    39(x1)
+    5 yes  lw     x1,33(x1):0    issued      x1
+
+register status
+---------------
+x1=#5 x2=#3 
+
+
+Cycle: 23
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 yes  lw            #5  
+effaddr2 yes  lw    #5      #1  
+fpadd  1 no
+fpadd  2 no
+fpadd  3 no
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  lw     x2,34(x1):1    issued      x2
+    2 no   sw     x2,37(x1):1    committed   37(x1)
+    3 yes  lw     x2,38(x1):1    wroteresult x2
+    4 yes  sw     x2,39(x1):1    executed    39(x1)
+    5 yes  lw     x1,33(x1):0    executed    x1
+
+register status
+---------------
+x1=#5 x2=#1 
 
 
 Cycle: 24
@@ -780,31 +757,30 @@ Cycle: 24
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  lw            #3  
-effaddr2 yes  lw    #3      #4  
+effaddr1 yes  lw            #5  
+effaddr2 yes  lw    #5      #1  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  add   #4      #5  
+int    1 yes  add   #1      #2  
 int    2 no
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   lw     x2,38(x1):1    committed   x2
-    2 yes  sw     x2,39(x1):1    executed    39(x1)
-    3 yes  lw     x1,33(x1):0    memread     x1
-    4 yes  lw     x2,34(x1):1    issued      x2
-    5 yes  add    x1,x2,x4       issued      x1
-    6 no   sw     x2,37(x1):1    committed   37(x1)
+    1 yes  lw     x2,34(x1):1    issued      x2
+    2 yes  add    x1,x2,x4       issued      x1
+    3 no   lw     x2,38(x1):1    committed   x2
+    4 yes  sw     x2,39(x1):1    executed    39(x1)
+    5 yes  lw     x1,33(x1):0    memread     x1
 
 register status
 ---------------
-x1=#5 x2=#4 
+x1=#2 x2=#1 
 
 
 Cycle: 25
@@ -814,30 +790,29 @@ Cycle: 25
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  lw    #3      #4  
+effaddr2 yes  lw    #5      #1  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  add   #4      #5  
-int    2 yes  sub   #5      #6  
+int    1 yes  add   #1      #2  
+int    2 yes  sub   #2      #3  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   lw     x2,38(x1):1    committed   x2
-    2 no   sw     x2,39(x1):1    committed   39(x1)
-    3 yes  lw     x1,33(x1):0    wroteresult x1
-    4 yes  lw     x2,34(x1):1    issued      x2
-    5 yes  add    x1,x2,x4       issued      x1
-    6 yes  sub    x2,x1,x4       issued      x2
+    1 yes  lw     x2,34(x1):1    issued      x2
+    2 yes  add    x1,x2,x4       issued      x1
+    3 yes  sub    x2,x1,x4       issued      x2
+    4 no   sw     x2,39(x1):1    committed   39(x1)
+    5 yes  lw     x1,33(x1):0    wroteresult x1
 
 register status
 ---------------
-x1=#5 x2=#6 
+x1=#2 x2=#3 
 
 
 Cycle: 26
@@ -847,30 +822,29 @@ Cycle: 26
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  lw            #4  
+effaddr2 yes  lw            #1  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  add   #4      #5  
-int    2 yes  sub   #5      #6  
+int    1 yes  add   #1      #2  
+int    2 yes  sub   #2      #3  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   lw     x2,38(x1):1    committed   x2
-    2 no   sw     x2,39(x1):1    committed   39(x1)
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 yes  lw     x2,34(x1):1    executed    x2
-    5 yes  add    x1,x2,x4       issued      x1
-    6 yes  sub    x2,x1,x4       issued      x2
+    1 yes  lw     x2,34(x1):1    executed    x2
+    2 yes  add    x1,x2,x4       issued      x1
+    3 yes  sub    x2,x1,x4       issued      x2
+    4 no   sw     x2,39(x1):1    committed   39(x1)
+    5 no   lw     x1,33(x1):0    committed   x1
 
 register status
 ---------------
-x1=#5 x2=#6 
+x1=#2 x2=#3 
 
 
 Cycle: 27
@@ -880,30 +854,29 @@ Cycle: 27
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  lw            #4  
+effaddr2 yes  lw            #1  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  add   #4      #5  
-int    2 yes  sub   #5      #6  
+int    1 yes  add   #1      #2  
+int    2 yes  sub   #2      #3  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   lw     x2,38(x1):1    committed   x2
-    2 no   sw     x2,39(x1):1    committed   39(x1)
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 yes  lw     x2,34(x1):1    memread     x2
-    5 yes  add    x1,x2,x4       issued      x1
-    6 yes  sub    x2,x1,x4       issued      x2
+    1 yes  lw     x2,34(x1):1    memread     x2
+    2 yes  add    x1,x2,x4       issued      x1
+    3 yes  sub    x2,x1,x4       issued      x2
+    4 no   sw     x2,39(x1):1    committed   39(x1)
+    5 no   lw     x1,33(x1):0    committed   x1
 
 register status
 ---------------
-x1=#5 x2=#6 
+x1=#2 x2=#3 
 
 
 Cycle: 28
@@ -920,23 +893,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  add   #4      #5  
-int    2 yes  sub   #5      #6  
+int    1 yes  add   #1      #2  
+int    2 yes  sub   #2      #3  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   lw     x2,38(x1):1    committed   x2
-    2 no   sw     x2,39(x1):1    committed   39(x1)
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 yes  lw     x2,34(x1):1    wroteresult x2
-    5 yes  add    x1,x2,x4       issued      x1
-    6 yes  sub    x2,x1,x4       issued      x2
+    1 yes  lw     x2,34(x1):1    wroteresult x2
+    2 yes  add    x1,x2,x4       issued      x1
+    3 yes  sub    x2,x1,x4       issued      x2
+    4 no   sw     x2,39(x1):1    committed   39(x1)
+    5 no   lw     x1,33(x1):0    committed   x1
 
 register status
 ---------------
-x1=#5 x2=#6 
+x1=#2 x2=#3 
 
 
 Cycle: 29
@@ -953,23 +925,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  add           #5  
-int    2 yes  sub   #5      #6  
+int    1 yes  add           #2  
+int    2 yes  sub   #2      #3  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   lw     x2,38(x1):1    committed   x2
-    2 no   sw     x2,39(x1):1    committed   39(x1)
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 no   lw     x2,34(x1):1    committed   x2
-    5 yes  add    x1,x2,x4       executed    x1
-    6 yes  sub    x2,x1,x4       issued      x2
+    1 no   lw     x2,34(x1):1    committed   x2
+    2 yes  add    x1,x2,x4       executed    x1
+    3 yes  sub    x2,x1,x4       issued      x2
+    4 no   sw     x2,39(x1):1    committed   39(x1)
+    5 no   lw     x1,33(x1):0    committed   x1
 
 register status
 ---------------
-x1=#5 x2=#6 
+x1=#2 x2=#3 
 
 
 Cycle: 30
@@ -986,23 +957,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  bne   #5  #6  #1  
-int    2 yes  sub   #5      #6  
+int    1 yes  bne   #2  #3  #4  
+int    2 yes  sub   #2      #3  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  bne    x1,x2,Lstr     issued      
-    2 no   sw     x2,39(x1):1    committed   39(x1)
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 no   lw     x2,34(x1):1    committed   x2
-    5 yes  add    x1,x2,x4       wroteresult x1
-    6 yes  sub    x2,x1,x4       issued      x2
+    1 no   lw     x2,34(x1):1    committed   x2
+    2 yes  add    x1,x2,x4       wroteresult x1
+    3 yes  sub    x2,x1,x4       issued      x2
+    4 yes  bne    x1,x2,Lstr     issued      
+    5 no   lw     x1,33(x1):0    committed   x1
 
 register status
 ---------------
-x1=#5 x2=#6 
+x1=#2 x2=#3 
 
 
 Cycle: 31
@@ -1019,23 +989,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  bne       #6  #1  
-int    2 yes  sub           #6  
+int    1 yes  bne       #3  #4  
+int    2 yes  sub           #3  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  bne    x1,x2,Lstr     issued      
-    2 no   sw     x2,39(x1):1    committed   39(x1)
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 no   lw     x2,34(x1):1    committed   x2
-    5 no   add    x1,x2,x4       committed   x1
-    6 yes  sub    x2,x1,x4       executed    x2
+    1 no   lw     x2,34(x1):1    committed   x2
+    2 no   add    x1,x2,x4       committed   x1
+    3 yes  sub    x2,x1,x4       executed    x2
+    4 yes  bne    x1,x2,Lstr     issued      
+    5 no   lw     x1,33(x1):0    committed   x1
 
 register status
 ---------------
-x2=#6 
+x2=#3 
 
 
 Cycle: 32
@@ -1052,23 +1021,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  bne       #6  #1  
-int    2 yes  add   #6      #2  
+int    1 yes  bne       #3  #4  
+int    2 yes  add   #3      #5  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  bne    x1,x2,Lstr     issued      
-    2 yes  add    x3,x2,x4       issued      x3
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 no   lw     x2,34(x1):1    committed   x2
-    5 no   add    x1,x2,x4       committed   x1
-    6 yes  sub    x2,x1,x4       wroteresult x2
+    1 no   lw     x2,34(x1):1    committed   x2
+    2 no   add    x1,x2,x4       committed   x1
+    3 yes  sub    x2,x1,x4       wroteresult x2
+    4 yes  bne    x1,x2,Lstr     issued      
+    5 yes  add    x3,x2,x4       issued      x3
 
 register status
 ---------------
-x2=#6 x3=#2 
+x2=#3 x3=#5 
 
 
 Cycle: 33
@@ -1085,23 +1053,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  bne           #1  
-int    2 yes  add           #2  
+int    1 yes  bne           #4  
+int    2 yes  add           #5  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  bne    x1,x2,Lstr     executed    
-    2 yes  add    x3,x2,x4       executed    x3
-    3 no   lw     x1,33(x1):0    committed   x1
-    4 no   lw     x2,34(x1):1    committed   x2
-    5 no   add    x1,x2,x4       committed   x1
-    6 no   sub    x2,x1,x4       committed   x2
+    1 no   lw     x2,34(x1):1    committed   x2
+    2 no   add    x1,x2,x4       committed   x1
+    3 no   sub    x2,x1,x4       committed   x2
+    4 yes  bne    x1,x2,Lstr     executed    
+    5 yes  add    x3,x2,x4       executed    x3
 
 register status
 ---------------
-x3=#2 
+x3=#5 
 
 
 Cycle: 34
@@ -1118,23 +1085,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  sub           #3  
+int    1 yes  sub           #1  
 int    2 no
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   bne    x1,x2,Lstr     committed   
-    2 yes  add    x3,x2,x4       wroteresult x3
-    3 yes  sub    x4,x1,x4       issued      x4
-    4 no   lw     x2,34(x1):1    committed   x2
-    5 no   add    x1,x2,x4       committed   x1
-    6 no   sub    x2,x1,x4       committed   x2
+    1 yes  sub    x4,x1,x4       issued      x4
+    2 no   add    x1,x2,x4       committed   x1
+    3 no   sub    x2,x1,x4       committed   x2
+    4 no   bne    x1,x2,Lstr     committed   
+    5 yes  add    x3,x2,x4       wroteresult x3
 
 register status
 ---------------
-x3=#2 x4=#3 
+x3=#5 x4=#1 
 
 
 Cycle: 35
@@ -1151,23 +1117,22 @@ fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
-int    1 yes  sub           #3  
-int    2 yes  beq       #3  #4  
+int    1 yes  sub           #1  
+int    2 yes  beq       #1  #2  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   bne    x1,x2,Lstr     committed   
-    2 no   add    x3,x2,x4       committed   x3
-    3 yes  sub    x4,x1,x4       executed    x4
-    4 yes  beq    x3,x4,Lstr     issued      
-    5 no   add    x1,x2,x4       committed   x1
-    6 no   sub    x2,x1,x4       committed   x2
+    1 yes  sub    x4,x1,x4       executed    x4
+    2 yes  beq    x3,x4,Lstr     issued      
+    3 no   sub    x2,x1,x4       committed   x2
+    4 no   bne    x1,x2,Lstr     committed   
+    5 no   add    x3,x2,x4       committed   x3
 
 register status
 ---------------
-x4=#3 
+x4=#1 
 
 
 Cycle: 36
@@ -1176,7 +1141,7 @@ Cycle: 36
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  sw            #5  
+effaddr1 yes  sw            #3  
 effaddr2 no
 fpadd  1 no
 fpadd  2 no
@@ -1185,22 +1150,21 @@ fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
-int    2 yes  beq       #3  #4  
+int    2 yes  beq       #1  #2  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   bne    x1,x2,Lstr     committed   
-    2 no   add    x3,x2,x4       committed   x3
-    3 yes  sub    x4,x1,x4       wroteresult x4
-    4 yes  beq    x3,x4,Lstr     issued      
-    5 yes  sw     x3,39(x1):4    issued      39(x1)
-    6 no   sub    x2,x1,x4       committed   x2
+    1 yes  sub    x4,x1,x4       wroteresult x4
+    2 yes  beq    x3,x4,Lstr     issued      
+    3 yes  sw     x3,39(x1):4    issued      39(x1)
+    4 no   bne    x1,x2,Lstr     committed   
+    5 no   add    x3,x2,x4       committed   x3
 
 register status
 ---------------
-x4=#3 
+x4=#1 
 
 
 Cycle: 37
@@ -1209,8 +1173,8 @@ Cycle: 37
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  sw            #5  
-effaddr2 yes  sw            #6  
+effaddr1 yes  sw            #3  
+effaddr2 yes  sw            #4  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
@@ -1218,18 +1182,17 @@ fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
-int    2 yes  beq           #4  
+int    2 yes  beq           #2  
 
                      Reorder buffer
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   bne    x1,x2,Lstr     committed   
-    2 no   add    x3,x2,x4       committed   x3
-    3 no   sub    x4,x1,x4       committed   x4
-    4 yes  beq    x3,x4,Lstr     executed    
-    5 yes  sw     x3,39(x1):4    executed    39(x1)
-    6 yes  sw     x4,40(x1):4    issued      40(x1)
+    1 no   sub    x4,x1,x4       committed   x4
+    2 yes  beq    x3,x4,Lstr     executed    
+    3 yes  sw     x3,39(x1):4    executed    39(x1)
+    4 yes  sw     x4,40(x1):4    issued      40(x1)
+    5 no   add    x3,x2,x4       committed   x3
 
 register status
 ---------------
@@ -1242,8 +1205,8 @@ Cycle: 38
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #1  
-effaddr2 yes  sw            #6  
+effaddr1 yes  flw           #5  
+effaddr2 yes  sw            #4  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
@@ -1257,16 +1220,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  flw    f0,41(x1):5    issued      f0
-    2 no   add    x3,x2,x4       committed   x3
-    3 no   sub    x4,x1,x4       committed   x4
-    4 no   beq    x3,x4,Lstr     committed   
-    5 yes  sw     x3,39(x1):4    executed    39(x1)
-    6 yes  sw     x4,40(x1):4    executed    40(x1)
+    1 no   sub    x4,x1,x4       committed   x4
+    2 no   beq    x3,x4,Lstr     committed   
+    3 yes  sw     x3,39(x1):4    executed    39(x1)
+    4 yes  sw     x4,40(x1):4    executed    40(x1)
+    5 yes  flw    f0,41(x1):5    issued      f0
 
 register status
 ---------------
-f0=#1 
+f0=#5 
 
 
 Cycle: 39
@@ -1275,9 +1237,9 @@ Cycle: 39
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #1  
+effaddr1 yes  flw           #5  
 effaddr2 no
-fpadd  1 yes  fadd.s     #1  #2  
+fpadd  1 yes  fadd.s     #5  #1  
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
@@ -1290,16 +1252,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  flw    f0,41(x1):5    executed    f0
-    2 yes  fadd.s f6,f8,f0       issued      f6
-    3 no   sub    x4,x1,x4       committed   x4
-    4 no   beq    x3,x4,Lstr     committed   
-    5 no   sw     x3,39(x1):4    committed   39(x1)
-    6 yes  sw     x4,40(x1):4    executed    40(x1)
+    1 yes  fadd.s f6,f8,f0       issued      f6
+    2 no   beq    x3,x4,Lstr     committed   
+    3 no   sw     x3,39(x1):4    committed   39(x1)
+    4 yes  sw     x4,40(x1):4    executed    40(x1)
+    5 yes  flw    f0,41(x1):5    executed    f0
 
 register status
 ---------------
-f0=#1 f6=#2 
+f0=#5 f6=#1 
 
 
 Cycle: 40
@@ -1308,9 +1269,9 @@ Cycle: 40
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #1  
-effaddr2 yes  fsw       #2  #3  
-fpadd  1 yes  fadd.s     #1  #2  
+effaddr1 yes  flw           #5  
+effaddr2 yes  fsw       #1  #2  
+fpadd  1 yes  fadd.s     #5  #1  
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
@@ -1323,16 +1284,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  flw    f0,41(x1):5    executed    f0
-    2 yes  fadd.s f6,f8,f0       issued      f6
-    3 yes  fsw    f6,41(x1):5    issued      41(x1)
-    4 no   beq    x3,x4,Lstr     committed   
-    5 no   sw     x3,39(x1):4    committed   39(x1)
-    6 no   sw     x4,40(x1):4    committed   40(x1)
+    1 yes  fadd.s f6,f8,f0       issued      f6
+    2 yes  fsw    f6,41(x1):5    issued      41(x1)
+    3 no   sw     x3,39(x1):4    committed   39(x1)
+    4 no   sw     x4,40(x1):4    committed   40(x1)
+    5 yes  flw    f0,41(x1):5    executed    f0
 
 register status
 ---------------
-f0=#1 f6=#2 
+f0=#5 f6=#1 
 
 
 Cycle: 41
@@ -1341,12 +1301,12 @@ Cycle: 41
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #1  
-effaddr2 yes  fsw       #2  #3  
-fpadd  1 yes  fadd.s     #1  #2  
+effaddr1 yes  flw           #5  
+effaddr2 yes  fsw       #1  #2  
+fpadd  1 yes  fadd.s     #5  #1  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s         #3  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -1356,16 +1316,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  flw    f0,41(x1):5    memread     f0
-    2 yes  fadd.s f6,f8,f0       issued      f6
-    3 yes  fsw    f6,41(x1):5    executed    41(x1)
-    4 yes  fmul.s f0,f2,f4       issued      f0
-    5 no   sw     x3,39(x1):4    committed   39(x1)
-    6 no   sw     x4,40(x1):4    committed   40(x1)
+    1 yes  fadd.s f6,f8,f0       issued      f6
+    2 yes  fsw    f6,41(x1):5    executed    41(x1)
+    3 yes  fmul.s f0,f2,f4       issued      f0
+    4 no   sw     x4,40(x1):4    committed   40(x1)
+    5 yes  flw    f0,41(x1):5    memread     f0
 
 register status
 ---------------
-f0=#4 f6=#2 
+f0=#3 f6=#1 
 
 
 Cycle: 42
@@ -1374,12 +1333,12 @@ Cycle: 42
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  fsw           #5  
+effaddr1 yes  fsw           #4  
 effaddr2 no
-fpadd  1 yes  fadd.s     #1  #2  
+fpadd  1 yes  fadd.s     #5  #1  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s         #3  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -1389,16 +1348,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  flw    f0,41(x1):5    wroteresult f0
-    2 yes  fadd.s f6,f8,f0       issued      f6
-    3 yes  fsw    f6,41(x1):5    executed    41(x1)
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f2,32(x2):0    issued      32(x2)
-    6 no   sw     x4,40(x1):4    committed   40(x1)
+    1 yes  fadd.s f6,f8,f0       issued      f6
+    2 yes  fsw    f6,41(x1):5    executed    41(x1)
+    3 yes  fmul.s f0,f2,f4       executing   f0
+    4 yes  fsw    f2,32(x2):0    issued      32(x2)
+    5 yes  flw    f0,41(x1):5    wroteresult f0
 
 register status
 ---------------
-f0=#4 f6=#2 
+f0=#3 f6=#1 
 
 
 Cycle: 43
@@ -1407,12 +1365,12 @@ Cycle: 43
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  fsw           #5  
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s         #2  
+effaddr1 yes  fsw           #4  
+effaddr2 yes  flw           #5  
+fpadd  1 yes  fadd.s         #1  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s         #3  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -1422,16 +1380,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   flw    f0,41(x1):5    committed   f0
-    2 yes  fadd.s f6,f8,f0       executing   f6
-    3 yes  fsw    f6,41(x1):5    executed    41(x1)
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f2,32(x2):0    executed    32(x2)
-    6 yes  flw    f2,32(x2):0    issued      f2
+    1 yes  fadd.s f6,f8,f0       executing   f6
+    2 yes  fsw    f6,41(x1):5    executed    41(x1)
+    3 yes  fmul.s f0,f2,f4       executing   f0
+    4 yes  fsw    f2,32(x2):0    executed    32(x2)
+    5 yes  flw    f2,32(x2):0    issued      f2
 
 register status
 ---------------
-f0=#4 f2=#6 f6=#2 
+f0=#3 f2=#5 f6=#1 
 
 
 Cycle: 44
@@ -1441,12 +1398,12 @@ Cycle: 44
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s         #2  
+effaddr2 yes  flw           #5  
+fpadd  1 yes  fadd.s         #1  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
-fpmul  2 yes  fdiv.s #4  #2  #1  
+fpmul  1 yes  fmul.s         #3  
+fpmul  2 no
 fpmul  3 no
 int    1 no
 int    2 no
@@ -1455,16 +1412,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fdiv.s f0,f0,f6       issued      f0
-    2 yes  fadd.s f6,f8,f0       executed    f6
-    3 yes  fsw    f6,41(x1):5    executed    41(x1)
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f2,32(x2):0    executed    32(x2)
-    6 yes  flw    f2,32(x2):0    executed    f2
+    1 yes  fadd.s f6,f8,f0       executed    f6
+    2 yes  fsw    f6,41(x1):5    executed    41(x1)
+    3 yes  fmul.s f0,f2,f4       executing   f0
+    4 yes  fsw    f2,32(x2):0    executed    32(x2)
+    5 yes  flw    f2,32(x2):0    executed    f2
 
 register status
 ---------------
-f0=#1 f2=#6 f6=#2 
+f0=#3 f2=#5 f6=#1 
 
 
 Cycle: 45
@@ -1474,12 +1430,12 @@ Cycle: 45
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  flw           #6  
+effaddr2 yes  flw           #5  
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
-fpmul  2 yes  fdiv.s #4  #2  #1  
+fpmul  1 yes  fmul.s         #3  
+fpmul  2 no
 fpmul  3 no
 int    1 no
 int    2 no
@@ -1488,16 +1444,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fdiv.s f0,f0,f6       issued      f0
-    2 yes  fadd.s f6,f8,f0       wroteresult f6
-    3 yes  fsw    f6,41(x1):5    executed    41(x1)
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f2,32(x2):0    executed    32(x2)
-    6 yes  flw    f2,32(x2):0    executed    f2
+    1 yes  fadd.s f6,f8,f0       wroteresult f6
+    2 yes  fsw    f6,41(x1):5    executed    41(x1)
+    3 yes  fmul.s f0,f2,f4       executing   f0
+    4 yes  fsw    f2,32(x2):0    executed    32(x2)
+    5 yes  flw    f2,32(x2):0    executed    f2
 
 register status
 ---------------
-f0=#1 f2=#6 f6=#2 
+f0=#3 f2=#5 f6=#1 
 
 
 Cycle: 46
@@ -1507,12 +1462,12 @@ Cycle: 46
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s     #6  #2  
+effaddr2 yes  flw           #5  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
-fpmul  2 yes  fdiv.s #4      #1  
+fpmul  1 yes  fmul.s         #3  
+fpmul  2 yes  fdiv.s #3      #1  
 fpmul  3 no
 int    1 no
 int    2 no
@@ -1522,15 +1477,14 @@ int    2 no
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fdiv.s f0,f0,f6       issued      f0
-    2 yes  fadd.s f6,f8,f2       issued      f6
-    3 yes  fsw    f6,41(x1):5    executed    41(x1)
-    4 yes  fmul.s f0,f2,f4       executed    f0
-    5 yes  fsw    f2,32(x2):0    executed    32(x2)
-    6 yes  flw    f2,32(x2):0    executed    f2
+    2 yes  fsw    f6,41(x1):5    executed    41(x1)
+    3 yes  fmul.s f0,f2,f4       executed    f0
+    4 yes  fsw    f2,32(x2):0    executed    32(x2)
+    5 yes  flw    f2,32(x2):0    executed    f2
 
 register status
 ---------------
-f0=#1 f2=#6 f6=#2 
+f0=#1 f2=#5 
 
 
 Cycle: 47
@@ -1540,12 +1494,12 @@ Cycle: 47
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s     #6  #2  
+effaddr2 yes  flw           #5  
+fpadd  1 yes  fadd.s     #5  #2  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s     #2  #3  
-fpmul  2 yes  fdiv.s #4      #1  
+fpmul  1 no
+fpmul  2 yes  fdiv.s #3      #1  
 fpmul  3 no
 int    1 no
 int    2 no
@@ -1556,14 +1510,13 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fdiv.s f0,f0,f6       issued      f0
     2 yes  fadd.s f6,f8,f2       issued      f6
-    3 yes  fmul.s f0,f4,f6       issued      f0
-    4 yes  fmul.s f0,f2,f4       wroteresult f0
-    5 yes  fsw    f2,32(x2):0    executed    32(x2)
-    6 yes  flw    f2,32(x2):0    executed    f2
+    3 yes  fmul.s f0,f2,f4       wroteresult f0
+    4 yes  fsw    f2,32(x2):0    executed    32(x2)
+    5 yes  flw    f2,32(x2):0    executed    f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 
+f0=#1 f2=#5 f6=#2 
 
 
 Cycle: 48
@@ -1573,9 +1526,41 @@ Cycle: 48
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s     #6  #2  
-fpadd  2 yes  fsub.s #2  #6  #4  
+effaddr2 yes  flw           #5  
+fpadd  1 yes  fadd.s     #5  #2  
+fpadd  2 no
+fpadd  3 no
+fpmul  1 yes  fmul.s     #2  #3  
+fpmul  2 yes  fdiv.s         #1  
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       issued      f6
+    3 yes  fmul.s f0,f4,f6       issued      f0
+    4 yes  fsw    f2,32(x2):0    executed    32(x2)
+    5 yes  flw    f2,32(x2):0    executed    f2
+
+register status
+---------------
+f0=#3 f2=#5 f6=#2 
+
+
+Cycle: 49
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 no
+effaddr2 yes  flw           #5  
+fpadd  1 yes  fadd.s     #5  #2  
+fpadd  2 yes  fsub.s #2  #5  #4  
 fpadd  3 no
 fpmul  1 yes  fmul.s     #2  #3  
 fpmul  2 yes  fdiv.s         #1  
@@ -1591,45 +1576,11 @@ Entry Busy      Instruction         State    Destination
     2 yes  fadd.s f6,f8,f2       issued      f6
     3 yes  fmul.s f0,f4,f6       issued      f0
     4 yes  fsub.s f8,f6,f2       issued      f8
-    5 yes  fsw    f2,32(x2):0    executed    32(x2)
-    6 yes  flw    f2,32(x2):0    executed    f2
+    5 yes  flw    f2,32(x2):0    executed    f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 
-
-
-Cycle: 49
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s     #6  #2  
-fpadd  2 yes  fsub.s #2  #6  #4  
-fpadd  3 yes  fadd.s #3  #2  #5  
-fpmul  1 yes  fmul.s     #2  #3  
-fpmul  2 yes  fdiv.s         #1  
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  fdiv.s f0,f0,f6       executing   f0
-    2 yes  fadd.s f6,f8,f2       issued      f6
-    3 yes  fmul.s f0,f4,f6       issued      f0
-    4 yes  fsub.s f8,f6,f2       issued      f8
-    5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  flw    f2,32(x2):0    executed    f2
-
-register status
----------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f2=#5 f6=#2 f8=#4 
 
 
 Cycle: 50
@@ -1639,10 +1590,10 @@ Cycle: 50
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s     #6  #2  
-fpadd  2 yes  fsub.s #2  #6  #4  
-fpadd  3 yes  fadd.s #3  #2  #5  
+effaddr2 yes  flw           #5  
+fpadd  1 yes  fadd.s     #5  #2  
+fpadd  2 yes  fsub.s #2  #5  #4  
+fpadd  3 no
 fpmul  1 yes  fmul.s     #2  #3  
 fpmul  2 yes  fdiv.s         #1  
 fpmul  3 no
@@ -1657,12 +1608,11 @@ Entry Busy      Instruction         State    Destination
     2 yes  fadd.s f6,f8,f2       issued      f6
     3 yes  fmul.s f0,f4,f6       issued      f0
     4 yes  fsub.s f8,f6,f2       issued      f8
-    5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  flw    f2,32(x2):0    memread     f2
+    5 yes  flw    f2,32(x2):0    memread     f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f2=#5 f6=#2 f8=#4 
 
 
 Cycle: 51
@@ -1673,9 +1623,9 @@ Cycle: 51
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s     #6  #2  
-fpadd  2 yes  fsub.s #2  #6  #4  
-fpadd  3 yes  fadd.s #3  #2  #5  
+fpadd  1 yes  fadd.s     #5  #2  
+fpadd  2 yes  fsub.s #2  #5  #4  
+fpadd  3 no
 fpmul  1 yes  fmul.s     #2  #3  
 fpmul  2 yes  fdiv.s         #1  
 fpmul  3 no
@@ -1690,12 +1640,11 @@ Entry Busy      Instruction         State    Destination
     2 yes  fadd.s f6,f8,f2       issued      f6
     3 yes  fmul.s f0,f4,f6       issued      f0
     4 yes  fsub.s f8,f6,f2       issued      f8
-    5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  flw    f2,32(x2):0    wroteresult f2
+    5 yes  flw    f2,32(x2):0    wroteresult f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f2=#5 f6=#2 f8=#4 
 
 
 Cycle: 52
@@ -1724,7 +1673,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  fmul.s f0,f4,f6       issued      f0
     4 yes  fsub.s f8,f6,f2       issued      f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 no   flw    f2,32(x2):0    committed   f2
 
 register status
 ---------------
@@ -1757,7 +1705,6 @@ Entry Busy      Instruction         State    Destination
     3 yes  fmul.s f0,f4,f6       issued      f0
     4 yes  fsub.s f8,f6,f2       issued      f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 no   flw    f2,32(x2):0    committed   f2
 
 register status
 ---------------
@@ -1772,7 +1719,7 @@ Cycle: 54
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s     #2  #6  
+fpadd  1 no
 fpadd  2 yes  fsub.s #2      #4  
 fpadd  3 yes  fadd.s #3  #2  #5  
 fpmul  1 yes  fmul.s     #2  #3  
@@ -1790,11 +1737,10 @@ Entry Busy      Instruction         State    Destination
     3 yes  fmul.s f0,f4,f6       issued      f0
     4 yes  fsub.s f8,f6,f2       issued      f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  fadd.s f2,f4,f6       issued      f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f6=#2 f8=#4 f10=#5 
 
 
 Cycle: 55
@@ -1805,7 +1751,7 @@ Cycle: 55
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s     #2  #6  
+fpadd  1 no
 fpadd  2 yes  fsub.s         #4  
 fpadd  3 yes  fadd.s #3      #5  
 fpmul  1 yes  fmul.s         #3  
@@ -1823,11 +1769,10 @@ Entry Busy      Instruction         State    Destination
     3 yes  fmul.s f0,f4,f6       executing   f0
     4 yes  fsub.s f8,f6,f2       executing   f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  fadd.s f2,f4,f6       executing   f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f6=#2 f8=#4 f10=#5 
 
 
 Cycle: 56
@@ -1838,7 +1783,7 @@ Cycle: 56
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s     #2  #6  
+fpadd  1 no
 fpadd  2 yes  fsub.s         #4  
 fpadd  3 yes  fadd.s #3      #5  
 fpmul  1 yes  fmul.s         #3  
@@ -1856,11 +1801,10 @@ Entry Busy      Instruction         State    Destination
     3 yes  fmul.s f0,f4,f6       executing   f0
     4 yes  fsub.s f8,f6,f2       executed    f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  fadd.s f2,f4,f6       executed    f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f6=#2 f8=#4 f10=#5 
 
 
 Cycle: 57
@@ -1871,7 +1815,7 @@ Cycle: 57
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s     #2  #6  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 yes  fadd.s #3      #5  
 fpmul  1 yes  fmul.s         #3  
@@ -1889,11 +1833,10 @@ Entry Busy      Instruction         State    Destination
     3 yes  fmul.s f0,f4,f6       executing   f0
     4 yes  fsub.s f8,f6,f2       wroteresult f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  fadd.s f2,f4,f6       executed    f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f6=#2 f8=#4 f10=#5 
 
 
 Cycle: 58
@@ -1904,7 +1847,7 @@ Cycle: 58
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s     #2  #6  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 yes  fadd.s #3      #5  
 fpmul  1 yes  fmul.s         #3  
@@ -1922,11 +1865,10 @@ Entry Busy      Instruction         State    Destination
     3 yes  fmul.s f0,f4,f6       executing   f0
     4 yes  fsub.s f8,f6,f2       wroteresult f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  fadd.s f2,f4,f6       executed    f2
 
 register status
 ---------------
-f0=#3 f2=#6 f6=#2 f8=#4 f10=#5 
+f0=#3 f6=#2 f8=#4 f10=#5 
 
 
 Cycle: 59
@@ -1937,7 +1879,7 @@ Cycle: 59
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #3      #1  
+fpadd  1 yes  fadd.s     #2  #1  
 fpadd  2 no
 fpadd  3 yes  fadd.s #3      #5  
 fpmul  1 yes  fmul.s         #3  
@@ -1950,12 +1892,11 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f2,f0,f5       issued      f2
+    1 yes  fadd.s f2,f4,f6       issued      f2
     2 yes  fadd.s f6,f8,f2       wroteresult f6
     3 yes  fmul.s f0,f4,f6       executed    f0
     4 yes  fsub.s f8,f6,f2       wroteresult f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  fadd.s f2,f4,f6       wroteresult f2
 
 register status
 ---------------
@@ -1970,8 +1911,8 @@ Cycle: 60
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #3      #1  
-fpadd  2 yes  fsub.s     #1  #2  
+fpadd  1 yes  fadd.s         #1  
+fpadd  2 yes  fadd.s #3      #2  
 fpadd  3 yes  fadd.s #3      #5  
 fpmul  1 no
 fpmul  2 no
@@ -1983,16 +1924,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f2,f0,f5       issued      f2
-    2 yes  fsub.s f8,f1,f2       issued      f8
+    1 yes  fadd.s f2,f4,f6       executing   f2
+    2 yes  fadd.s f2,f0,f5       issued      f2
     3 yes  fmul.s f0,f4,f6       wroteresult f0
     4 yes  fsub.s f8,f6,f2       wroteresult f8
     5 yes  fadd.s f10,f0,f6      issued      f10
-    6 yes  fadd.s f2,f4,f6       wroteresult f2
 
 register status
 ---------------
-f0=#3 f2=#1 f8=#2 f10=#5 
+f0=#3 f2=#2 f8=#4 f10=#5 
 
 
 Cycle: 61
@@ -2001,10 +1941,10 @@ Cycle: 61
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #3  
+effaddr1 no
 effaddr2 no
 fpadd  1 yes  fadd.s         #1  
-fpadd  2 yes  fsub.s     #1  #2  
+fpadd  2 yes  fadd.s         #2  
 fpadd  3 yes  fadd.s         #5  
 fpmul  1 no
 fpmul  2 no
@@ -2016,16 +1956,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f2,f0,f5       executing   f2
-    2 yes  fsub.s f8,f1,f2       issued      f8
-    3 yes  flw    f2,32(x2):0    issued      f2
+    1 yes  fadd.s f2,f4,f6       executed    f2
+    2 yes  fadd.s f2,f0,f5       executing   f2
+    3 no   fmul.s f0,f4,f6       committed   f0
     4 yes  fsub.s f8,f6,f2       wroteresult f8
     5 yes  fadd.s f10,f0,f6      executing   f10
-    6 yes  fadd.s f2,f4,f6       wroteresult f2
 
 register status
 ---------------
-f2=#3 f8=#2 f10=#5 
+f2=#2 f8=#4 f10=#5 
 
 
 Cycle: 62
@@ -2034,12 +1973,12 @@ Cycle: 62
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #3  
+effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s         #1  
-fpadd  2 yes  fsub.s     #1  #2  
+fpadd  1 yes  fsub.s     #2  #3  
+fpadd  2 yes  fadd.s         #2  
 fpadd  3 yes  fadd.s         #5  
-fpmul  1 yes  fmul.s #3      #4  
+fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2049,16 +1988,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f2,f0,f5       executed    f2
-    2 yes  fsub.s f8,f1,f2       issued      f8
-    3 yes  flw    f2,32(x2):0    executed    f2
-    4 yes  fmul.s f0,f2,f4       issued      f0
+    1 yes  fadd.s f2,f4,f6       wroteresult f2
+    2 yes  fadd.s f2,f0,f5       executed    f2
+    3 yes  fsub.s f8,f1,f2       issued      f8
+    4 no   fsub.s f8,f6,f2       committed   f8
     5 yes  fadd.s f10,f0,f6      executed    f10
-    6 yes  fadd.s f2,f4,f6       wroteresult f2
 
 register status
 ---------------
-f0=#4 f2=#3 f8=#2 f10=#5 
+f2=#2 f8=#3 f10=#5 
 
 
 Cycle: 63
@@ -2067,12 +2005,12 @@ Cycle: 63
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #3  
+effaddr1 yes  flw           #4  
 effaddr2 no
-fpadd  1 yes  fadd.s         #1  
-fpadd  2 yes  fsub.s     #1  #2  
+fpadd  1 yes  fsub.s     #2  #3  
+fpadd  2 yes  fadd.s         #2  
 fpadd  3 no
-fpmul  1 yes  fmul.s #3      #4  
+fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2082,16 +2020,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f2,f0,f5       executed    f2
-    2 yes  fsub.s f8,f1,f2       issued      f8
-    3 yes  flw    f2,32(x2):0    memread     f2
-    4 yes  fmul.s f0,f2,f4       issued      f0
+    1 yes  fadd.s f2,f4,f6       wroteresult f2
+    2 yes  fadd.s f2,f0,f5       executed    f2
+    3 yes  fsub.s f8,f1,f2       issued      f8
+    4 yes  flw    f2,32(x2):0    issued      f2
     5 yes  fadd.s f10,f0,f6      wroteresult f10
-    6 yes  fadd.s f2,f4,f6       wroteresult f2
 
 register status
 ---------------
-f0=#4 f2=#3 f8=#2 f10=#5 
+f2=#4 f8=#3 f10=#5 
 
 
 Cycle: 64
@@ -2100,12 +2037,12 @@ Cycle: 64
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #3  
-effaddr2 yes  fsw       #4  #5  
-fpadd  1 no
-fpadd  2 yes  fsub.s     #1  #2  
+effaddr1 yes  flw           #4  
+effaddr2 no
+fpadd  1 yes  fsub.s     #2  #3  
+fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s #3      #4  
+fpmul  1 yes  fmul.s #4      #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2115,16 +2052,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f2,f0,f5       wroteresult f2
-    2 yes  fsub.s f8,f1,f2       issued      f8
-    3 yes  flw    f2,32(x2):0    memread     f2
-    4 yes  fmul.s f0,f2,f4       issued      f0
-    5 yes  fsw    f0,32(x2):0    issued      32(x2)
-    6 yes  fadd.s f2,f4,f6       wroteresult f2
+    1 yes  fadd.s f2,f4,f6       wroteresult f2
+    2 yes  fadd.s f2,f0,f5       wroteresult f2
+    3 yes  fsub.s f8,f1,f2       issued      f8
+    4 yes  flw    f2,32(x2):0    executed    f2
+    5 yes  fmul.s f0,f2,f4       issued      f0
 
 register status
 ---------------
-f0=#4 f2=#3 f8=#2 
+f0=#5 f2=#4 f8=#3 
 
 
 Cycle: 65
@@ -2133,12 +2069,12 @@ Cycle: 65
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #6  
-effaddr2 yes  fsw       #4  #5  
-fpadd  1 no
-fpadd  2 yes  fsub.s         #2  
+effaddr1 yes  flw           #4  
+effaddr2 yes  fsw       #5  #1  
+fpadd  1 yes  fsub.s         #3  
+fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s #3      #4  
+fpmul  1 yes  fmul.s #4      #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2148,16 +2084,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f2,f0,f5       wroteresult f2
-    2 yes  fsub.s f8,f1,f2       executing   f8
-    3 yes  flw    f2,32(x2):0    wroteresult f2
-    4 yes  fmul.s f0,f2,f4       issued      f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    issued      f0
+    1 yes  fsw    f0,32(x2):0    issued      32(x2)
+    2 yes  fadd.s f2,f0,f5       wroteresult f2
+    3 yes  fsub.s f8,f1,f2       executing   f8
+    4 yes  flw    f2,32(x2):0    memread     f2
+    5 yes  fmul.s f0,f2,f4       issued      f0
 
 register status
 ---------------
-f0=#6 f2=#3 f8=#2 
+f0=#5 f2=#4 f8=#3 
 
 
 Cycle: 66
@@ -2166,12 +2101,12 @@ Cycle: 66
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #6  
-effaddr2 no
-fpadd  1 yes  fadd.s #2  #3  #1  
-fpadd  2 yes  fsub.s         #2  
+effaddr1 yes  flw           #2  
+effaddr2 yes  fsw       #5  #1  
+fpadd  1 yes  fsub.s         #3  
+fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s #4      #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2181,16 +2116,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       issued      f6
-    2 yes  fsub.s f8,f1,f2       executed    f8
-    3 yes  flw    f2,32(x2):0    wroteresult f2
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    executed    f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    issued      f0
+    3 yes  fsub.s f8,f1,f2       executed    f8
+    4 yes  flw    f2,32(x2):0    wroteresult f2
+    5 yes  fmul.s f0,f2,f4       issued      f0
 
 register status
 ---------------
-f0=#6 f2=#3 f6=#1 f8=#2 
+f0=#2 f2=#4 f8=#3 
 
 
 Cycle: 67
@@ -2199,12 +2133,12 @@ Cycle: 67
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #6  
+effaddr1 yes  flw           #2  
 effaddr2 no
-fpadd  1 yes  fadd.s #2  #3  #1  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s         #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2214,16 +2148,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       issued      f6
-    2 yes  fsub.s f8,f1,f2       wroteresult f8
-    3 yes  flw    f2,32(x2):0    wroteresult f2
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    memread     f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    executed    f0
+    3 yes  fsub.s f8,f1,f2       wroteresult f8
+    4 yes  flw    f2,32(x2):0    wroteresult f2
+    5 yes  fmul.s f0,f2,f4       executing   f0
 
 register status
 ---------------
-f0=#6 f2=#3 f6=#1 f8=#2 
+f0=#2 f2=#4 f8=#3 
 
 
 Cycle: 68
@@ -2232,12 +2165,12 @@ Cycle: 68
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  fsw           #2  
+effaddr1 yes  flw           #2  
 effaddr2 no
-fpadd  1 yes  fadd.s     #3  #1  
+fpadd  1 yes  fadd.s     #4  #3  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s         #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2247,16 +2180,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       executing   f6
-    2 yes  fsw    f3,33(x1):2    issued      33(x1)
-    3 yes  flw    f2,32(x2):0    wroteresult f2
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    wroteresult f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    memread     f0
+    3 yes  fadd.s f6,f8,f2       issued      f6
+    4 yes  flw    f2,32(x2):0    wroteresult f2
+    5 yes  fmul.s f0,f2,f4       executing   f0
 
 register status
 ---------------
-f0=#6 f2=#3 f6=#1 
+f0=#2 f2=#4 f6=#3 
 
 
 Cycle: 69
@@ -2265,12 +2197,12 @@ Cycle: 69
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  fsw           #2  
-effaddr2 yes  flw           #3  
-fpadd  1 yes  fadd.s         #1  
+effaddr1 yes  fsw           #4  
+effaddr2 no
+fpadd  1 yes  fadd.s         #3  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s         #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2280,16 +2212,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       executed    f6
-    2 yes  fsw    f3,33(x1):2    executed    33(x1)
-    3 yes  flw    f2,32(x2):3    issued      f2
-    4 yes  fmul.s f0,f2,f4       executing   f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    wroteresult f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    wroteresult f0
+    3 yes  fadd.s f6,f8,f2       executing   f6
+    4 yes  fsw    f3,33(x1):2    issued      33(x1)
+    5 yes  fmul.s f0,f2,f4       executing   f0
 
 register status
 ---------------
-f0=#6 f2=#3 f6=#1 
+f0=#2 f6=#3 
 
 
 Cycle: 70
@@ -2298,12 +2229,12 @@ Cycle: 70
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
-effaddr2 yes  flw           #3  
-fpadd  1 no
+effaddr1 yes  fsw           #4  
+effaddr2 no
+fpadd  1 yes  fadd.s         #3  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s         #4  
+fpmul  1 yes  fmul.s         #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2313,16 +2244,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       wroteresult f6
-    2 yes  fsw    f3,33(x1):2    executed    33(x1)
-    3 yes  flw    f2,32(x2):3    executed    f2
-    4 yes  fmul.s f0,f2,f4       executed    f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    wroteresult f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    wroteresult f0
+    3 yes  fadd.s f6,f8,f2       executed    f6
+    4 yes  fsw    f3,33(x1):2    executed    33(x1)
+    5 yes  fmul.s f0,f2,f4       executing   f0
 
 register status
 ---------------
-f0=#6 f2=#3 f6=#1 
+f0=#2 f6=#3 
 
 
 Cycle: 71
@@ -2332,11 +2262,11 @@ Cycle: 71
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 no
-effaddr2 yes  flw           #3  
+effaddr2 no
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 no
+fpmul  1 yes  fmul.s         #5  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2346,16 +2276,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       wroteresult f6
-    2 yes  fsw    f3,33(x1):2    executed    33(x1)
-    3 yes  flw    f2,32(x2):3    memread     f2
-    4 yes  fmul.s f0,f2,f4       wroteresult f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    wroteresult f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    wroteresult f0
+    3 yes  fadd.s f6,f8,f2       wroteresult f6
+    4 yes  fsw    f3,33(x1):2    executed    33(x1)
+    5 yes  fmul.s f0,f2,f4       executed    f0
 
 register status
 ---------------
-f0=#6 f2=#3 f6=#1 
+f0=#2 f6=#3 
 
 
 Cycle: 72
@@ -2369,7 +2298,7 @@ effaddr2 no
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fdiv.s #6  #1  #4  
+fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2379,16 +2308,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       wroteresult f6
-    2 yes  fsw    f3,33(x1):2    executed    33(x1)
-    3 yes  flw    f2,32(x2):3    wroteresult f2
-    4 yes  fdiv.s f0,f0,f6       issued      f0
-    5 yes  fsw    f0,32(x2):0    executed    32(x2)
-    6 yes  flw    f0,32(x1):1    wroteresult f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    wroteresult f0
+    3 yes  fadd.s f6,f8,f2       wroteresult f6
+    4 yes  fsw    f3,33(x1):2    executed    33(x1)
+    5 yes  fmul.s f0,f2,f4       wroteresult f0
 
 register status
 ---------------
-f0=#4 f2=#3 f6=#1 
+f0=#2 f6=#3 
 
 
 Cycle: 73
@@ -2397,12 +2325,12 @@ Cycle: 73
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
+effaddr1 yes  flw           #5  
 effaddr2 no
-fpadd  1 yes  fadd.s     #3  #5  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fdiv.s #6  #1  #4  
+fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2412,16 +2340,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       wroteresult f6
-    2 yes  fsw    f3,33(x1):2    executed    33(x1)
-    3 yes  flw    f2,32(x2):3    wroteresult f2
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       issued      f6
-    6 yes  flw    f0,32(x1):1    wroteresult f0
+    1 yes  fsw    f0,32(x2):0    executed    32(x2)
+    2 yes  flw    f0,32(x1):1    wroteresult f0
+    3 yes  fadd.s f6,f8,f2       wroteresult f6
+    4 yes  fsw    f3,33(x1):2    executed    33(x1)
+    5 yes  flw    f2,32(x2):3    issued      f2
 
 register status
 ---------------
-f0=#4 f2=#3 f6=#5 
+f0=#2 f2=#5 f6=#3 
 
 
 Cycle: 74
@@ -2430,12 +2357,12 @@ Cycle: 74
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #6  
+effaddr1 yes  flw           #5  
 effaddr2 no
-fpadd  1 yes  fadd.s     #3  #5  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fdiv.s     #1  #4  
+fpmul  1 yes  fdiv.s #2  #3  #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2445,16 +2372,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f6,f8,f2       wroteresult f6
-    2 yes  fsw    f3,33(x1):2    executed    33(x1)
-    3 yes  flw    f2,32(x2):3    wroteresult f2
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       executing   f6
-    6 yes  flw    f0,32(x2):0    issued      f0
+    1 yes  fdiv.s f0,f0,f6       issued      f0
+    2 yes  flw    f0,32(x1):1    wroteresult f0
+    3 yes  fadd.s f6,f8,f2       wroteresult f6
+    4 yes  fsw    f3,33(x1):2    executed    33(x1)
+    5 yes  flw    f2,32(x2):3    executed    f2
 
 register status
 ---------------
-f0=#6 f2=#3 f6=#5 
+f0=#1 f2=#5 f6=#3 
 
 
 Cycle: 75
@@ -2463,12 +2389,12 @@ Cycle: 75
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #6  
+effaddr1 yes  flw           #5  
 effaddr2 no
-fpadd  1 yes  fadd.s     #3  #5  
-fpadd  2 yes  fadd.s #6  #3  #1  
+fpadd  1 yes  fadd.s     #5  #2  
+fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s     #3  #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2478,16 +2404,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fsw    f3,33(x1):2    executed    33(x1)
-    3 yes  flw    f2,32(x2):3    wroteresult f2
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       executed    f6
-    6 yes  flw    f0,32(x2):0    executed    f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       issued      f6
+    3 yes  fadd.s f6,f8,f2       wroteresult f6
+    4 yes  fsw    f3,33(x1):2    executed    33(x1)
+    5 yes  flw    f2,32(x2):3    memread     f2
 
 register status
 ---------------
-f0=#6 f2=#3 f4=#1 f6=#5 
+f0=#1 f2=#5 f6=#2 
 
 
 Cycle: 76
@@ -2496,12 +2421,12 @@ Cycle: 76
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #6  
-effaddr2 yes  fsw       #1  #2  
-fpadd  1 no
-fpadd  2 yes  fadd.s #6  #3  #1  
+effaddr1 yes  flw           #3  
+effaddr2 no
+fpadd  1 yes  fadd.s     #5  #2  
+fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2511,16 +2436,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fsw    f4,32(x1):2    issued      32(x1)
-    3 yes  flw    f2,32(x2):3    wroteresult f2
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    executed    f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       issued      f6
+    3 yes  flw    f0,32(x2):0    issued      f0
+    4 yes  fsw    f3,33(x1):2    executed    33(x1)
+    5 yes  flw    f2,32(x2):3    wroteresult f2
 
 register status
 ---------------
-f0=#6 f2=#3 f4=#1 f6=#5 
+f0=#3 f2=#5 f6=#2 
 
 
 Cycle: 77
@@ -2529,12 +2453,12 @@ Cycle: 77
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #6  
-effaddr2 yes  fsw       #1  #2  
-fpadd  1 no
-fpadd  2 yes  fadd.s #6      #1  
+effaddr1 yes  flw           #3  
+effaddr2 no
+fpadd  1 yes  fadd.s         #2  
+fpadd  2 yes  fadd.s #3  #5  #4  
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2544,16 +2468,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 no   flw    f2,32(x2):3    committed   f2
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    memread     f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       executing   f6
+    3 yes  flw    f0,32(x2):0    executed    f0
+    4 yes  fadd.s f4,f0,f2       issued      f4
+    5 yes  flw    f2,32(x2):3    wroteresult f2
 
 register status
 ---------------
-f0=#6 f4=#1 f6=#5 
+f0=#3 f2=#5 f4=#4 f6=#2 
 
 
 Cycle: 78
@@ -2563,11 +2486,11 @@ Cycle: 78
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 yes  flw           #3  
-effaddr2 no
-fpadd  1 no
-fpadd  2 yes  fadd.s #6      #1  
+effaddr2 yes  fsw       #4  #5  
+fpadd  1 yes  fadd.s         #2  
+fpadd  2 yes  fadd.s #3      #4  
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2577,16 +2500,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    issued      f0
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       executed    f6
+    3 yes  flw    f0,32(x2):0    memread     f0
+    4 yes  fadd.s f4,f0,f2       issued      f4
+    5 yes  fsw    f4,32(x1):2    issued      32(x1)
 
 register status
 ---------------
-f0=#3 f4=#1 f6=#5 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 79
@@ -2596,11 +2518,11 @@ Cycle: 79
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
 effaddr1 yes  flw           #3  
-effaddr2 no
+effaddr2 yes  fsw       #4  #5  
 fpadd  1 no
-fpadd  2 yes  fadd.s         #1  
+fpadd  2 yes  fadd.s #3      #4  
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2610,16 +2532,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       executing   f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    executed    f0
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    memread     f0
+    4 yes  fadd.s f4,f0,f2       issued      f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#3 f4=#1 f6=#5 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 80
@@ -2628,12 +2549,12 @@ Cycle: 80
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #3  
+effaddr1 no
 effaddr2 no
 fpadd  1 no
-fpadd  2 yes  fadd.s         #1  
+fpadd  2 yes  fadd.s #3      #4  
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2643,16 +2564,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       executed    f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    memread     f0
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    wroteresult f0
+    4 yes  fadd.s f4,f0,f2       issued      f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#3 f4=#1 f6=#5 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 81
@@ -2661,12 +2581,12 @@ Cycle: 81
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  flw           #3  
+effaddr1 no
 effaddr2 no
 fpadd  1 no
-fpadd  2 no
+fpadd  2 yes  fadd.s         #4  
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2676,16 +2596,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       wroteresult f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    memread     f0
-    4 yes  fdiv.s f0,f0,f6       executing   f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    wroteresult f0
+    4 yes  fadd.s f4,f0,f2       executing   f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#3 f4=#1 f6=#5 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 82
@@ -2697,9 +2616,9 @@ Cycle: 82
 effaddr1 no
 effaddr2 no
 fpadd  1 no
-fpadd  2 no
+fpadd  2 yes  fadd.s         #4  
 fpadd  3 no
-fpmul  1 yes  fdiv.s         #4  
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2709,16 +2628,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       wroteresult f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    wroteresult f0
-    4 yes  fdiv.s f0,f0,f6       executed    f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    wroteresult f0
+    4 yes  fadd.s f4,f0,f2       executed    f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#3 f4=#1 f6=#5 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 83
@@ -2732,7 +2650,7 @@ effaddr2 no
 fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 no
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2742,16 +2660,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       wroteresult f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    wroteresult f0
-    4 yes  fdiv.s f0,f0,f6       wroteresult f0
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       executing   f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    wroteresult f0
+    4 yes  fadd.s f4,f0,f2       wroteresult f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#3 f4=#1 f6=#5 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 84
@@ -2762,10 +2679,10 @@ Cycle: 84
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #3      #4  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 no
-fpmul  1 no
+fpmul  1 yes  fdiv.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2775,16 +2692,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       wroteresult f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    wroteresult f0
-    4 yes  fadd.s f4,f0,f2       issued      f4
-    5 yes  fadd.s f6,f8,f2       wroteresult f6
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       executed    f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    wroteresult f0
+    4 yes  fadd.s f4,f0,f2       wroteresult f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#3 f4=#4 f6=#5 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 85
@@ -2793,9 +2709,9 @@ Cycle: 85
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  fsw       #4  #5  
+effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #3      #4  
+fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
@@ -2808,16 +2724,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       wroteresult f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    wroteresult f0
-    4 yes  fadd.s f4,f0,f2       executing   f4
-    5 yes  fsw    f4,32(x1):4    issued      32(x1)
-    6 yes  flw    f0,32(x2):0    wroteresult f0
+    1 yes  fdiv.s f0,f0,f6       wroteresult f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    wroteresult f0
+    4 yes  fadd.s f4,f0,f2       wroteresult f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#3 f4=#4 
+f0=#3 f4=#4 f6=#2 
 
 
 Cycle: 86
@@ -2826,9 +2741,9 @@ Cycle: 86
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 yes  fsw       #4  #5  
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s #3      #4  
+effaddr1 yes  flw           #1  
+effaddr2 no
+fpadd  1 no
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
@@ -2841,16 +2756,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       wroteresult f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    wroteresult f0
-    4 yes  fadd.s f4,f0,f2       executed    f4
-    5 yes  fsw    f4,32(x1):4    executed    32(x1)
-    6 yes  flw    f0,32(x1):5    issued      f0
+    1 yes  flw    f0,32(x1):3    issued      f0
+    2 yes  fadd.s f6,f8,f2       wroteresult f6
+    3 yes  flw    f0,32(x2):0    wroteresult f0
+    4 yes  fadd.s f4,f0,f2       wroteresult f4
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#6 f4=#4 
+f0=#1 f4=#4 f6=#2 
 
 
 Cycle: 87
@@ -2859,9 +2773,9 @@ Cycle: 87
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s #6      #1  
+effaddr1 yes  flw           #1  
+effaddr2 no
+fpadd  1 yes  fadd.s #1      #2  
 fpadd  2 no
 fpadd  3 no
 fpmul  1 no
@@ -2874,16 +2788,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fsw    f4,32(x1):2    executed    32(x1)
-    3 yes  flw    f0,32(x1):3    wroteresult f0
+    1 yes  flw    f0,32(x1):3    executed    f0
+    2 yes  fadd.s f4,f0,f2       issued      f4
+    3 yes  flw    f0,32(x2):0    wroteresult f0
     4 yes  fadd.s f4,f0,f2       wroteresult f4
-    5 yes  fsw    f4,32(x1):4    executed    32(x1)
-    6 yes  flw    f0,32(x1):5    executed    f0
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#6 f4=#1 
+f0=#1 f4=#2 
 
 
 Cycle: 88
@@ -2892,12 +2805,12 @@ Cycle: 88
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s #6      #1  
+effaddr1 yes  flw           #1  
+effaddr2 yes  fsw       #2  #3  
+fpadd  1 yes  fadd.s #1      #2  
 fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s #1      #2  
+fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2907,16 +2820,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fmul.s f0,f4,f6       issued      f0
-    3 yes  flw    f0,32(x1):3    wroteresult f0
+    1 yes  flw    f0,32(x1):3    memread     f0
+    2 yes  fadd.s f4,f0,f2       issued      f4
+    3 yes  fsw    f4,32(x1):4    issued      32(x1)
     4 yes  fadd.s f4,f0,f2       wroteresult f4
-    5 yes  fsw    f4,32(x1):4    executed    32(x1)
-    6 yes  flw    f0,32(x1):5    executed    f0
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#2 f4=#1 
+f0=#1 f4=#2 
 
 
 Cycle: 89
@@ -2925,12 +2837,12 @@ Cycle: 89
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
-effaddr2 yes  flw           #6  
-fpadd  1 yes  fadd.s #6      #1  
-fpadd  2 yes  fsub.s         #3  
+effaddr1 yes  flw           #4  
+effaddr2 yes  fsw       #2  #3  
+fpadd  1 yes  fadd.s #1      #2  
+fpadd  2 no
 fpadd  3 no
-fpmul  1 yes  fmul.s #1      #2  
+fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2940,16 +2852,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fmul.s f0,f4,f6       issued      f0
-    3 yes  fsub.s f8,f6,f2       issued      f8
-    4 yes  fadd.s f4,f0,f2       wroteresult f4
-    5 yes  fsw    f4,32(x1):4    executed    32(x1)
-    6 yes  flw    f0,32(x1):5    memread     f0
+    1 yes  flw    f0,32(x1):3    wroteresult f0
+    2 yes  fadd.s f4,f0,f2       issued      f4
+    3 yes  fsw    f4,32(x1):4    executed    32(x1)
+    4 yes  flw    f0,32(x1):5    issued      f0
+    5 yes  fsw    f4,32(x1):2    executed    32(x1)
 
 register status
 ---------------
-f0=#2 f4=#1 f8=#3 
+f0=#4 f4=#2 
 
 
 Cycle: 90
@@ -2958,12 +2869,12 @@ Cycle: 90
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
+effaddr1 yes  flw           #4  
 effaddr2 no
-fpadd  1 yes  fadd.s #6      #1  
-fpadd  2 yes  fsub.s         #3  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s #1      #2  
+fpadd  1 yes  fadd.s         #2  
+fpadd  2 yes  fadd.s #4      #5  
+fpadd  3 no
+fpmul  1 no
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -2973,16 +2884,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       issued      f4
-    2 yes  fmul.s f0,f4,f6       issued      f0
-    3 yes  fsub.s f8,f6,f2       executing   f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fsw    f4,32(x1):4    executed    32(x1)
-    6 yes  flw    f0,32(x1):5    wroteresult f0
+    1 yes  flw    f0,32(x1):3    wroteresult f0
+    2 yes  fadd.s f4,f0,f2       executing   f4
+    3 yes  fsw    f4,32(x1):4    executed    32(x1)
+    4 yes  flw    f0,32(x1):5    executed    f0
+    5 yes  fadd.s f4,f0,f2       issued      f4
 
 register status
 ---------------
-f0=#2 f4=#1 f8=#3 f10=#4 
+f0=#4 f4=#5 
 
 
 Cycle: 91
@@ -2991,12 +2901,12 @@ Cycle: 91
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
+effaddr1 yes  flw           #4  
 effaddr2 no
-fpadd  1 yes  fadd.s         #1  
-fpadd  2 yes  fsub.s         #3  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s #1      #2  
+fpadd  1 yes  fadd.s         #2  
+fpadd  2 yes  fadd.s #4      #5  
+fpadd  3 no
+fpmul  1 yes  fmul.s #5      #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3006,16 +2916,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       executing   f4
-    2 yes  fmul.s f0,f4,f6       issued      f0
-    3 yes  fsub.s f8,f6,f2       executed    f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 no   fsw    f4,32(x1):4    committed   32(x1)
-    6 yes  flw    f0,32(x1):5    wroteresult f0
+    1 yes  fmul.s f0,f4,f6       issued      f0
+    2 yes  fadd.s f4,f0,f2       executed    f4
+    3 yes  fsw    f4,32(x1):4    executed    32(x1)
+    4 yes  flw    f0,32(x1):5    memread     f0
+    5 yes  fadd.s f4,f0,f2       issued      f4
 
 register status
 ---------------
-f0=#2 f4=#1 f8=#3 f10=#4 
+f0=#1 f4=#5 
 
 
 Cycle: 92
@@ -3024,12 +2933,12 @@ Cycle: 92
 --------------------------------
   Name   Busy  Op   Qj  Qk  Dest
 -------- ---- ----- --- --- ----
-effaddr1 no
+effaddr1 yes  flw           #4  
 effaddr2 no
-fpadd  1 yes  fadd.s         #1  
-fpadd  2 yes  fadd.s #1      #5  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s #1      #2  
+fpadd  1 no
+fpadd  2 yes  fadd.s #4      #5  
+fpadd  3 no
+fpmul  1 yes  fmul.s #5      #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3039,16 +2948,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       executed    f4
-    2 yes  fmul.s f0,f4,f6       issued      f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       issued      f2
-    6 no   flw    f0,32(x1):5    committed   f0
+    1 yes  fmul.s f0,f4,f6       issued      f0
+    2 yes  fadd.s f4,f0,f2       wroteresult f4
+    3 yes  fsw    f4,32(x1):4    executed    32(x1)
+    4 yes  flw    f0,32(x1):5    memread     f0
+    5 yes  fadd.s f4,f0,f2       issued      f4
 
 register status
 ---------------
-f0=#2 f2=#5 f4=#1 f8=#3 f10=#4 
+f0=#1 f4=#5 
 
 
 Cycle: 93
@@ -3059,10 +2967,10 @@ Cycle: 93
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #2      #6  
-fpadd  2 yes  fadd.s #1      #5  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s #1      #2  
+fpadd  1 yes  fsub.s         #2  
+fpadd  2 yes  fadd.s #4      #5  
+fpadd  3 no
+fpmul  1 yes  fmul.s #5      #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3072,16 +2980,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fadd.s f4,f0,f2       wroteresult f4
-    2 yes  fmul.s f0,f4,f6       issued      f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       issued      f2
-    6 yes  fadd.s f2,f0,f5       issued      f2
+    1 yes  fmul.s f0,f4,f6       issued      f0
+    2 yes  fsub.s f8,f6,f2       issued      f8
+    3 yes  fsw    f4,32(x1):4    executed    32(x1)
+    4 yes  flw    f0,32(x1):5    wroteresult f0
+    5 yes  fadd.s f4,f0,f2       issued      f4
 
 register status
 ---------------
-f0=#2 f2=#6 f4=#1 f8=#3 f10=#4 
+f0=#1 f4=#5 f8=#2 
 
 
 Cycle: 94
@@ -3092,10 +2999,10 @@ Cycle: 94
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #2      #6  
+fpadd  1 yes  fsub.s         #2  
 fpadd  2 yes  fadd.s         #5  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s         #2  
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s #5      #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3105,16 +3012,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   fadd.s f4,f0,f2       committed   f4
-    2 yes  fmul.s f0,f4,f6       executing   f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       executing   f2
-    6 yes  fadd.s f2,f0,f5       issued      f2
+    1 yes  fmul.s f0,f4,f6       issued      f0
+    2 yes  fsub.s f8,f6,f2       executing   f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  flw    f0,32(x1):5    wroteresult f0
+    5 yes  fadd.s f4,f0,f2       executing   f4
 
 register status
 ---------------
-f0=#2 f2=#6 f8=#3 f10=#4 
+f0=#1 f4=#5 f8=#2 f10=#3 
 
 
 Cycle: 95
@@ -3125,10 +3031,10 @@ Cycle: 95
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #2      #6  
+fpadd  1 yes  fsub.s         #2  
 fpadd  2 yes  fadd.s         #5  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s         #2  
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s #5      #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3138,16 +3044,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 no   fadd.s f4,f0,f2       committed   f4
-    2 yes  fmul.s f0,f4,f6       executing   f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       executed    f2
-    6 yes  fadd.s f2,f0,f5       issued      f2
+    1 yes  fmul.s f0,f4,f6       issued      f0
+    2 yes  fsub.s f8,f6,f2       executed    f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 no   flw    f0,32(x1):5    committed   f0
+    5 yes  fadd.s f4,f0,f2       executed    f4
 
 register status
 ---------------
-f0=#2 f2=#6 f8=#3 f10=#4 
+f0=#1 f4=#5 f8=#2 f10=#3 
 
 
 Cycle: 96
@@ -3158,10 +3063,10 @@ Cycle: 96
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #2      #6  
-fpadd  2 yes  fsub.s     #6  #1  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s         #2  
+fpadd  1 yes  fsub.s         #2  
+fpadd  2 yes  fadd.s #5      #4  
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s #5      #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3171,16 +3076,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fsub.s f8,f1,f2       issued      f8
-    2 yes  fmul.s f0,f4,f6       executing   f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       issued      f2
+    1 yes  fmul.s f0,f4,f6       issued      f0
+    2 yes  fsub.s f8,f6,f2       executed    f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  fadd.s f2,f4,f6       issued      f2
+    5 yes  fadd.s f4,f0,f2       wroteresult f4
 
 register status
 ---------------
-f0=#2 f2=#6 f8=#1 f10=#4 
+f0=#1 f2=#4 f4=#5 f8=#2 f10=#3 
 
 
 Cycle: 97
@@ -3191,10 +3095,10 @@ Cycle: 97
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #2      #6  
-fpadd  2 yes  fsub.s     #6  #1  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s         #2  
+fpadd  1 yes  fadd.s #1      #5  
+fpadd  2 yes  fadd.s         #4  
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3204,16 +3108,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fsub.s f8,f1,f2       issued      f8
-    2 yes  fmul.s f0,f4,f6       executing   f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       issued      f2
+    1 yes  fmul.s f0,f4,f6       executing   f0
+    2 yes  fsub.s f8,f6,f2       wroteresult f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  fadd.s f2,f4,f6       executing   f2
+    5 yes  fadd.s f2,f0,f5       issued      f2
 
 register status
 ---------------
-f0=#2 f2=#6 f8=#1 f10=#4 
+f0=#1 f2=#5 f8=#2 f10=#3 
 
 
 Cycle: 98
@@ -3224,10 +3127,10 @@ Cycle: 98
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #2      #6  
-fpadd  2 yes  fsub.s     #6  #1  
-fpadd  3 yes  fadd.s #2      #4  
-fpmul  1 yes  fmul.s         #2  
+fpadd  1 yes  fadd.s #1      #5  
+fpadd  2 yes  fadd.s         #4  
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s         #1  
 fpmul  2 no
 fpmul  3 no
 int    1 no
@@ -3237,16 +3140,15 @@ int    2 no
 --------------------------------------------------------
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
-    1 yes  fsub.s f8,f1,f2       issued      f8
-    2 yes  fmul.s f0,f4,f6       executed    f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       issued      f2
+    1 yes  fmul.s f0,f4,f6       executing   f0
+    2 yes  fsub.s f8,f6,f2       wroteresult f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  fadd.s f2,f4,f6       executed    f2
+    5 yes  fadd.s f2,f0,f5       issued      f2
 
 register status
 ---------------
-f0=#2 f2=#6 f8=#1 f10=#4 
+f0=#1 f2=#5 f8=#2 f10=#3 
 
 
 Cycle: 99
@@ -3257,9 +3159,137 @@ Cycle: 99
 -------- ---- ----- --- --- ----
 effaddr1 no
 effaddr2 no
-fpadd  1 yes  fadd.s #2      #6  
-fpadd  2 yes  fsub.s     #6  #1  
-fpadd  3 yes  fadd.s #2      #4  
+fpadd  1 yes  fadd.s #1      #5  
+fpadd  2 no
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s         #1  
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  fmul.s f0,f4,f6       executing   f0
+    2 yes  fsub.s f8,f6,f2       wroteresult f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       issued      f2
+
+register status
+---------------
+f0=#1 f2=#5 f8=#2 f10=#3 
+
+
+Cycle: 100
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 no
+effaddr2 no
+fpadd  1 yes  fadd.s #1      #5  
+fpadd  2 no
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s         #1  
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  fmul.s f0,f4,f6       executing   f0
+    2 yes  fsub.s f8,f6,f2       wroteresult f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       issued      f2
+
+register status
+---------------
+f0=#1 f2=#5 f8=#2 f10=#3 
+
+
+Cycle: 101
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 no
+effaddr2 no
+fpadd  1 yes  fadd.s #1      #5  
+fpadd  2 no
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 yes  fmul.s         #1  
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  fmul.s f0,f4,f6       executed    f0
+    2 yes  fsub.s f8,f6,f2       wroteresult f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       issued      f2
+
+register status
+---------------
+f0=#1 f2=#5 f8=#2 f10=#3 
+
+
+Cycle: 102
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 no
+effaddr2 no
+fpadd  1 yes  fadd.s #1      #5  
+fpadd  2 no
+fpadd  3 yes  fadd.s #1      #3  
+fpmul  1 no
+fpmul  2 no
+fpmul  3 no
+int    1 no
+int    2 no
+
+                     Reorder buffer
+--------------------------------------------------------
+Entry Busy      Instruction         State    Destination
+----- ---- --------------------- ----------- -----------
+    1 yes  fmul.s f0,f4,f6       wroteresult f0
+    2 yes  fsub.s f8,f6,f2       wroteresult f8
+    3 yes  fadd.s f10,f0,f6      issued      f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       issued      f2
+
+register status
+---------------
+f0=#1 f2=#5 f8=#2 f10=#3 
+
+
+Cycle: 103
+
+      Reservation stations
+--------------------------------
+  Name   Busy  Op   Qj  Qk  Dest
+-------- ---- ----- --- --- ----
+effaddr1 no
+effaddr2 no
+fpadd  1 yes  fadd.s         #5  
+fpadd  2 yes  fsub.s     #5  #1  
+fpadd  3 yes  fadd.s         #3  
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
@@ -3271,18 +3301,17 @@ int    2 no
 Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fsub.s f8,f1,f2       issued      f8
-    2 yes  fmul.s f0,f4,f6       wroteresult f0
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      issued      f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       issued      f2
+    2 yes  fsub.s f8,f6,f2       wroteresult f8
+    3 yes  fadd.s f10,f0,f6      executing   f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       executing   f2
 
 register status
 ---------------
-f0=#2 f2=#6 f8=#1 f10=#4 
+f2=#5 f8=#1 f10=#3 
 
 
-Cycle: 100
+Cycle: 104
 
       Reservation stations
 --------------------------------
@@ -3290,9 +3319,9 @@ Cycle: 100
 -------- ---- ----- --- --- ----
 effaddr1 yes  flw           #2  
 effaddr2 no
-fpadd  1 yes  fadd.s         #6  
-fpadd  2 yes  fsub.s     #6  #1  
-fpadd  3 yes  fadd.s         #4  
+fpadd  1 yes  fadd.s         #5  
+fpadd  2 yes  fsub.s     #5  #1  
+fpadd  3 yes  fadd.s         #3  
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
@@ -3305,17 +3334,16 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fsub.s f8,f1,f2       issued      f8
     2 yes  flw    f2,32(x2):0    issued      f2
-    3 yes  fsub.s f8,f6,f2       wroteresult f8
-    4 yes  fadd.s f10,f0,f6      executing   f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       executing   f2
+    3 yes  fadd.s f10,f0,f6      executed    f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       executed    f2
 
 register status
 ---------------
-f2=#2 f8=#1 f10=#4 
+f2=#2 f8=#1 f10=#3 
 
 
-Cycle: 101
+Cycle: 105
 
       Reservation stations
 --------------------------------
@@ -3323,9 +3351,9 @@ Cycle: 101
 -------- ---- ----- --- --- ----
 effaddr1 yes  flw           #2  
 effaddr2 no
-fpadd  1 yes  fadd.s         #6  
-fpadd  2 yes  fsub.s     #6  #1  
-fpadd  3 yes  fadd.s         #4  
+fpadd  1 yes  fadd.s         #5  
+fpadd  2 yes  fsub.s     #5  #1  
+fpadd  3 no
 fpmul  1 no
 fpmul  2 no
 fpmul  3 no
@@ -3338,50 +3366,16 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fsub.s f8,f1,f2       issued      f8
     2 yes  flw    f2,32(x2):0    executed    f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 yes  fadd.s f10,f0,f6      executed    f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       executed    f2
+    3 yes  fadd.s f10,f0,f6      wroteresult f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       executed    f2
 
 register status
 ---------------
-f2=#2 f8=#1 f10=#4 
+f2=#2 f8=#1 f10=#3 
 
 
-Cycle: 102
-
-      Reservation stations
---------------------------------
-  Name   Busy  Op   Qj  Qk  Dest
--------- ---- ----- --- --- ----
-effaddr1 yes  flw           #2  
-effaddr2 no
-fpadd  1 yes  fadd.s         #6  
-fpadd  2 yes  fsub.s     #6  #1  
-fpadd  3 no
-fpmul  1 no
-fpmul  2 no
-fpmul  3 no
-int    1 no
-int    2 no
-
-                     Reorder buffer
---------------------------------------------------------
-Entry Busy      Instruction         State    Destination
------ ---- --------------------- ----------- -----------
-    1 yes  fsub.s f8,f1,f2       issued      f8
-    2 yes  flw    f2,32(x2):0    memread     f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 yes  fadd.s f10,f0,f6      wroteresult f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       executed    f2
-
-register status
----------------
-f2=#2 f8=#1 f10=#4 
-
-
-Cycle: 103
+Cycle: 106
 
       Reservation stations
 --------------------------------
@@ -3390,7 +3384,7 @@ Cycle: 103
 effaddr1 yes  flw           #2  
 effaddr2 no
 fpadd  1 no
-fpadd  2 yes  fsub.s     #6  #1  
+fpadd  2 yes  fsub.s     #5  #1  
 fpadd  3 no
 fpmul  1 no
 fpmul  2 no
@@ -3404,17 +3398,16 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fsub.s f8,f1,f2       issued      f8
     2 yes  flw    f2,32(x2):0    memread     f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 no   fadd.s f10,f0,f6      committed   f10
-    5 yes  fadd.s f2,f4,f6       wroteresult f2
-    6 yes  fadd.s f2,f0,f5       wroteresult f2
+    3 no   fadd.s f10,f0,f6      committed   f10
+    4 yes  fadd.s f2,f4,f6       wroteresult f2
+    5 yes  fadd.s f2,f0,f5       wroteresult f2
 
 register status
 ---------------
 f2=#2 f8=#1 
 
 
-Cycle: 104
+Cycle: 107
 
       Reservation stations
 --------------------------------
@@ -3437,17 +3430,16 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fsub.s f8,f1,f2       executing   f8
     2 yes  flw    f2,32(x2):0    wroteresult f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 no   fadd.s f10,f0,f6      committed   f10
-    5 no   fadd.s f2,f4,f6       committed   f2
-    6 yes  fadd.s f2,f0,f5       wroteresult f2
+    3 no   fadd.s f10,f0,f6      committed   f10
+    4 no   fadd.s f2,f4,f6       committed   f2
+    5 yes  fadd.s f2,f0,f5       wroteresult f2
 
 register status
 ---------------
 f2=#2 f8=#1 
 
 
-Cycle: 105
+Cycle: 108
 
       Reservation stations
 --------------------------------
@@ -3470,17 +3462,16 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fsub.s f8,f1,f2       executed    f8
     2 yes  flw    f2,32(x2):0    wroteresult f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 no   fadd.s f10,f0,f6      committed   f10
-    5 no   fadd.s f2,f4,f6       committed   f2
-    6 no   fadd.s f2,f0,f5       committed   f2
+    3 no   fadd.s f10,f0,f6      committed   f10
+    4 no   fadd.s f2,f4,f6       committed   f2
+    5 no   fadd.s f2,f0,f5       committed   f2
 
 register status
 ---------------
 f2=#2 f8=#1 
 
 
-Cycle: 106
+Cycle: 109
 
       Reservation stations
 --------------------------------
@@ -3503,17 +3494,16 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 yes  fsub.s f8,f1,f2       wroteresult f8
     2 yes  flw    f2,32(x2):0    wroteresult f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 no   fadd.s f10,f0,f6      committed   f10
-    5 no   fadd.s f2,f4,f6       committed   f2
-    6 no   fadd.s f2,f0,f5       committed   f2
+    3 no   fadd.s f10,f0,f6      committed   f10
+    4 no   fadd.s f2,f4,f6       committed   f2
+    5 no   fadd.s f2,f0,f5       committed   f2
 
 register status
 ---------------
 f2=#2 f8=#1 
 
 
-Cycle: 107
+Cycle: 110
 
       Reservation stations
 --------------------------------
@@ -3536,17 +3526,16 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 no   fsub.s f8,f1,f2       committed   f8
     2 yes  flw    f2,32(x2):0    wroteresult f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 no   fadd.s f10,f0,f6      committed   f10
-    5 no   fadd.s f2,f4,f6       committed   f2
-    6 no   fadd.s f2,f0,f5       committed   f2
+    3 no   fadd.s f10,f0,f6      committed   f10
+    4 no   fadd.s f2,f4,f6       committed   f2
+    5 no   fadd.s f2,f0,f5       committed   f2
 
 register status
 ---------------
 f2=#2 
 
 
-Cycle: 108
+Cycle: 111
 
       Reservation stations
 --------------------------------
@@ -3569,10 +3558,9 @@ Entry Busy      Instruction         State    Destination
 ----- ---- --------------------- ----------- -----------
     1 no   fsub.s f8,f1,f2       committed   f8
     2 no   flw    f2,32(x2):0    committed   f2
-    3 no   fsub.s f8,f6,f2       committed   f8
-    4 no   fadd.s f10,f0,f6      committed   f10
-    5 no   fadd.s f2,f4,f6       committed   f2
-    6 no   fadd.s f2,f0,f5       committed   f2
+    3 no   fadd.s f10,f0,f6      committed   f10
+    4 no   fadd.s f2,f4,f6       committed   f2
+    5 no   fadd.s f2,f0,f5       committed   f2
 
 register status
 ---------------
@@ -3613,43 +3601,43 @@ fsw    f6,41(x1):5        40  41 - 41                    47
 fmul.s f0,f2,f4           41  42 - 46            47      48
 fsw    f2,32(x2):0        42  43 - 43                    49
 flw    f2,32(x2):0        43  44 - 44     50     51      52
-fdiv.s f0,f0,f6           44  48 - 57            58      59
-fadd.s f6,f8,f2           46  52 - 53            54      60
-fmul.s f0,f4,f6           47  55 - 59            60      61
-fsub.s f8,f6,f2           48  55 - 56            57      62
-fadd.s f10,f0,f6          49  61 - 62            63      64
-fadd.s f2,f4,f6           54  55 - 56            59      65
-fadd.s f2,f0,f5           59  61 - 62            64      66
-fsub.s f8,f1,f2           60  65 - 66            67      68
-flw    f2,32(x2):0        61  62 - 62     63     65      69
-fmul.s f0,f2,f4           62  66 - 70            71      72
-fsw    f0,32(x2):0        64  65 - 65                    73
-flw    f0,32(x1):1        65  66 - 66     67     68      74
-fadd.s f6,f8,f2           66  68 - 69            70      75
-fsw    f3,33(x1):2        68  69 - 69                    76
-flw    f2,32(x2):3        69  70 - 70     71     72      77
-fdiv.s f0,f0,f6           72  73 - 82            83      84
-fadd.s f6,f8,f2           73  74 - 75            76      85
-flw    f0,32(x2):0        74  75 - 75     77     78      86
-fadd.s f4,f0,f2           75  79 - 80            81      87
-fsw    f4,32(x1):2        76  77 - 77                    88
-flw    f0,32(x1):3        78  79 - 79     80     82      89
-fadd.s f4,f0,f2           84  85 - 86            87      90
-fsw    f4,32(x1):4        85  86 - 86                    91
-flw    f0,32(x1):5        86  87 - 87     89     90      92
-fadd.s f4,f0,f2           87  91 - 92            93      94
-fmul.s f0,f4,f6           88  94 - 98            99     100
-fsub.s f8,f6,f2           89  90 - 91            92     101
-fadd.s f10,f0,f6          90 100 -101           102     103
-fadd.s f2,f4,f6           92  94 - 95            96     104
-fadd.s f2,f0,f5           93 100 -101           103     105
-fsub.s f8,f1,f2           96 104 -105           106     107
-flw    f2,32(x2):0       100 101 -101    102    104     108
+fdiv.s f0,f0,f6           46  48 - 57            58      59
+fadd.s f6,f8,f2           47  52 - 53            54      60
+fmul.s f0,f4,f6           48  55 - 59            60      61
+fsub.s f8,f6,f2           49  55 - 56            57      62
+fadd.s f10,f0,f6          52  61 - 62            63      64
+fadd.s f2,f4,f6           59  60 - 61            62      65
+fadd.s f2,f0,f5           60  61 - 62            64      66
+fsub.s f8,f1,f2           62  65 - 66            67      68
+flw    f2,32(x2):0        63  64 - 64     65     66      69
+fmul.s f0,f2,f4           64  67 - 71            72      73
+fsw    f0,32(x2):0        65  66 - 66                    74
+flw    f0,32(x1):1        66  67 - 67     68     69      75
+fadd.s f6,f8,f2           68  69 - 70            71      76
+fsw    f3,33(x1):2        69  70 - 70                    77
+flw    f2,32(x2):3        73  74 - 74     75     76      78
+fdiv.s f0,f0,f6           74  75 - 84            85      86
+fadd.s f6,f8,f2           75  77 - 78            79      87
+flw    f0,32(x2):0        76  77 - 77     78     80      88
+fadd.s f4,f0,f2           77  81 - 82            83      89
+fsw    f4,32(x1):2        78  79 - 79                    90
+flw    f0,32(x1):3        86  87 - 87     88     89      91
+fadd.s f4,f0,f2           87  90 - 91            92      93
+fsw    f4,32(x1):4        88  89 - 89                    94
+flw    f0,32(x1):5        89  90 - 90     91     93      95
+fadd.s f4,f0,f2           90  94 - 95            96      97
+fmul.s f0,f4,f6           91  97 -101           102     103
+fsub.s f8,f6,f2           93  94 - 95            97     104
+fadd.s f10,f0,f6          94 103 -104           105     106
+fadd.s f2,f4,f6           96  97 - 98            99     107
+fadd.s f2,f0,f5           97 103 -104           106     108
+fsub.s f8,f1,f2          103 107 -108           109     110
+flw    f2,32(x2):0       104 105 -105    106    107     111
 
 
 Delays
 ------
-reorder buffer delays: 19
-reservation station delays: 19
-data memory conflict delays: 9
-true dependence delays: 103
+reorder buffer delays: 27
+reservation station delays: 15
+data memory conflict delays: 7
+true dependence delays: 86

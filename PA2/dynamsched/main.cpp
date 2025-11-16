@@ -1,6 +1,6 @@
 #include "config.h"
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <queue>
 #include <regex>
@@ -62,10 +62,11 @@ class RegisterAliasTableEntry {
 public:
   bool rob_point; // is it currently point to a rob
   int rob_index;  // if so where (-1 means no)
-
+  int value_ready_cycle;
   RegisterAliasTableEntry(bool rp, int ri) {
     rob_point = rp;
     rob_index = ri;
+    value_ready_cycle = -1;
   }
 };
 
@@ -113,6 +114,7 @@ public:
   bool need_mem;        // if the op needs the memory read stage
   bool need_cdb;        // if it needs to write to the common data bus
   bool all_done;        // this rob entry is all done
+  int wb_cycle;         // prevent from executing same cycle as a the rs was written
   ROB_Entry(Instruction i, Ops o, int rid) {
     inst = i;
     op = o;
@@ -126,6 +128,7 @@ public:
     need_mem = false;
     need_cdb = true; // more need this than not so default to true
     all_done = false;
+    wb_cycle = -1;
   }
 };
 
@@ -135,12 +138,14 @@ queue<Instruction> get_instructions(Config config);
 int register_parser(string reg);
 void set_reqs_in_ROB(Ops op, int rob_index);
 void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use);
-void execute(Config config, RATs &RATs);
-void mem(Config config, RATs &RATs);
+pair<vector<Ops>, bool> execute(Config config, RATs &RATs);
+bool mem(Config config, RATs &RATs);
 void write_result(Config config, RATs &RATs);
 Ops commit(Config config, RATs &RATs);
 bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1);
 void print_instruction_cycles(ROB_Entry rob_entry);
+bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp);
+
 // GLOBAL VARIABLES
 int cycle = 1;
 stack<int> ROB_INDEX_STACK;
@@ -153,11 +158,13 @@ ReservationStationUsage res_stations = ReservationStationUsage();
 int main() {
   Config config = Config();
   config.print_config();
+
   for (int i = config.reorder_buffer; i > 0; i--) {
     ROB_INDEX_STACK.push(i);
   }
+
   // queue<Instruction> instructions = get_instructions(config);
-  //cout << "\n\n";
+  // cout << "\n\n";
   // while (!instructions.empty()) {
 
   // cout << "OP:    " << instructions.front().op << "\n";
@@ -183,7 +190,6 @@ queue<Instruction> get_instructions(Config config) {
     if (instruction.empty()) {
       continue;
     }
-    // cout << instruction << "\n";
 
     regex delimiters("[ ,():\\t]+");
     vector<string> pi = {}; // pi = parsed instructions, but also not all the way parsed
@@ -219,7 +225,6 @@ queue<Instruction> get_instructions(Config config) {
     int address = -1;
     bool is_branch = false;
     int latency = 1;
-    cout << endl;
     switch (op) {
     case LW:
     case FLW:
@@ -273,8 +278,7 @@ queue<Instruction> get_instructions(Config config) {
 
     instruction_list.push(Instruction(op, rd, rs1, rs2, address, is_branch, latency, false, false, instruction));
   }
-  if (instruction_list.empty()) {
-  }
+
   return instruction_list;
 }
 
@@ -285,26 +289,35 @@ void dynam_schedule(Config config) {
   cout << "     Instruction      Issues Executes  Read  Result Commits\n";
   cout << "--------------------- ------ -------- ------ ------ -------\n";
   queue<Instruction> instructions = get_instructions(config);
-  Ops commit_op = NULL_OP;
+  Ops commit_op;                           // checks if commit op was a store
+  bool load_mem_access;                    // checks if load mem access happened for res station freeing
+  pair<vector<Ops>, bool> op_execute_done; // checks if store execution finished for res station freeing
   while (!instructions.empty() || !ROB.empty()) {
     commit_op = NULL_OP;
-   // cout << "cycle " << cycle << "\n";
-    //cout << "test 0\n";
+    load_mem_access = false;
+    op_execute_done = {{}, false};
     commit_op = commit(config, rats);
-    //cout << "test 1\n";
     write_result(config, rats);
-    //cout << "test 2\n";
     if (commit_op != FSW && commit_op != SW) {
-     //cout << "test 3\n";
-      mem(config, rats);
+      load_mem_access = mem(config, rats);
     }
-    //cout << "test 4\n";
-    execute(config, rats);
-   // cout << "test 5\n";
+    op_execute_done = execute(config, rats);
     issue(config, instructions, rats, res_stations);
-   // cout << "test 6\n";
+    if (load_mem_access) {
+      res_stations.eff_addr_in_use -= 1;
+    }
+    if (op_execute_done.second) {
+      for (auto i : op_execute_done.first) {
+        if (i == FSW || i == SW) {
+          res_stations.eff_addr_in_use -= 1;
+        } else if (i == BEQ || i == BNE) {
+          res_stations.int_in_use -= 1;
+        }
+      }
+    }
     cycle += 1;
-    if(cycle == 19){
+    if (cycle == 1000000) {
+      cout << "bruh\n";
       exit(1);
     }
   }
@@ -337,6 +350,11 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       } else {
         inst.waiting_on_rs2 = false;
       }
+      // cout << "cycle: " << cycle << " - rats i [x1]: " << RATs.i_rat[1].rob_index << "\n";
+      // if (cycle == 25) {
+      //   cout << "waiting on rs1: " << inst.waiting_on_rs1;
+      //   cout << "\nwaiting on rs2: " << inst.waiting_on_rs2 << "\n";
+      // }
       ROB_index = ROB_INDEX_STACK.top();
       ROB_INDEX_STACK.pop();
       RATs.i_rat[inst.rd].rob_index = ROB_index;
@@ -404,10 +422,13 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
   case LW:
   case FLW:
     if (config.eff_addr_buffer > res_station_use.eff_addr_in_use) {
+
       if (RATs.i_rat[inst.rs1].rob_point) {
+        // cout << "waiting for rs1: " << inst.original_instruction << " cycle: " << cycle << "\n";
         inst.waiting_on_rs1 = true;
         inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
       } else {
+        // cout << "not waiting for rs1: " << RATs.i_rat[inst.rs1].rob_index << " cycle: " << cycle << "\n";
         inst.waiting_on_rs1 = false;
       }
       ROB_index = ROB_INDEX_STACK.top();
@@ -435,29 +456,30 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
   case SW:
   case FSW:
     if (config.eff_addr_buffer > res_station_use.eff_addr_in_use) {
-      switch (inst.op) {
-      case SW:
-        if (RATs.i_rat[inst.rs1].rob_point) {
-          inst.waiting_on_rs1 = true;
-          inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
-        } else {
-          inst.waiting_on_rs1 = false;
-        }
-        break;
-      case FSW:
-        if (RATs.f_rat[inst.rs1].rob_point) {
-          inst.waiting_on_rs1 = true;
-          inst.rs1 = RATs.f_rat[inst.rs1].rob_index;
-        } else {
-          inst.waiting_on_rs1 = false;
-        }
-        break;
-      default:
-        break;
-      }
+      // switch (inst.op) {
+      // case SW:
+      //   if (RATs.i_rat[inst.rs1].rob_point) {
+      //     inst.waiting_on_rs1 = true;
+      //     inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
+      //   } else {
+      //     inst.waiting_on_rs1 = false;
+      //   }
+      //   break;
+      // case FSW:
+      //   if (RATs.f_rat[inst.rs1].rob_point) {
+      //     inst.waiting_on_rs1 = true;
+      //     inst.rs1 = RATs.f_rat[inst.rs1].rob_index;
+      //   } else {
+      //     inst.waiting_on_rs1 = false;
+      //   }
+      //   break;
+      // default:
+      //   break;
+      // }
+      inst.waiting_on_rs1 = false;
       if (RATs.i_rat[inst.rs2].rob_point) {
         inst.waiting_on_rs2 = true;
-        inst.rs2 = RATs.i_rat[inst.rs1].rob_index;
+        inst.rs2 = RATs.i_rat[inst.rs2].rob_index;
       } else {
         inst.waiting_on_rs2 = false;
       }
@@ -504,22 +526,25 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
   }
 }
 
-void execute(Config config, RATs &RATs) {
+pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
+  vector<Ops> ops_done_executing = {};
+  bool res_station_bool = false;
   for (auto &rob_entry : ROB) {
+    // if (cycle == 34 /*&& rob_entry.op == ADD*/) {
+    //   cout << "instruction " << rob_entry.inst.original_instruction << "\n";
+    //   cout << "waiting on rs1 " << rob_entry.inst.waiting_on_rs1;
+    //   cout << "\nwaiting on rs2 " << rob_entry.inst.waiting_on_rs2 << "\n";
+    // }
     if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2 && !rob_entry.execute_started) {
       // all source registers are ready and it hasnt been
-
       rob_entry.inst.execute_start = cycle;
-     // cout << rob_entry.inst.execute_start << "\n";
       rob_entry.time_left -= 1;
       rob_entry.execute_started = true;
     } else if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2) {
       rob_entry.time_left -= 1;
     } else {
       if (rob_entry.inst.waiting_on_rs1) {
-        //cout << rob_entry.inst.rs1 << "<-\n";
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs1, RATs, true)) {
-
           rob_entry.inst.waiting_on_rs1 = false;
         }
       }
@@ -539,20 +564,27 @@ void execute(Config config, RATs &RATs) {
       rob_entry.executed = true;
       rob_entry.inst.execute_end = cycle;
       if (rob_entry.op == BEQ || rob_entry.op == BNE) {
-        res_stations.int_in_use -= 1;
+        // return {rob_entry.op, true}; //branch is done executing free res station at end of cycle
+        ops_done_executing.push_back(rob_entry.op);
+        res_station_bool = true;
       } else if (rob_entry.op == SW || rob_entry.op == FSW) {
-        res_stations.eff_addr_in_use -= 1;
+        ops_done_executing.push_back(rob_entry.op);
+        res_station_bool = true;
+        // res_stations.eff_addr_in_use -= 1;
+        // return {rob_entry.op, true}; // store is done executing, free res station at end of cycle so issue doesnt happen same cycle
       }
     }
   }
+  return {ops_done_executing, res_station_bool};
 }
 
-void mem(Config config, RATs &RATs) {
+bool mem(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
   int issued = INT32_MAX;
   for (auto rob_entry : ROB) {
     if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued) {
       oldest_rob_id = rob_entry.rob_id;
+      issued = rob_entry.inst.issue_cycle;
     }
   }
   if (oldest_rob_id != -1) {
@@ -560,10 +592,13 @@ void mem(Config config, RATs &RATs) {
       if (rob_entry.rob_id == oldest_rob_id) {
         rob_entry.inst.memory_read = cycle;
         rob_entry.need_mem = false;
-        res_stations.eff_addr_in_use -= 1;
+        // res_stations.eff_addr_in_use -= 1;
+        return true; // we did a mem read for a load, free res station at end of cycle so
+        // so issue doesnt happen same cycle
       }
     }
   }
+  return false;
 }
 
 void write_result(Config config, RATs &RATs) {
@@ -572,27 +607,57 @@ void write_result(Config config, RATs &RATs) {
   for (auto rob_entry : ROB) {
     if (rob_entry.executed && rob_entry.need_cdb && !rob_entry.wb_done && rob_entry.inst.issue_cycle < issued && !rob_entry.need_mem) {
       oldest_rob_id = rob_entry.rob_id;
+      issued = rob_entry.inst.issue_cycle;
     }
   }
   if (oldest_rob_id != -1) {
     for (auto &rob_entry : ROB) {
       if (rob_entry.rob_id == oldest_rob_id) {
         rob_entry.inst.write_results = cycle;
-       // cout << "rob id wb set true here " << rob_entry.rob_id << "\n";
         rob_entry.wb_done = true;
+        rob_entry.wb_cycle = cycle;
 
         switch (rob_entry.inst.op) {
         case FMUL:
         case FDIV:
           res_stations.fp_mul_in_use -= 1;
+          if (RATs.f_rat[rob_entry.inst.rd].rob_index == oldest_rob_id) {
+            RATs.f_rat[rob_entry.inst.rd].rob_point = false;
+            RATs.f_rat[rob_entry.inst.rd].rob_index = -1;
+            RATs.f_rat[rob_entry.inst.rd].value_ready_cycle = cycle;
+          }
           break;
         case FSUB:
         case FADD:
           res_stations.fp_add_in_use -= 1;
+          if (RATs.f_rat[rob_entry.inst.rd].rob_index == oldest_rob_id) {
+            RATs.f_rat[rob_entry.inst.rd].rob_point = false;
+            RATs.f_rat[rob_entry.inst.rd].rob_index = -1;
+            RATs.f_rat[rob_entry.inst.rd].value_ready_cycle = cycle;
+          }
           break;
         case ADD:
         case SUB:
           res_stations.int_in_use -= 1;
+          if (RATs.i_rat[rob_entry.inst.rd].rob_index == oldest_rob_id) {
+            RATs.i_rat[rob_entry.inst.rd].rob_point = false;
+            RATs.i_rat[rob_entry.inst.rd].value_ready_cycle = cycle;
+            RATs.i_rat[rob_entry.inst.rd].rob_index = -1;
+          }
+          break;
+        case FLW:
+          if (RATs.f_rat[rob_entry.inst.rd].rob_index == oldest_rob_id) {
+            RATs.f_rat[rob_entry.inst.rd].rob_point = false;
+            RATs.f_rat[rob_entry.inst.rd].rob_index = -1;
+            RATs.f_rat[rob_entry.inst.rd].value_ready_cycle = cycle;
+          }
+          break;
+        case LW:
+          if (RATs.i_rat[rob_entry.inst.rd].rob_index == oldest_rob_id) {
+            RATs.i_rat[rob_entry.inst.rd].rob_point = false;
+            RATs.i_rat[rob_entry.inst.rd].value_ready_cycle = cycle;
+            RATs.i_rat[rob_entry.inst.rd].rob_index = -1;
+          }
           break;
         default:
           break;
@@ -607,17 +672,18 @@ Ops commit(Config config, RATs &RATs) {
   int issued = INT32_MAX;
   Ops return_op = NULL_OP;
   for (auto rob_entry : ROB) {
-    
+
     if (rob_entry.inst.issue_cycle < issued) {
       oldest_rob_id = rob_entry.rob_id;
       issued = rob_entry.inst.issue_cycle;
     }
   }
-  for (auto it = ROB.begin(); it != ROB.end();it++) {
+  for (auto it = ROB.begin(); it != ROB.end(); it++) {
     if (it->rob_id == oldest_rob_id) {
       if (it->executed && (it->wb_done || !it->need_cdb)) {
-        cout << it->inst.original_instruction << " " << it->inst.issue_cycle << " " << it->inst.execute_start << "-" << it->inst.execute_end << " "  << it->inst.memory_read << " " << it->inst.write_results << " " << cycle << "\n";
+        print_instruction_cycles(*it);
         return_op = it->inst.op;
+        ROB_INDEX_STACK.push(it->rob_id);
         ROB.erase(it);
         res_stations.rob_in_use -= 1;
         return return_op;
@@ -654,8 +720,8 @@ bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1) {
   for (const auto &rob_entry : ROB) {
     if (rob_entry.rob_id == rob_id) {
       // If the ROB entry has finished its write-back then clear RAT mapping
-     // cout <<rob_id <<"test2\n";
-      if (rob_entry.wb_done) {
+      // cout << "test " << cycle << "\n";
+      if (rob_entry.wb_done && rob_entry.wb_cycle != cycle) {
         int rd = rob_entry.inst.rd;
         // Only clear RAT entries for instructions that actually write a destination
         if (rd >= 0) {
@@ -681,20 +747,49 @@ bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1) {
           }
         }
         return true;
+      } else {
+        return false;
       }
       return false;
-    }else{
-      return true;
     }
   }
-  // If we didn't find a matching ROB entry, treat as not-yet-ready
-  return false;
+  // If we didn't find a matching ROB entry then treat as ready
+  return true;
 }
 
-void print_instruction_cycles(ROB_Entry rob_entry){
-
+void print_instruction_cycles(ROB_Entry rob_entry) {
+  cout << setfill(' ') << setw(21) << left << rob_entry.inst.original_instruction << " ";
+  cout << setfill(' ') << setw(6) << right << rob_entry.inst.issue_cycle << " ";
+  cout << setfill(' ') << setw(3) << rob_entry.inst.execute_start << " -";
+  cout << setfill(' ') << setw(3) << rob_entry.inst.execute_end << " ";
+  if (rob_entry.inst.memory_read != -1) {
+    cout << setfill(' ') << setw(6) << rob_entry.inst.memory_read << " ";
+  } else {
+    cout << "       ";
+  }
+  if (rob_entry.inst.write_results != -1) {
+    cout << setfill(' ') << setw(6) << rob_entry.inst.write_results << " ";
+  } else {
+    cout << "       ";
+  }
+  cout << setfill(' ') << setw(7) << cycle << "\n";
 }
 
+bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp) {
+  if (is_fp) {
+    if (!RATs.f_rat[reg].rob_point && RATs.f_rat[reg].value_ready_cycle != cycle) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    if (!RATs.i_rat[reg].rob_point && RATs.i_rat[reg].value_ready_cycle != cycle) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
 /*
 TODO:
 figure out speculative differences from non-speculative
