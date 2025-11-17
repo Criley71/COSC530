@@ -589,16 +589,16 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs1, RATs, true)) {
           rob_entry.inst.waiting_on_rs1 = false;
         }else{
-          true_data_dependence_delays += 1;
-          continue;
+         // true_data_dependence_delays += 1;
+          //continue;
         }
       }
       if (rob_entry.inst.waiting_on_rs2) {
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs2, RATs, false)) {
           rob_entry.inst.waiting_on_rs2 = false;
         }else{
-          true_data_dependence_delays += 1;
-          continue;
+          //true_data_dependence_delays += 1;
+         // continue;
         }
       }
       if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2) {
@@ -606,7 +606,7 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
         rob_entry.time_left -= 1;
         rob_entry.execute_started = true;
       } else {
-         true_data_dependence_delays += 1;
+         //true_data_dependence_delays += 1;
       }
     }
 
@@ -637,7 +637,8 @@ bool mem(Config config, RATs &RATs) {
         oldest_rob_id = rob_entry.rob_id;
         issued = rob_entry.inst.issue_cycle;
       } else {
-        data_mem_conflict_delays += 1;
+        true_data_dependence_delays += 1;
+        //data_mem_conflict_delays += 1;
       }
     }
   }
@@ -840,7 +841,7 @@ void print_instruction_cycles(ROB_Entry rob_entry) {
     cout << "       ";
   }
   cout << setfill(' ') << setw(7) << cycle << "\n";
-  //true_data_dependence_delays += ((rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1);
+  true_data_dependence_delays += ((rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1);
   if (((rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1) != 0 && rob_entry.inst.memory_read != -1) {
     // cout << "-" << data_mem_conflict_delays << "-";
   }

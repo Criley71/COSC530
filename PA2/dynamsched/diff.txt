@@ -1,10 +1,9 @@
---- out.txt	2025-11-16 19:49:16.710757008 -0500
-+++ ref_out.txt	2025-11-16 19:49:16.710757008 -0500
+--- out.txt	2025-11-16 20:13:54.070748071 -0500
++++ ref_out.txt	2025-11-16 20:13:54.070748071 -0500
 @@ -87,5 +87,5 @@
  ------
- reorder buffer delays: 27
+ reorder buffer delays: 31
  reservation station delays: 11
--data memory conflict delays: 12
--true dependence delays: 60
+-data memory conflict delays: 0
 +data memory conflict delays: 8
-+true dependence delays: 61
+ true dependence delays: 66
