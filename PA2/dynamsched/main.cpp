@@ -161,6 +161,7 @@ int ROB_delays = 0;
 int res_station_delays = 0;
 int data_mem_conflict_delays = 0;
 int true_data_dependence_delays = 0;
+int miscounted_delays = 0;
 ReservationStationUsage res_stations = ReservationStationUsage();
 
 int main() {
@@ -297,7 +298,7 @@ void dynam_schedule(Config config) {
   cout << "     Instruction      Issues Executes  Read  Result Commits\n";
   cout << "--------------------- ------ -------- ------ ------ -------\n";
   queue<Instruction> instructions = get_instructions(config);
-  pair<int,Ops> commit_val;                           // checks if commit op was a store
+  pair<int, Ops> commit_val;               // checks if commit op was a store and what address was stored
   bool load_mem_access;                    // checks if load mem access happened for res station freeing
   pair<vector<Ops>, bool> op_execute_done; // checks if store execution finished for res station freeing
   while (!instructions.empty() || !ROB.empty()) {
@@ -310,7 +311,8 @@ void dynam_schedule(Config config) {
       load_mem_access = mem(config, rats);
     } else {
       if (was_a_load_ready_this_cycle(commit_val.first)) {
-        
+
+        // miscounted_delays += 1;
       }
     }
     op_execute_done = execute(config, rats);
@@ -338,7 +340,7 @@ void dynam_schedule(Config config) {
   cout << "------\n";
   cout << "reorder buffer delays: " << ROB_delays << "\n";
   cout << "reservation station delays: " << res_station_delays << "\n";
-  cout << "data memory conflict delays: " << data_mem_conflict_delays << "\n";
+  cout << "data memory conflict delays: " << data_mem_conflict_delays /*- miscounted_delays*/ << "\n";
   cout << "true dependence delays: " << true_data_dependence_delays << "\n";
 }
 
@@ -560,12 +562,6 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
     exit(1);
     break;
   }
-  if (inst.waiting_on_rs1 || inst.waiting_on_rs2) {
-    // true_data_dependence_delays += 1;
-  }
-  // if(inst.waiting_on_rs2){
-  //   true_data_dependence_delays += 1;
-  // }
 }
 
 pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
@@ -588,25 +584,17 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
       if (rob_entry.inst.waiting_on_rs1) {
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs1, RATs, true)) {
           rob_entry.inst.waiting_on_rs1 = false;
-        }else{
-         // true_data_dependence_delays += 1;
-          //continue;
         }
       }
       if (rob_entry.inst.waiting_on_rs2) {
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs2, RATs, false)) {
           rob_entry.inst.waiting_on_rs2 = false;
-        }else{
-          //true_data_dependence_delays += 1;
-         // continue;
         }
       }
       if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2) {
         rob_entry.inst.execute_start = cycle;
         rob_entry.time_left -= 1;
         rob_entry.execute_started = true;
-      } else {
-         //true_data_dependence_delays += 1;
       }
     }
 
@@ -630,24 +618,38 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
 
 bool mem(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
+  int oldest_valid_load_issue = -1;
+  int oldest_invalid_load_due_to_store = INT32_MAX;
   int issued = INT32_MAX;
   for (auto rob_entry : ROB) {
-    if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued) {
-      if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
+    if (rob_entry.need_mem && rob_entry.executed) {
+      if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle) && rob_entry.inst.issue_cycle < issued) {
         oldest_rob_id = rob_entry.rob_id;
+        oldest_valid_load_issue = rob_entry.inst.issue_cycle;
+        if (issued != INT32_MAX) { // case of say instruction 32 is earlier in rob index and ready for mem stage, but then later so is 31 that woudl give i32 a true dependence delay
+          //true_data_dependence_delays += 1;
+          miscounted_delays += 1; 
+          //cout << "inc true dependence1 on cycle : " << cycle << "\n";
+        }
         issued = rob_entry.inst.issue_cycle;
-      } else {
-        true_data_dependence_delays += 1;
-        //data_mem_conflict_delays += 1;
+      } else if (rob_entry.inst.issue_cycle > issued && !check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
+        //true_data_dependence_delays += 1; // case of instruction 32 being checked after instruction 31 but 32 is also ready for mem stage
+       // cout << "inc true dependence2 on cycle : " << cycle << "\n";
+        miscounted_delays += 1;
+      } else if (check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle) && rob_entry.inst.issue_cycle < oldest_invalid_load_due_to_store) {
+       // cout << "BRUH";
+        // a store has the same address as a load. will check if this is older than the valid load but has to wait for a prev store to finish
+        oldest_invalid_load_due_to_store = rob_entry.inst.issue_cycle;
       }
     }
   }
-
+  if (oldest_invalid_load_due_to_store != INT32_MAX && (oldest_invalid_load_due_to_store < issued)) {
+    data_mem_conflict_delays += 1;
+  }
   if (oldest_rob_id != -1) {
     for (auto &rob_entry : ROB) {
       if (rob_entry.rob_id == oldest_rob_id) {
         if (is_older_store(rob_entry.inst.issue_cycle)) {
-          //true_data_dependence_delays += 1;
           return false;
         }
         if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
@@ -825,12 +827,13 @@ bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1) {
 }
 
 void print_instruction_cycles(ROB_Entry rob_entry) {
+  int old_delay = true_data_dependence_delays;
   cout << setfill(' ') << setw(21) << left << rob_entry.inst.original_instruction << " ";
   cout << setfill(' ') << setw(6) << right << rob_entry.inst.issue_cycle << " ";
   cout << setfill(' ') << setw(3) << rob_entry.inst.execute_start << " -";
   cout << setfill(' ') << setw(3) << rob_entry.inst.execute_end << " ";
   if (rob_entry.inst.memory_read != -1) {
-    //data_mem_conflict_delays += ((rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1);
+    //data_mem_conflict_delays  += ((rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1);
     cout << setfill(' ') << setw(6) << rob_entry.inst.memory_read << " ";
   } else {
     cout << "       ";
@@ -842,6 +845,21 @@ void print_instruction_cycles(ROB_Entry rob_entry) {
   }
   cout << setfill(' ') << setw(7) << cycle << "\n";
   true_data_dependence_delays += ((rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1);
+  if (rob_entry.inst.memory_read != -1) {
+    // true_data_dependence_delays += (rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1; //something here
+    // need to distinguish between the 2. data dependence was 83, should be 86. now its 93. the mem dependence is 7.
+    if (rob_entry.inst.memory_read - rob_entry.inst.execute_end != 1) {
+
+      //cout << "test dm:" << data_mem_conflict_delays << "---";
+    }
+  }
+  if (old_delay != true_data_dependence_delays) {
+      //cout << "exe start: "  << rob_entry.inst.execute_start << " issue: " <<  rob_entry.inst.issue_cycle << "diff: " << (rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1;
+    // cout << "--td:" << true_data_dependence_delays << "\n";
+  } else {
+     //cout << "\n";
+  }
+
   if (((rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1) != 0 && rob_entry.inst.memory_read != -1) {
     // cout << "-" << data_mem_conflict_delays << "-";
   }
@@ -863,11 +881,12 @@ bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp) {
     }
   }
 }
-bool check_store_addresses(int address, int issue_cycle) {
-
+bool check_store_addresses(int address, int issue_cycle) { // true if store is using address, false otherwise
   for (auto rob_entry : ROB) {
     if (rob_entry.inst.address == address && (rob_entry.op == FSW || rob_entry.op == SW) && issue_cycle > rob_entry.inst.issue_cycle) {
-      // cout << "---" << rob_entry.inst.original_instruction << "--";
+      //addresses match, is a store instruction and the load comes after the store
+      //data_mem_conflict_delays+=1;
+      //cout << "HERE?" << rob_entry.inst.original_instruction <<"is blocking instruction issued at cycle: " << issue_cycle << " on cycle: " << cycle << "\n";
       return true;
     }
   }
@@ -883,16 +902,22 @@ bool is_older_store(int issue_cycle) {
 }
 
 bool was_a_load_ready_this_cycle(int address) {
-  int issued = INT32_MAX;
+  // int issued = INT32_MAX;
+  bool return_val = false;
   for (auto rob_entry : ROB) {
-    if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued && (rob_entry.inst.address != address)) {
-      if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
-       // cout << "cycle : " << cycle << "-- " << rob_entry.inst.address << "--";
-        return true;
+    if (rob_entry.need_mem && rob_entry.executed && (rob_entry.inst.address != address)) { // load is ready for mem read
+      if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {    // address not in store address
+        // cout << "cycle : " << cycle << "-- " << rob_entry.inst.address << "--";
+        //true_data_dependence_delays += 1;
+        //miscounted_delays += 1;
+        //cout << "GERE";
+        return_val = true;
+      }else{
+        data_mem_conflict_delays+=1;
       }
     }
   }
-  return false;
+  return return_val;
 }
 
 /*
