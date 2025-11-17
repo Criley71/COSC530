@@ -5,7 +5,7 @@ while true; do
   ./main < random_trace.dat > out.txt
   diff -u out.txt ref_out.txt > diff.txt
   cat diff.txt
-  if [ -f diff.txt ] && [ $(wc -l < diff.txt) -gt 10 ]; then
+  if [ -f diff.txt ] && [ $(wc -l < diff.txt) -gt 9 ]; then
         echo "diff.txt has more than 12 lines. EXITING :("
         ./dynamsched -v < random_trace.dat > det_ref_out.txt
         diff out.txt ref_out.txt -y --suppress-common-lines

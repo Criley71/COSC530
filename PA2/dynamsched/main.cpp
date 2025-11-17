@@ -141,13 +141,15 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
 pair<vector<Ops>, bool> execute(Config config, RATs &RATs);
 bool mem(Config config, RATs &RATs);
 void write_result(Config config, RATs &RATs);
-Ops commit(Config config, RATs &RATs);
+pair<int, Ops> commit(Config config, RATs &RATs);
 bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1);
 void print_instruction_cycles(ROB_Entry rob_entry);
 bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp);
 bool check_store_addresses(int address, int issue_cycle);
 void erase_store_address(int address);
-bool is_older_store(int issue_cycle, Ops op);
+bool is_older_store(int issue_cycle);
+bool was_a_load_ready_this_cycle(int address);
+
 // GLOBAL VARIABLES
 int cycle = 1;
 stack<int> ROB_INDEX_STACK;
@@ -295,17 +297,21 @@ void dynam_schedule(Config config) {
   cout << "     Instruction      Issues Executes  Read  Result Commits\n";
   cout << "--------------------- ------ -------- ------ ------ -------\n";
   queue<Instruction> instructions = get_instructions(config);
-  Ops commit_op;                           // checks if commit op was a store
+  pair<int,Ops> commit_val;                           // checks if commit op was a store
   bool load_mem_access;                    // checks if load mem access happened for res station freeing
   pair<vector<Ops>, bool> op_execute_done; // checks if store execution finished for res station freeing
   while (!instructions.empty() || !ROB.empty()) {
-    commit_op = NULL_OP;
+    commit_val = {-1, NULL_OP};
     load_mem_access = false;
     op_execute_done = {{}, false};
-    commit_op = commit(config, rats);
+    commit_val = commit(config, rats);
     write_result(config, rats);
-    if (commit_op != FSW && commit_op != SW) {
+    if (commit_val.second != FSW && commit_val.second != SW) {
       load_mem_access = mem(config, rats);
+    } else {
+      if (was_a_load_ready_this_cycle(commit_val.first)) {
+        
+      }
     }
     op_execute_done = execute(config, rats);
     issue(config, instructions, rats, res_stations);
@@ -343,7 +349,7 @@ int register_parser(string reg) {
 
 void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use) {
   if (res_station_use.rob_in_use == config.reorder_buffer || instructions.empty()) {
-    if(!instructions.empty()){
+    if (!instructions.empty()) {
       ROB_delays += 1;
     }
     return;
@@ -381,7 +387,7 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.int_in_use += 1;
 
       instructions.pop();
-    }else{
+    } else {
       res_station_delays += 1;
     }
     break;
@@ -409,7 +415,7 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.fp_add_in_use += 1;
       instructions.pop();
-    }else{
+    } else {
       res_station_delays += 1;
     }
     break;
@@ -437,7 +443,7 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.fp_mul_in_use += 1;
       instructions.pop();
-    }else{
+    } else {
       res_station_delays += 1;
     }
     break;
@@ -473,7 +479,7 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.eff_addr_in_use += 1;
       instructions.pop();
-    }else{
+    } else {
       res_station_delays += 1;
     }
     break;
@@ -517,7 +523,7 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       store_addresses.push_back(inst.address);
       // cout << "push address " << inst.address << "\n";
       instructions.pop();
-    }else{
+    } else {
       res_station_delays += 1;
     }
     break;
@@ -545,7 +551,7 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       res_station_use.rob_in_use += 1;
       res_station_use.int_in_use += 1;
       instructions.pop();
-    }else{
+    } else {
       res_station_delays += 1;
     }
     break;
@@ -554,8 +560,8 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
     exit(1);
     break;
   }
-  if(inst.waiting_on_rs1 || inst.waiting_on_rs2){
-   // true_data_dependence_delays += 1;
+  if (inst.waiting_on_rs1 || inst.waiting_on_rs2) {
+    // true_data_dependence_delays += 1;
   }
   // if(inst.waiting_on_rs2){
   //   true_data_dependence_delays += 1;
@@ -582,19 +588,25 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
       if (rob_entry.inst.waiting_on_rs1) {
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs1, RATs, true)) {
           rob_entry.inst.waiting_on_rs1 = false;
+        }else{
+          true_data_dependence_delays += 1;
+          continue;
         }
       }
       if (rob_entry.inst.waiting_on_rs2) {
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs2, RATs, false)) {
           rob_entry.inst.waiting_on_rs2 = false;
+        }else{
+          true_data_dependence_delays += 1;
+          continue;
         }
       }
       if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2) {
         rob_entry.inst.execute_start = cycle;
         rob_entry.time_left -= 1;
         rob_entry.execute_started = true;
-      }else {
-        true_data_dependence_delays += 1;
+      } else {
+         true_data_dependence_delays += 1;
       }
     }
 
@@ -620,35 +632,28 @@ bool mem(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
   int issued = INT32_MAX;
   for (auto rob_entry : ROB) {
-    if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued /*&& !is_older_store(rob_entry.inst.issue_cycle, rob_entry.op)*/) {
-      if(!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)){
+    if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued) {
+      if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
         oldest_rob_id = rob_entry.rob_id;
         issued = rob_entry.inst.issue_cycle;
-      }else{
-        true_data_dependence_delays += 1;
+      } else {
+        data_mem_conflict_delays += 1;
       }
     }
-  }
-
-  if(oldest_rob_id != -1){
-
   }
 
   if (oldest_rob_id != -1) {
     for (auto &rob_entry : ROB) {
       if (rob_entry.rob_id == oldest_rob_id) {
-        // cout << "Stored addresses: ";
-        // for (auto a : store_addresses)
-        //  cout << a << " ";
-        // cout << "\n";
-
+        if (is_older_store(rob_entry.inst.issue_cycle)) {
+          //true_data_dependence_delays += 1;
+          return false;
+        }
         if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
-          // cout << "HMMM " << cycle << "\n";
           rob_entry.inst.memory_read = cycle;
           rob_entry.need_mem = false;
           return true; // we did a mem read for a load, free res station at end of cycle so
         }
-        // res_stations.eff_addr_in_use -= 1;
         // so issue doesnt happen same cycle
         break;
       }
@@ -725,9 +730,10 @@ void write_result(Config config, RATs &RATs) {
   }
 }
 
-Ops commit(Config config, RATs &RATs) {
+pair<int, Ops> commit(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
   int issued = INT32_MAX;
+  int address = -1;
   Ops return_op = NULL_OP;
   for (auto rob_entry : ROB) {
 
@@ -741,16 +747,17 @@ Ops commit(Config config, RATs &RATs) {
       if (it->executed && (it->wb_done || !it->need_cdb)) {
         print_instruction_cycles(*it);
         return_op = it->inst.op;
+        address = it->inst.address;
         ROB_INDEX_STACK.push(it->rob_id);
 
         ROB.erase(it);
         res_stations.rob_in_use -= 1;
-        return return_op;
+        return {address, return_op};
       }
-      return NULL_OP;
+      return {address, NULL_OP};
     }
   }
-  return NULL_OP;
+  return {address, NULL_OP};
 }
 
 void set_reqs_in_ROB(Ops op, int rob_index) {
@@ -822,6 +829,7 @@ void print_instruction_cycles(ROB_Entry rob_entry) {
   cout << setfill(' ') << setw(3) << rob_entry.inst.execute_start << " -";
   cout << setfill(' ') << setw(3) << rob_entry.inst.execute_end << " ";
   if (rob_entry.inst.memory_read != -1) {
+    //data_mem_conflict_delays += ((rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1);
     cout << setfill(' ') << setw(6) << rob_entry.inst.memory_read << " ";
   } else {
     cout << "       ";
@@ -833,6 +841,10 @@ void print_instruction_cycles(ROB_Entry rob_entry) {
   }
   cout << setfill(' ') << setw(7) << cycle << "\n";
   //true_data_dependence_delays += ((rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1);
+  if (((rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1) != 0 && rob_entry.inst.memory_read != -1) {
+    // cout << "-" << data_mem_conflict_delays << "-";
+  }
+  // cout << "\n";
 }
 
 bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp) {
@@ -854,28 +866,34 @@ bool check_store_addresses(int address, int issue_cycle) {
 
   for (auto rob_entry : ROB) {
     if (rob_entry.inst.address == address && (rob_entry.op == FSW || rob_entry.op == SW) && issue_cycle > rob_entry.inst.issue_cycle) {
+      // cout << "---" << rob_entry.inst.original_instruction << "--";
       return true;
     }
   }
   return false;
 }
-bool is_older_store(int issue_cycle, Ops op){
-  for(auto rob_e : ROB){
-    if(rob_e.op == SW && op == LW){
-      if(rob_e.inst.issue_cycle < issue_cycle){
-        data_mem_conflict_delays+=1;
-        return true;
-      }
+bool is_older_store(int issue_cycle) {
+  for (auto rob_e : ROB) {
+    if ((rob_e.op == SW || rob_e.op == FSW) && rob_e.inst.issue_cycle < issue_cycle && !rob_e.executed) {
+      return true;
     }
-    if(rob_e.op == FSW && op == FLW){
-      if(rob_e.inst.issue_cycle < issue_cycle){
-        data_mem_conflict_delays+=1;
+  }
+  return false;
+}
+
+bool was_a_load_ready_this_cycle(int address) {
+  int issued = INT32_MAX;
+  for (auto rob_entry : ROB) {
+    if (rob_entry.need_mem && rob_entry.executed && rob_entry.inst.issue_cycle < issued && (rob_entry.inst.address != address)) {
+      if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {
+       // cout << "cycle : " << cycle << "-- " << rob_entry.inst.address << "--";
         return true;
       }
     }
   }
   return false;
 }
+
 /*
 TODO:
 figure out speculative differences from non-speculative
