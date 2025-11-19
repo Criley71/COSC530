@@ -149,7 +149,7 @@ bool check_store_addresses(int address, int issue_cycle);
 void erase_store_address(int address);
 bool is_older_store(int issue_cycle);
 bool was_a_load_ready_this_cycle(int address);
-
+bool find_oldest_ready_load_and_then_check_if_conflicting(int comp_issue_time);
 // GLOBAL VARIABLES
 int cycle = 1;
 stack<int> ROB_INDEX_STACK;
@@ -653,6 +653,7 @@ bool mem(Config config, RATs &RATs) {
   }
   if (oldest_invalid_load_due_to_store != INT32_MAX && (oldest_invalid_load_due_to_store < issued)) {
     true_data_dependence_delays += 1;
+    //cout << "cycle " << cycle << "\n";
   }
   if (oldest_rob_id != -1) {
     for (auto &rob_entry : ROB) {
@@ -939,6 +940,27 @@ bool was_a_load_ready_this_cycle(int address) {
   return return_val;
 }
 
+bool find_oldest_ready_load_and_then_check_if_conflicting(int comp_issue_time){
+  int oldest_rob_issue = INT32_MAX;
+  int oldest_load_rob_id = -1;
+  int oldest_address = -1;
+  for(auto rob_entry : ROB){
+    if((rob_entry.op == LW || rob_entry.op == FLW) && rob_entry.inst.issue_cycle < comp_issue_time && rob_entry.need_mem && rob_entry.executed ){
+      oldest_load_rob_id = rob_entry.rob_id;
+      oldest_rob_issue = rob_entry.inst.issue_cycle;
+      oldest_address = rob_entry.inst.address;
+    }
+  }
+  if(oldest_address != -1){
+    for(auto rob_entry : ROB){
+      if(rob_entry.inst.address == oldest_address && (rob_entry.op == SW || rob_entry.op == FSW) && rob_entry.inst.issue_cycle < oldest_rob_issue){
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 /*
 TODO:
 figure out speculative differences from non-speculative
@@ -987,4 +1009,5 @@ load will stall between execute and memory stage
 
 
 maybe make a function that will just find the oldest load and then see if a store has the same address and is older for data mem conflicts - actually true dependence???????
+data mem seems to be when 
 */
