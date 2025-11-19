@@ -1,5 +1,5 @@
 counter=0
-while [ $counter -lt 10000 ]; do
+while [ $counter -lt 1000 ]; do
   ./random_trace
   make
   ./dynamsched < random_trace.dat > ref_out.txt
@@ -7,13 +7,13 @@ while [ $counter -lt 10000 ]; do
   diff -u out.txt ref_out.txt > diff.txt
   cat diff.txt
   counter=$((counter+1))
-  if [ -f diff.txt ] && [ $(wc -l < diff.txt) -gt 9 ]; then
+  if [ -f diff.txt ] && [ $(wc -l < diff.txt) -gt 7 ]; then
         echo "diff.txt has more than 12 lines. EXITING :("
         ./dynamsched -v < random_trace.dat > det_ref_out.txt
         diff out.txt ref_out.txt -y --suppress-common-lines
         break
   fi
 done
-if [ $counter == 10000 ]; then
-  echo "it made it through 10000"
+if [ $counter == 1000 ]; then
+  echo "it made it through 1000"
 fi

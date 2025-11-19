@@ -1,0 +1,24 @@
+true dependencies:
+  gap larger than 1 cycle between issue and execute start
+  if a load comes after a store then any gap between executed end and memory read NOT including the cycle the store is committing
+  if multiple stores have the same address and then a load with the same address is waiting for both to commit it is still only 1 true dependence per cycle1
+  if multiple loads are waiting on 1 store with the same address then count it as 2 true dependencies (again not when a store is committing)
+
+data memory dependencies:
+  if a load has to wait to do memory read for another load
+  if a load has to wait to do memory read because of a store commit the same cycle
+  even if a load is waiting on a previous store with the same address if either of the 2 above are true it is just a data mem dependence
+  
+hieracrchy:
+  check if store is committing - +1 data dependence for every load ready for memory read stage
+  check if earlier load - +1 data dependence for all loads ready for memory read stage
+  check if load has same address as a store - +1 true dependence for each load with the same address after  
+
+flw    f0,41(x1):5        38  39 - 39     41     42      43 
+fadd.s f6,f8,f0           39  43 - 44            45      46
+fsw    f6,41(x1):5        40  41 - 41                    47 <- store commit +1 data memory dependence cycle 47
+fmul.s f0,f2,f4           41  42 - 46            47      48
+fsw    f2,32(x2):0        42  43 - 43                    49 <- store commit +1 data memory dependence cycle 49
+flw    f2,32(x2):0        43  44 - 44     50     51      52 <- this here adds 3 true dependencies and 2 data memory
+                                                            3 true dependencies between fsw f2,32(x2):0 and flw f2,32(x2):0 on cycles 45, 46 and 48
+
