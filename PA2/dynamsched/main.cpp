@@ -9,55 +9,54 @@
 using namespace std;
 
 enum Ops {
-  LW,   // 0
-  FLW,  // 1
-  SW,   // 2
-  FSW,  // 3
-  ADD,  // 4
-  SUB,  // 5
-  BEQ,  // 6
-  BNE,  // 7
-  FADD, // 8
-  FSUB, // 9
-  FMUL, // 10
-  FDIV, // 11
-  NULL_OP
+  LW,     // 0
+  FLW,    // 1
+  SW,     // 2
+  FSW,    // 3
+  ADD,    // 4
+  SUB,    // 5
+  BEQ,    // 6
+  BNE,    // 7
+  FADD,   // 8
+  FSUB,   // 9
+  FMUL,   // 10
+  FDIV,   // 11
+  NULL_OP // place holder op
 };
 
 class Instruction {
-public:        // the registers will just be ints of the register number (rd=6 means rd=f6 or rd=x6 (depends on op))
-  Ops op;      // op type
-  int rd;      // destination register
-  int rs1;     // source register 1
-  int rs2;     // source register 2
-  int address; //
-  bool is_branch = false;
-  int latency;
-  bool waiting_on_rs1;
-  bool waiting_on_rs2;
-  int issue_cycle = -1;
-  int execute_start = -1;
-  int execute_end = -1;
-  int memory_read = -1;
-  int write_results = -1;
-  int commits = -1;
-  string original_instruction;
+public:                        // the registers will just be ints of the register number (rd=6 means rd=f6 or rd=x6 (depends on op))
+  Ops op;                      // op type
+  int rd;                      // destination register
+  int rs1;                     // source register 1
+  int rs2;                     // source register 2
+  int address;                 // for loads and stores
+  int latency;                 // how long instruction takes to complete
+  bool waiting_on_rs1;         // is rs1 ready
+  bool waiting_on_rs2;         // is rs2 ready
+  int issue_cycle = -1;        // when instruction was issued
+  int execute_start = -1;      // when execute start
+  int execute_end = -1;        // when execute end
+  int memory_read = -1;        // when mem read
+  int write_results = -1;      // when wrote result
+  int commits = -1;            // when committed
+  string original_instruction; // original instruction string for printing
   Instruction() {
   }
-  Instruction(Ops op_, int rd_, int rs1_, int rs2_, int addr, bool is_branch_, int lat, bool wrs1, bool wrs2, string oi) {
+  Instruction(Ops op_, int rd_, int rs1_, int rs2_, int addr, int lat, bool wrs1, bool wrs2, string oi) {
     op = op_;
     rd = rd_;
     rs1 = rs1_;
     rs2 = rs2_;
     address = addr;
     latency = lat;
-    is_branch = is_branch_;
     waiting_on_rs1 = wrs1;
     waiting_on_rs2 = wrs2;
     original_instruction = oi;
   }
 };
 
+// RAT element that says if the source register is waiting on a rob entry to write to cbd
 class RegisterAliasTableEntry {
 public:
   bool rob_point; // is it currently point to a rob
@@ -74,13 +73,13 @@ public:
 What the RAT does:
 when an instruction is getting source operands it goes to the rat
 if the value is in the rat that means its being calculated and it
-points to what rob will
+points to what rob entry (via the rob index number) will produce the value
 */
 
 class RATs {
 public:
-  vector<RegisterAliasTableEntry> f_rat;
-  vector<RegisterAliasTableEntry> i_rat;
+  vector<RegisterAliasTableEntry> f_rat; // fp instructions
+  vector<RegisterAliasTableEntry> i_rat; // int instructions
   RATs() {
     for (int i = 0; i < 32; i++) {
       f_rat.push_back(RegisterAliasTableEntry(false, -1));
@@ -89,6 +88,8 @@ public:
   }
 };
 
+// just need to keep track of reservation station usage so this will be made a global
+// variable to keep track for each stage
 class ReservationStationUsage {
 public:
   int eff_addr_in_use = 0;
@@ -133,24 +134,23 @@ public:
 };
 
 // FUNCTIONS
-void dynam_schedule(Config config);
-queue<Instruction> get_instructions(Config config);
-int register_parser(string reg);
-void set_reqs_in_ROB(Ops op, int rob_index);
+void dynam_schedule(Config config);                 // the scheduling function
+queue<Instruction> get_instructions(Config config); // instruction getter
+int register_parser(string reg);                    // parse instruction for registers
+void set_reqs_in_ROB(Ops op, int rob_index);        // set if the instruction needs mem or doesnt need the cbd
 void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use);
 pair<vector<Ops>, bool> execute(Config config, RATs &RATs);
 bool mem(Config config, RATs &RATs);
 void write_result(Config config, RATs &RATs);
 pair<int, Ops> commit(Config config, RATs &RATs);
-bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1);
+bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1); // checks if register for an instruction is ready
 void print_instruction_cycles(ROB_Entry rob_entry);
-bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp);
-bool check_store_addresses(int address, int issue_cycle);
-bool is_older_store(int issue_cycle);
-bool was_a_load_ready_this_cycle(int address);
+bool check_store_addresses(int address, int issue_cycle); // make sure no data true dependencies are happening
+bool is_older_store(int issue_cycle);                     // determine if an older store exists
 void true_data_dependency_load_counter();
 void data_mem_delay_counter(bool was_store_committed);
 bool check_if_load_is_waiting_on_store(int issue_cycle, int address);
+
 // GLOBAL VARIABLES
 int cycle = 1;
 stack<int> ROB_INDEX_STACK;
@@ -162,45 +162,31 @@ int data_mem_conflict_delays = 0;
 int true_data_dependence_delays = 0;
 int miscounted_delays = 0;
 ReservationStationUsage res_stations = ReservationStationUsage();
+// i dont normally use globals but man this makes some stuff easy
 
+// masive main function
 int main() {
   Config config = Config();
   config.print_config();
-
   for (int i = config.reorder_buffer; i > 0; i--) {
     ROB_INDEX_STACK.push(i);
   }
-
-  // queue<Instruction> instructions = get_instructions(config);
-  // cout << "\n\n";
-  // while (!instructions.empty()) {
-
-  // cout << "OP:    " << instructions.front().op << "\n";
-  //    cout << "rd:    " << instructions.front().rd << "\n";
-  //    cout << "rs1:   " << instructions.front().rs1 << "\n";
-  //    cout << "rs2:   " << instructions.front().rs2 << "\n";
-  // cout << "addr:  " << instructions.front().address << "\n";
-  //  cout << "btar:  " << instructions.front().is_branch << "\n\n";
-  // instructions.pop();
-  // }
-
   dynam_schedule(config);
 }
 
+// reads instructions line by line from stdin, stores them in a queue
 queue<Instruction> get_instructions(Config config) {
   string instruction;
   queue<Instruction> instruction_list;
   string rd;
   string rs1;
   string rs2;
-
   while (getline(cin, instruction)) {
     if (instruction.empty()) {
       continue;
     }
-
-    regex delimiters("[ ,():\\t]+");
-    vector<string> pi = {}; // pi = parsed instructions, but also not all the way parsed
+    regex delimiters("[ ,():\\t]+"); // regex parsing delimiters
+    vector<string> pi = {};          // pi = parsed instructions, but also not all the way parsed
     sregex_token_iterator it(instruction.begin(), instruction.end(), delimiters, -1);
     sregex_token_iterator end;
     while (it != end) {
@@ -210,9 +196,11 @@ queue<Instruction> get_instructions(Config config) {
       ++it;
     }
     // ARITHMETIC INSTRUCTION PARSED VECTOR FORMAT: [op, rd, rs1, rs2]
-    // LOAD INSTRUCTION PARSED VECTOR FORMAT:       [op, rd, 34, x1, address] (34 and x1 dont matter, they are just memory addresses so no hazards)
-    // STORE INSTRUCTION PARSED VECTOR FORMAT:      [op, rs2, 37, x1, address] (37 and x1 dont matter, they are just memory addresses so no hazards)
+    // LOAD INSTRUCTION PARSED VECTOR FORMAT:       [op, rd, 34, rs1, address] (34 doesnt matter, just a memory immediate offset so no hazards)
+    // STORE INSTRUCTION PARSED VECTOR FORMAT:      [op, rs1, 37, rs2, address] (37 doesnt matter, just a memory immediate offset so no hazards)
     // BRANCH INSTRUCTION PARSED VECTOR FORMAT:     [op, rs1, rs2, address]
+
+    // map of  instruction strings to corresponding enum type
     map<string, Ops> op_map_translator = {
         {"lw", LW},
         {"flw", FLW},
@@ -231,8 +219,8 @@ queue<Instruction> get_instructions(Config config) {
     int rs1 = -1;
     int rs2 = -1;
     int address = -1;
-    bool is_branch = false;
     int latency = 1;
+    // depending on op type, parse in different ways
     switch (op) {
     case LW:
     case FLW:
@@ -275,16 +263,14 @@ queue<Instruction> get_instructions(Config config) {
       break;
     case BEQ:
     case BNE:
-      is_branch = true;
       rs1 = register_parser(pi[1]);
       rs2 = register_parser(pi[2]);
-      // rd = register_parser(pi[3]);
       break;
     default:
       break;
     }
 
-    instruction_list.push(Instruction(op, rd, rs1, rs2, address, is_branch, latency, false, false, instruction));
+    instruction_list.push(Instruction(op, rd, rs1, rs2, address, latency, false, false, instruction));
   }
 
   return instruction_list;
@@ -298,24 +284,30 @@ void dynam_schedule(Config config) {
   cout << "--------------------- ------ -------- ------ ------ -------\n";
   queue<Instruction> instructions = get_instructions(config);
   pair<int, Ops> commit_val;               // checks if commit op was a store and what address was stored
-  bool load_mem_access;                    // checks if load mem access happened for res station freeing
   pair<vector<Ops>, bool> op_execute_done; // checks if store execution finished for res station freeing
+
+  // it seems backwards but you want to do the stages in reverse order to prevent an instruction from doing multiple
+  // stages in one cycle
   while (!instructions.empty() || !ROB.empty()) {
     commit_val = {-1, NULL_OP};
-    load_mem_access = false;
+
     op_execute_done = {{}, false};
+    // commit
     commit_val = commit(config, rats);
+    // write
     write_result(config, rats);
+    // if commit was not a store then we can do the mem read stage
     if (commit_val.second != FSW && commit_val.second != SW) {
-      load_mem_access = mem(config, rats);
+      mem(config, rats);
     } else {
       data_mem_delay_counter(true);
     }
+    // execute
     op_execute_done = execute(config, rats);
+    // issue next instruction
     issue(config, instructions, rats, res_stations);
-    if (load_mem_access) {
-      // res_stations.eff_addr_in_use -= 1;
-    }
+    // branch and store instructions leave the res stations at different times than other
+    // instruction types so it needs to be evicted here
     if (op_execute_done.second) {
       for (auto i : op_execute_done.first) {
         if (i == FSW || i == SW) {
@@ -339,12 +331,13 @@ void dynam_schedule(Config config) {
   cout << "data memory conflict delays: " << data_mem_conflict_delays /*- miscounted_delays*/ << "\n";
   cout << "true dependence delays: " << true_data_dependence_delays << "\n";
 }
-
+// regex instruction parsing
 int register_parser(string reg) {
   if (reg.empty()) return -1;
   return stoi(reg.substr(1));
 }
-
+// issue out the instruction, make sure there is room in both rob and reservation station.
+// check if rs1 or rs2 are currently in the ROB and if so mark them as not ready
 void issue(Config config, queue<Instruction> &instructions, RATs &RATs, ReservationStationUsage &res_station_use) {
   if (res_station_use.rob_in_use == config.reorder_buffer || instructions.empty()) {
     if (!instructions.empty()) {
@@ -370,11 +363,6 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       } else {
         inst.waiting_on_rs2 = false;
       }
-      // cout << "cycle: " << cycle << " - rats i [x1]: " << RATs.i_rat[1].rob_index << "\n";
-      // if (cycle == 25) {
-      //   cout << "waiting on rs1: " << inst.waiting_on_rs1;
-      //   cout << "\nwaiting on rs2: " << inst.waiting_on_rs2 << "\n";
-      // }
       ROB_index = ROB_INDEX_STACK.top();
       ROB_INDEX_STACK.pop();
       RATs.i_rat[inst.rd].rob_index = ROB_index;
@@ -448,13 +436,10 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
   case LW:
   case FLW:
     if (config.eff_addr_buffer > res_station_use.eff_addr_in_use) {
-
       if (RATs.i_rat[inst.rs1].rob_point) {
-        // cout << "waiting for rs1: " << inst.original_instruction << " cycle: " << cycle << "\n";
         inst.waiting_on_rs1 = true;
         inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
       } else {
-        // cout << "not waiting for rs1: " << RATs.i_rat[inst.rs1].rob_index << " cycle: " << cycle << "\n";
         inst.waiting_on_rs1 = false;
       }
       ROB_index = ROB_INDEX_STACK.top();
@@ -484,26 +469,6 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
   case SW:
   case FSW:
     if (config.eff_addr_buffer > res_station_use.eff_addr_in_use) {
-      // switch (inst.op) {
-      // case SW:
-      //   if (RATs.i_rat[inst.rs1].rob_point) {
-      //     inst.waiting_on_rs1 = true;
-      //     inst.rs1 = RATs.i_rat[inst.rs1].rob_index;
-      //   } else {
-      //     inst.waiting_on_rs1 = false;
-      //   }
-      //   break;
-      // case FSW:
-      //   if (RATs.f_rat[inst.rs1].rob_point) {
-      //     inst.waiting_on_rs1 = true;
-      //     inst.rs1 = RATs.f_rat[inst.rs1].rob_index;
-      //   } else {
-      //     inst.waiting_on_rs1 = false;
-      //   }
-      //   break;
-      // default:
-      //   break;
-      // }
       inst.waiting_on_rs1 = false;
       if (RATs.i_rat[inst.rs2].rob_point) {
         inst.waiting_on_rs2 = true;
@@ -518,8 +483,6 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
       set_reqs_in_ROB(inst.op, ROB_index);
       res_station_use.rob_in_use += 1;
       res_station_use.eff_addr_in_use += 1;
-      // store_addresses.push_back(inst.address);
-      //  cout << "push address " << inst.address << "\n";
       instructions.pop();
     } else {
       res_station_delays += 1;
@@ -559,24 +522,19 @@ void issue(Config config, queue<Instruction> &instructions, RATs &RATs, Reservat
     break;
   }
 }
-
+// go through all instructions yet to execute and check if the source registers are ready
 pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
   vector<Ops> ops_done_executing = {};
   bool res_station_bool = false;
   for (auto &rob_entry : ROB) {
-    // if (cycle == 34 /*&& rob_entry.op == ADD*/) {
-    //   cout << "instruction " << rob_entry.inst.original_instruction << "\n";
-    //   cout << "waiting on rs1 " << rob_entry.inst.waiting_on_rs1;
-    //   cout << "\nwaiting on rs2 " << rob_entry.inst.waiting_on_rs2 << "\n";
-    // }
     if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2 && !rob_entry.execute_started) {
-      // all source registers are ready and it hasnt been
+      // all source registers are ready and it hasnt started execution
       rob_entry.inst.execute_start = cycle;
       rob_entry.time_left -= 1;
       rob_entry.execute_started = true;
     } else if (!rob_entry.inst.waiting_on_rs1 && !rob_entry.inst.waiting_on_rs2) {
-      rob_entry.time_left -= 1;
-    } else {
+      rob_entry.time_left -= 1; // has started but isnt done yet
+    } else {                    // one of the source registers isnt ready yet and need to check if they arer
       if (rob_entry.inst.waiting_on_rs1) {
         if (check_if_rob_entry_wrote_rs_yet(rob_entry.inst.rs1, RATs, true)) {
           rob_entry.inst.waiting_on_rs1 = false;
@@ -595,7 +553,7 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
         true_data_dependence_delays += 1;
       }
     }
-
+    //if no time left then execution as ended
     if (rob_entry.time_left == 0) {
       rob_entry.executed = true;
       rob_entry.inst.execute_end = cycle;
@@ -613,10 +571,9 @@ pair<vector<Ops>, bool> execute(Config config, RATs &RATs) {
   }
   return {ops_done_executing, res_station_bool};
 }
-
+//find oldest ready load and send through mem read stage barring data mem hazards
 bool mem(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
-  int oldest_valid_load_issue = -1;
   int oldest_invalid_load_due_to_store = INT32_MAX;
   int issued = INT32_MAX;
   data_mem_delay_counter(false);
@@ -624,7 +581,6 @@ bool mem(Config config, RATs &RATs) {
     if (rob_entry.need_mem && rob_entry.executed) {
       if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle) && rob_entry.inst.issue_cycle < issued) {
         oldest_rob_id = rob_entry.rob_id;
-        oldest_valid_load_issue = rob_entry.inst.issue_cycle;
         issued = rob_entry.inst.issue_cycle;
       } else if (check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle) && rob_entry.inst.issue_cycle < oldest_invalid_load_due_to_store) {
         // cout << "BRUH";
@@ -655,7 +611,7 @@ bool mem(Config config, RATs &RATs) {
   }
   return false;
 }
-
+//write result to cdb and mark that its written 
 void write_result(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
   int issued = INT32_MAX;
@@ -723,7 +679,7 @@ void write_result(Config config, RATs &RATs) {
     }
   }
 }
-
+//commit the oldest operation and remove from rob. print out the timing cycles
 pair<int, Ops> commit(Config config, RATs &RATs) {
   int oldest_rob_id = -1;
   int issued = INT32_MAX;
@@ -753,7 +709,7 @@ pair<int, Ops> commit(Config config, RATs &RATs) {
   }
   return {address, NULL_OP};
 }
-
+//set params for specific instructions
 void set_reqs_in_ROB(Ops op, int rob_index) {
   for (auto &rob_entry : ROB) {
     if (rob_entry.rob_id == rob_index) {
@@ -775,12 +731,11 @@ void set_reqs_in_ROB(Ops op, int rob_index) {
     }
   }
 }
-
+//check if the instruction that another is waiting on has written yet
 bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1) {
   for (const auto &rob_entry : ROB) {
     if (rob_entry.rob_id == rob_id) {
       // If the ROB entry has finished its write-back then clear RAT mapping
-      // cout << "test " << cycle << "\n";
       if (rob_entry.wb_done && rob_entry.wb_cycle != cycle) {
         int rd = rob_entry.inst.rd;
         // Only clear RAT entries for instructions that actually write a destination
@@ -816,9 +771,8 @@ bool check_if_rob_entry_wrote_rs_yet(int rob_id, RATs &RATs, bool is_rs1) {
   // If we didn't find a matching ROB entry then treat as ready
   return true;
 }
-
+//print the instruction cycles and info
 void print_instruction_cycles(ROB_Entry rob_entry) {
-  int old_delay = true_data_dependence_delays;
   cout << setfill(' ') << setw(21) << left << rob_entry.inst.original_instruction << " ";
   cout << setfill(' ') << setw(6) << right << rob_entry.inst.issue_cycle << " ";
   cout << setfill(' ') << setw(3) << rob_entry.inst.execute_start << " -";
@@ -835,56 +789,25 @@ void print_instruction_cycles(ROB_Entry rob_entry) {
     cout << "       ";
   }
   cout << setfill(' ') << setw(7) << cycle << "\n";
-  // true_data_dependence_delays += ((rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1);
   if (rob_entry.inst.memory_read != -1) {
     // true_data_dependence_delays += (rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1; //something here
     // need to distinguish between the 2. data dependence was 83, should be 86. now its 93. the mem dependence is 7.
-    if (rob_entry.inst.memory_read - rob_entry.inst.execute_end != 1) {
-
-      // cout << "test dm:" << data_mem_conflict_delays << "---";
-    }
+   
   }
-  // if (old_delay != true_data_dependence_delays) {
-  //   // cout << "exe start: "  << rob_entry.inst.execute_start << " issue: " <<  rob_entry.inst.issue_cycle << "diff: " << (rob_entry.inst.execute_start - rob_entry.inst.issue_cycle) - 1;
-  //   cout << "--td:" << true_data_dependence_delays << "\n";
-  // } else {
-  //   cout << "\n";
-  // }
 
-  if (((rob_entry.inst.memory_read - rob_entry.inst.execute_end) - 1) != 0 && rob_entry.inst.memory_read != -1) {
-    // cout << "-" << data_mem_conflict_delays << "-";
-  }
-  // cout << "\n";
-}
-
-bool check_rat_for_register_ready(int reg, RATs &RATs, bool is_fp) {
-  if (is_fp) {
-    if (!RATs.f_rat[reg].rob_point && RATs.f_rat[reg].value_ready_cycle != cycle) {
-      return true;
-    } else {
-      return false;
-    }
-  } else {
-    if (!RATs.i_rat[reg].rob_point && RATs.i_rat[reg].value_ready_cycle != cycle) {
-      return true;
-    } else {
-      return false;
-    }
-  }
+ 
 }
 
 bool check_store_addresses(int address, int issue_cycle) { // true if store is using address, false otherwise
   for (auto rob_entry : ROB) {
     if (rob_entry.inst.address == address && (rob_entry.op == FSW || rob_entry.op == SW) && issue_cycle > rob_entry.inst.issue_cycle) {
       // addresses match, is a store instruction and the load comes after the store
-      // data_mem_conflict_delays+=1;
-      // cout << "HERE?" << rob_entry.inst.original_instruction <<"is blocking instruction issued at cycle: " << issue_cycle << " on cycle: " << cycle << "\n";
       return true;
     }
   }
   return false;
 }
-
+//loads cant go to mem stage if an older store hasnt executed yet ¯\_(ツ)_/¯ (for some reason)
 bool is_older_store(int issue_cycle) {
   for (auto rob_e : ROB) {
     if ((rob_e.op == SW || rob_e.op == FSW) && rob_e.inst.issue_cycle < issue_cycle && !rob_e.executed) {
@@ -895,59 +818,24 @@ bool is_older_store(int issue_cycle) {
   return false;
 }
 
-bool check_load_addresses(int address, int issue_cycle) {
-  for (auto rob_entry : ROB) {
-    // if load has matching address, was issued before, hasnt gone through the mem read stage but has executed
-    if (rob_entry.inst.address == address && (rob_entry.op == FLW || rob_entry.op == LW) && rob_entry.inst.issue_cycle < issue_cycle && rob_entry.need_mem && rob_entry.executed) {
-      return true;
-    }
-    return false;
-  }
-}
-
-bool was_a_load_ready_this_cycle(int address) {
-  // int issued = INT32_MAX;
-  bool return_val = false;
-  for (auto rob_entry : ROB) {
-    if (rob_entry.need_mem && rob_entry.executed && (rob_entry.inst.address != address)) { // load is ready for mem read
-      if (!check_store_addresses(rob_entry.inst.address, rob_entry.inst.issue_cycle)) {    // address not in store address
-        // cout << "cycle : " << cycle << "-- " << rob_entry.inst.address << "--";
-        // true_data_dependence_delays += 1;
-        // miscounted_delays += 1;
-        // cout << "GERE";
-        return_val = true;
-      } else {
-        // data_mem_conflict_delays += 1;
-      }
-    }
-  }
-  return return_val;
-}
-
+//counts the true dependencies 
 void true_data_dependency_load_counter() {
   map<int, int> load_addresses;  // cycle -> address
   map<int, int> store_addresses; // cycle -> address
-
-  // Collect loads and stores
   for (auto &rob_entry : ROB) {
     if ((rob_entry.op == FLW || rob_entry.op == LW) && rob_entry.need_mem && rob_entry.executed) {
       load_addresses[rob_entry.inst.issue_cycle] = rob_entry.inst.address;
     }
-
     if (rob_entry.op == SW || rob_entry.op == FSW) {
       store_addresses[rob_entry.inst.issue_cycle] = rob_entry.inst.address;
     }
   }
-
   if (load_addresses.empty() || store_addresses.empty()) {
     return;
   }
   for (auto &[load_cycle, load_addr] : load_addresses) {
-
     auto it = store_addresses.lower_bound(load_cycle);
     bool dependency_found = false;
-
-    //
     for (auto sit = store_addresses.begin(); sit != it; ++sit) {
       if (sit->second == load_addr) {
         dependency_found = true;
@@ -958,16 +846,11 @@ void true_data_dependency_load_counter() {
       true_data_dependence_delays++;
   }
 }
-
+// counts data memory delays
 void data_mem_delay_counter(bool was_store_committed) {
   int loads_ready_for_mem = 0;
   for (auto rob_entry : ROB) {
     if ((rob_entry.op == FLW || rob_entry.op == LW) && rob_entry.need_mem && rob_entry.executed) {
-      // if (was_store_committed) {
-      //   cout << "rob_entry issued: " << rob_entry.inst.issue_cycle << "\n";
-      //   data_mem_conflict_delays += 1;
-      //   return;
-      // }
       if (was_store_committed) {
         loads_ready_for_mem += 1;
       } else if (!check_if_load_is_waiting_on_store(rob_entry.inst.issue_cycle, rob_entry.inst.address)) {
@@ -976,10 +859,11 @@ void data_mem_delay_counter(bool was_store_committed) {
     }
   }
   if (loads_ready_for_mem >= 1 && was_store_committed) {
-    // cout << "store committed cycle " << cycle << " so adding " << loads_ready_for_mem << "\n";
     data_mem_conflict_delays += loads_ready_for_mem;
+    // cout << "adding " << loads_ready_for_mem << " conflict delays on cycle " << cycle << "\n";
   } else if (loads_ready_for_mem > 1) {
-    data_mem_conflict_delays += 1;
+    data_mem_conflict_delays += loads_ready_for_mem - 1;
+    // cout << "adding " << loads_ready_for_mem-1 << " conflict delays on cycle " << cycle << "\n";
   }
 }
 
@@ -996,11 +880,7 @@ bool check_if_load_is_waiting_on_store(int issue_cycle, int address) {
 }
 
 /*
-TODO:
-figure out speculative differences from non-speculative
-issue will check if a reservation station is available, if so, it will allocate it and update the RAT
-read jantz notes on speculation
-
+Really early psuedocode that i write on how i thought i should complete this. im leaving it since its pretty accurate
 issue:
 check for space in rob and res station, if either full stall
 set RATs.x_rat[rd].rob_id = first_open_rob_index (maybe want to have an instruction counter that can be used to find first instruction)
@@ -1038,9 +918,7 @@ load store address dependencies:
 if a load happens after a store, that store must be waiting to commit (ie done with executing)
 load will stall between execute and memory stage
 
-
-//add the stage cycles to the instruction and update them through the stages, once committed then print
-
+add the stage cycles to the instruction and update them through the stages, once committed then print
 
 maybe make a function that will just find the oldest load and then see if a store has the same address and is older for data mem conflicts - actually true dependence???????
 data mem seems to be when
