@@ -1,0 +1,27 @@
+﻿,Average Dot Prod Time (milliseconds), size = 32768
+Reg,0.0205,
+UR4,0.02016,
+AE4,0.005,
+SSE,0.01016,
+,,
+,,
+,Average Dot Prod Time (milliseconds), size = 65536
+Reg,0.0405,
+UR4,0.0405,
+AE4,0.0106,
+SSE,0.02033,
+,,
+,,
+,Average Dot Prod Time (milliseconds), size = 131072
+Reg,0.08133,
+UR4,0.08133,
+AE4,0.02016,
+SSE,0.0405,
+,,
+,,
+,,
+,Average Dot Prod Time (milliseconds), size = 262144
+Reg,0.16233,
+UR4,0.1625,
+AE4,0.04066,
+SSE,0.08183,
